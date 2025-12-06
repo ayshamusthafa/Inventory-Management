@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invento Mobile</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  :root {
+    --primary: #4361ee;
+    --primary-dark: #3a56d4;
+    --secondary: #7209b7;
+    --accent: #4cc9f0;
+    --light: #f8f9fa;
+    --dark: #212529;
+    --success: #4bb543;
+    --danger: #dc3545;
+    --warning: #ffc107;
+    --gray-100: #f8f9fa;
+    --gray-200: #e9ecef;
+    --gray-300: #dee2e6;
+    --gray-400: #ced4da;
+    --gray-500: #adb5bd;
+    --gray-600: #6c757d;
+    --gray-700: #495057;
+    --gray-800: #343a40;
+    --gray-900: #212529;
+    --border-radius: 12px;
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--light);
+    color: var(--gray-800);
+    line-height: 1.6;
+    height: 100vh;
+    overflow: hidden;
+    /* Prevent text selection */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  .app-container {
+    display: flex;
+    height: 100vh;
+    position: relative;
+  }
+
+  /* Full screen styles */
+  .app-container.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 10000;
+  }
+
+  /* Authentication state */
+  .app-container.unauthorized .sidebar,
+  .app-container.unauthorized .top-bar {
+    display: none !important;
+  }
+
+  .app-container.unauthorized .main-content {
+    width: 100%;
+  }
+
+  .app-container.unauthorized .iframe-container {
+    height: 100vh;
+  }
+
+  /* Block Modal */
+  .block-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10002;
+    display: none;
+  }
+
+  .block-modal.active {
+    display: flex;
+  }
+
+  .block-content {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    width: 90%;
+    max-width: 450px;
+    padding: 40px 30px;
+    text-align: center;
+    animation: modalFadeIn 0.3s ease;
+    border-left: 6px solid var(--danger);
+  }
+
+  .block-icon {
+    font-size: 64px;
+    color: var(--danger);
+    margin-bottom: 20px;
+  }
+
+  .block-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: var(--danger);
+  }
+
+  .block-message {
+    color: var(--gray-700);
+    margin-bottom: 25px;
+    line-height: 1.6;
+    font-size: 16px;
+  }
+
+  .block-timer {
+    font-size: 14px;
+    color: var(--gray-600);
+    margin-top: 15px;
+    font-weight: 500;
+  }
+
+  /* Sidebar Navigation */
+  .sidebar {
+    width: 260px;
+    background: white;
+    box-shadow: var(--box-shadow);
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    transition: var(--transition);
+    flex-shrink: 0;
+  }
+
+  .sidebar.collapsed {
+    width: 100px;
+  }
+
+  .sidebar.collapsed .nav-text,
+  .sidebar.collapsed .app-subtitle,
+  .sidebar.collapsed .logout-text {
+    display: none;
+  }
+
+  .sidebar.collapsed .app-title {
+    font-size: 14px;
+  }
+
+  .sidebar.collapsed .nav-item {
+    justify-content: center;
+    padding: 12px;
+  }
+
+  .sidebar.collapsed .nav-icon {
+    margin-right: 0;
+    font-size: 18px;
+  }
+
+  .app-header {
+    padding: 20px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white;
+    text-align: center;
+    position: relative;
+  }
+
+  .collapse-toggle {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+  }
+
+  .collapse-toggle:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  .sidebar.collapsed .collapse-toggle {
+    transform: rotate(180deg);
+  }
+
+  .app-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 5px;
+    transition: var(--transition);
+  }
+
+  .app-subtitle {
+    font-size: 12px;
+    opacity: 0.9;
+    transition: var(--transition);
+  }
+
+  .nav-menu {
+    flex: 1;
+    padding: 20px 0;
+    overflow-y: auto;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: var(--gray-700);
+    text-decoration: none;
+    transition: var(--transition);
+    border-left: 4px solid transparent;
+    white-space: nowrap;
+  }
+
+  .nav-item:hover {
+    background: var(--gray-100);
+    color: var(--primary);
+    border-left-color: var(--primary);
+  }
+
+  .nav-item.active {
+    background: rgba(67, 97, 238, 0.1);
+    color: var(--primary);
+    border-left-color: var(--primary);
+    font-weight: 500;
+  }
+
+  .nav-icon {
+    width: 24px;
+    text-align: center;
+    margin-right: 12px;
+    font-size: 16px;
+    flex-shrink: 0;
+    transition: var(--transition);
+  }
+
+  .nav-text {
+    font-size: 14px;
+    font-weight: 500;
+    transition: var(--transition);
+  }
+
+  .nav-footer {
+    padding: 20px;
+    border-top: 1px solid var(--gray-200);
+    margin-top: auto;
+  }
+
+  .logout-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--danger);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+  }
+
+  .logout-btn:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+  }
+
+  .logout-icon {
+    margin-right: 8px;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .logout-text {
+    transition: var(--transition);
+  }
+
+  /* Main Content Area */
+  .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--gray-100);
+    min-width: 0;
+    height: 100vh;
+    overflow: hidden;
+    transition: var(--transition);
+  }
+
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid var(--gray-200);
+    flex-shrink: 0;
+    z-index: 100;
+    transition: var(--transition);
+  }
+
+  .menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: var(--gray-700);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    transition: var(--transition);
+  }
+
+  .menu-toggle:hover {
+    background: var(--gray-100);
+    color: var(--primary);
+  }
+
+  .current-page {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--gray-800);
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .shop-badge {
+    background: var(--gray-100);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--gray-600);
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+  }
+
+  .shop-badge:hover {
+    background: var(--gray-200);
+  }
+
+  /* Context Menu for Logout */
+  .context-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 8px;
+    min-width: 150px;
+    z-index: 1000;
+    display: none;
+    margin-top: 5px;
+  }
+
+  .context-menu.active {
+    display: block;
+  }
+
+  .context-menu-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    color: var(--gray-700);
+    text-decoration: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 14px;
+  }
+
+  .context-menu-item:hover {
+    background: var(--gray-100);
+    color: var(--danger);
+  }
+
+  .context-menu-icon {
+    margin-right: 8px;
+    width: 16px;
+    text-align: center;
+  }
+
+  /* Full screen button */
+  .fullscreen-toggle {
+    background: none;
+    border: none;
+    color: var(--gray-600);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 4px;
+    transition: var(--transition);
+    font-size: 14px;
+  }
+
+  .fullscreen-toggle:hover {
+    background: var(--gray-100);
+    color: var(--primary);
+  }
+
+  /* Iframe Container */
+  .iframe-container {
+    flex: 1;
+    position: relative;
+    background: white;
+    min-height: 0;
+    overflow: hidden;
+    height: calc(100vh - 70px);
+    width: 100%;
+    transition: var(--transition);
+  }
+
+  .content-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: white;
+    display: block;
+    /* Security for iframe */
+    pointer-events: auto;
+  }
+
+  .iframe-wrapper {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    overflow-x: hidden;
+    position: relative;
+    transition: var(--transition);
+  }
+
+  .loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 10;
+  }
+
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--gray-200);
+    border-top: 4px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  .loading-text {
+    color: var(--gray-600);
+    font-size: 14px;
+  }
+
+  /* Security Warning */
+  .security-warning {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    color: white;
+    font-size: 18px;
+    text-align: center;
+    padding: 20px;
+    display: none;
+  }
+
+  .security-warning.active {
+    display: flex;
+  }
+
+  .warning-content {
+    background: var(--danger);
+    padding: 30px;
+    border-radius: var(--border-radius);
+    max-width: 400px;
+    box-shadow: var(--box-shadow);
+  }
+
+  .warning-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+  }
+
+  /* Iframe Overlay for Security */
+  .iframe-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: transparent;
+    z-index: 5;
+    display: none;
+  }
+
+  .iframe-overlay.active {
+    display: block;
+  }
+
+  /* Logout Confirmation Modal */
+  .logout-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    display: none;
+  }
+
+  .logout-modal.active {
+    display: flex;
+  }
+
+  .modal-content {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    width: 90%;
+    max-width: 400px;
+    padding: 30px;
+    text-align: center;
+    animation: modalFadeIn 0.3s ease;
+  }
+
+  .modal-icon {
+    font-size: 48px;
+    color: var(--danger);
+    margin-bottom: 20px;
+  }
+
+  .modal-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--gray-800);
+  }
+
+  .modal-message {
+    color: var(--gray-600);
+    margin-bottom: 25px;
+    line-height: 1.5;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+  }
+
+  .modal-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--border-radius);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    min-width: 100px;
+  }
+
+  .modal-btn-cancel {
+    background: var(--gray-200);
+    color: var(--gray-700);
+  }
+
+  .modal-btn-cancel:hover {
+    background: var(--gray-300);
+  }
+
+  .modal-btn-confirm {
+    background: var(--danger);
+    color: white;
+  }
+
+  .modal-btn-confirm:hover {
+    background: #c82333;
+  }
+
+  @keyframes modalFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 768px) {
+    .app-container {
+      flex-direction: column;
+    }
+
+    .sidebar {
+      position: absolute;
+      left: -260px;
+      top: 0;
+      bottom: 0;
+      width: 260px;
+      transition: var(--transition);
+    }
+
+    .sidebar.active {
+      left: 0;
+    }
+
+    .sidebar.collapsed {
+      width: 260px;
+    }
+
+    .menu-toggle {
+      display: block;
+    }
+
+    .main-content {
+      width: 100%;
+    }
+
+    .collapse-toggle {
+      display: none;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+      display: none;
+    }
+
+    .overlay.active {
+      display: block;
+    }
+
+    .iframe-container {
+      height: calc(100vh - 70px);
+    }
+
+    .context-menu {
+      right: 10px;
+    }
+
+    .modal-actions {
+      flex-direction: column;
+    }
+  }
+
+  /* Scrollbar Styling */
+  .nav-menu::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .nav-menu::-webkit-scrollbar-track {
+    background: var(--gray-100);
+  }
+
+  .nav-menu::-webkit-scrollbar-thumb {
+    background: var(--gray-400);
+    border-radius: 2px;
+  }
+
+  .nav-menu::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-500);
+  }
+
+  .iframe-wrapper::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .iframe-wrapper::-webkit-scrollbar-track {
+    background: var(--gray-100);
+  }
+
+  .iframe-wrapper::-webkit-scrollbar-thumb {
+    background: var(--gray-400);
+    border-radius: 4px;
+  }
+
+  .iframe-wrapper::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-500);
+  }
+
+  html, body {
+    overflow: hidden;
+    height: 100%;
+  }
+</style>
+</head>
+<body>
+<div class="app-container" id="appContainer">
+  <!-- Block Modal -->
+  <div class="block-modal" id="blockModal">
+    <div class="block-content">
+      <div class="block-icon">
+        <i class="fas fa-ban"></i>
+      </div>
+      <div class="block-title">Account Blocked</div>
+      <div class="block-message">
+        Your account has been temporarily blocked for security reasons. 
+        Please contact your administrator for assistance.
+      </div>
+      <div class="block-timer" id="blockTimer">
+        Redirecting to login in <span id="countdown">5</span> seconds...
+      </div>
+    </div>
+  </div>
+
+  <!-- Security Warning -->
+  <div class="security-warning" id="securityWarning">
+    <div class="warning-content">
+      <div class="warning-icon">
+        <i class="fas fa-shield-alt"></i>
+      </div>
+      <h3>Security Violation Detected</h3>
+      <p>Copying content is not permitted in the application.</p>
+      <button id="closeWarning" style="margin-top: 20px; padding: 10px 20px; background: white; color: var(--danger); border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
+        Close
+      </button>
+    </div>
+  </div>
+
+  <!-- Logout Confirmation Modal -->
+  <div class="logout-modal" id="logoutModal">
+    <div class="modal-content">
+      <div class="modal-icon">
+        <i class="fas fa-sign-out-alt"></i>
+      </div>
+      <div class="modal-title">Confirm Logout</div>
+      <div class="modal-message">Are you sure you want to logout from the application?</div>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-cancel" id="cancelLogout">Cancel</button>
+        <button class="modal-btn modal-btn-confirm" id="confirmLogout">Confirm Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar Navigation -->
+  <div class="sidebar" id="sidebar">
+    <div class="app-header">
+      <button class="collapse-toggle" id="collapseToggle">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <div class="app-title" id="welcomeTitle">Welcome</div>
+      <div class="app-subtitle">Invento Mobile</div>
+    </div>
+
+    <div class="nav-menu">
+      <a href="Dashboard.html" class="nav-item active" data-page="Dashboard">
+        <div class="nav-icon"><i class="fas fa-tachometer-alt"></i></div>
+        <div class="nav-text">Dashboard</div>
+      </a>
+      
+      <a href="Add User.html" class="nav-item" data-page="Add Users">
+        <div class="nav-icon"><i class="fas fa-user-plus"></i></div>
+        <div class="nav-text">Add Users</div>
+      </a>
+      
+      <a href="costomer.html" class="nav-item" data-page="Add Customer">
+        <div class="nav-icon"><i class="fas fa-users"></i></div>
+        <div class="nav-text">Add Customer</div>
+      </a>
+      
+      <a href="costomer dash.html" class="nav-item" data-page="Loyalty Programme">
+        <div class="nav-icon"><i class="fas fa-award"></i></div>
+        <div class="nav-text">Loyalty Programme</div>
+      </a>
+      
+      <a href="Inv.html" class="nav-item" data-page="Add Inventory">
+        <div class="nav-icon"><i class="fas fa-boxes"></i></div>
+        <div class="nav-text">Add Inventory</div>
+      </a>
+      
+      <!-- NEW PURCHASE HISTORY MENU ITEM -->
+      <a href="https://inventomobile.netlify.app/app/purchase" class="nav-item" data-page="Purchase History">
+        <div class="nav-icon"><i class="fas fa-history"></i></div>
+        <div class="nav-text">Purchase History</div>
+      </a>
+      
+      <a href="invdash.html" class="nav-item" data-page="Inventory Report">
+        <div class="nav-icon"><i class="fas fa-chart-bar"></i></div>
+        <div class="nav-text">Inventory Report</div>
+      </a>
+      
+      <a href="Addsale.html" class="nav-item" data-page="Add Sale">
+        <div class="nav-icon"><i class="fas fa-cash-register"></i></div>
+        <div class="nav-text">Add Sale</div>
+      </a>
+      
+      <a href="salesdash.html" class="nav-item" data-page="Sales Report">
+        <div class="nav-icon"><i class="fas fa-chart-line"></i></div>
+        <div class="nav-text">Sales Report</div>
+      </a>
+      
+      <a href="invoice.html" class="nav-item" data-page="Invoice Search">
+        <div class="nav-icon"><i class="fas fa-receipt"></i></div>
+        <div class="nav-text">Invoice Search</div>
+      </a>
+    </div>
+
+    <div class="nav-footer">
+      <button class="logout-btn" id="logoutBtn">
+        <div class="logout-icon"><i class="fas fa-sign-out-alt"></i></div>
+        <div class="logout-text">Logout</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- Overlay for mobile -->
+  <div class="overlay" id="overlay"></div>
+
+  <!-- Main Content Area -->
+  <div class="main-content">
+    <div class="top-bar">
+      <button class="menu-toggle" id="menuToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="current-page" id="currentPage">Dashboard</div>
+      <div class="user-info">
+        <button class="fullscreen-toggle" id="fullscreenToggle" title="Toggle Fullscreen">
+          <i class="fas fa-compress"></i>
+        </button>
+        <div class="shop-badge" id="shopBadge">
+          Shop: Loading...
+          <!-- Context Menu for Logout -->
+          <div class="context-menu" id="contextMenu">
+            <div class="context-menu-item" id="contextLogout">
+              <div class="context-menu-icon">
+                <i class="fas fa-sign-out-alt"></i>
+              </div>
+              Logout
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="iframe-container">
+      <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading Dashboard...</div>
+      </div>
+      <div class="iframe-wrapper" id="iframeWrapper">
+        <!-- Security overlay for iframe -->
+        <div class="iframe-overlay" id="iframeOverlay"></div>
+        <iframe 
+          src="Dashboard.html" 
+          class="content-frame" 
+          id="contentFrame"
+          onload="hideLoading()"
+          scrolling="yes"
+          style="width: 100%; height: 100%; border: none;"
+          allow="fullscreen"
+          sandbox="allow-same-origin allow-forms allow-scripts allow-popups allow-popups-to-escape-sandbox">
+        </iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Get elements
+const sidebar = document.getElementById('sidebar');
+const menuToggle = document.getElementById('menuToggle');
+const overlay = document.getElementById('overlay');
+const navItems = document.querySelectorAll('.nav-item');
+const currentPage = document.getElementById('currentPage');
+const contentFrame = document.getElementById('contentFrame');
+const loadingOverlay = document.getElementById('loadingOverlay');
+const logoutBtn = document.getElementById('logoutBtn');
+const shopBadge = document.getElementById('shopBadge');
+const collapseToggle = document.getElementById('collapseToggle');
+const welcomeTitle = document.getElementById('welcomeTitle');
+const fullscreenToggle = document.getElementById('fullscreenToggle');
+const appContainer = document.getElementById('appContainer');
+const contextMenu = document.getElementById('contextMenu');
+const contextLogout = document.getElementById('contextLogout');
+const iframeWrapper = document.getElementById('iframeWrapper');
+const securityWarning = document.getElementById('securityWarning');
+const closeWarning = document.getElementById('closeWarning');
+const iframeOverlay = document.getElementById('iframeOverlay');
+
+// Block Modal elements
+const blockModal = document.getElementById('blockModal');
+const blockTimer = document.getElementById('countdown');
+
+// Logout Modal elements
+const logoutModal = document.getElementById('logoutModal');
+const cancelLogout = document.getElementById('cancelLogout');
+const confirmLogout = document.getElementById('confirmLogout');
+
+// API Configuration
+const BASEROW_API_KEY = 'jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw';
+const BASEROW_TABLE_ID = '729979';
+const BASEROW_API_URL = `https://api.baserow.io/api/database/rows/table/${BASEROW_TABLE_ID}/?user_field_names=true`;
+
+// Background check interval
+let blockCheckInterval = null;
+
+// Authentication check
+function checkAuthentication() {
+  const shopIDTag = localStorage.getItem('ShopIDTag');
+  const nameTag = localStorage.getItem('NameTag');
+  const shopTag = localStorage.getItem('ShopTag');
+  const mobileTag = localStorage.getItem('MobileTag');
+  
+  if (!shopIDTag || !nameTag || !shopTag || !mobileTag) {
+    // User is not authenticated - redirect to login page
+    console.log('User not authenticated, redirecting to login');
+    window.location.href = 'login.html';
+    return false;
+  }
+  
+  // User is authenticated
+  console.log('User authenticated');
+  appContainer.classList.remove('unauthorized');
+  sidebar.style.display = 'flex';
+  
+  // Start background block check
+  startBlockCheck();
+  
+  return true;
+}
+
+// Initialize authentication check on page load
+window.addEventListener('DOMContentLoaded', () => {
+  const isAuthenticated = checkAuthentication();
+  
+  if (isAuthenticated) {
+    // Only proceed with normal initialization if authenticated
+    updateUserInterface();
+  }
+});
+
+// Update UI with user information
+function updateUserInterface() {
+  const nameTag = localStorage.getItem('NameTag');
+  const shopTag = localStorage.getItem('ShopTag');
+  
+  // Update welcome title with user's name
+  if (nameTag) {
+    welcomeTitle.textContent = `Welcome, ${nameTag}`;
+  } else {
+    welcomeTitle.textContent = 'Welcome';
+  }
+
+  // Update shop badge
+  if (shopTag) {
+    const shopParts = shopTag.split('-');
+    const shopName = shopParts[0] || 'Shop';
+    shopBadge.innerHTML = `Shop: ${shopName}`;
+  }
+}
+
+// Background block check function
+async function checkUserBlockStatus() {
+  try {
+    const mobileTag = localStorage.getItem('MobileTag');
+    const shopIDTag = localStorage.getItem('ShopIDTag');
+    
+    if (!mobileTag || !shopIDTag) {
+      console.log('Missing user data in localStorage');
+      return;
+    }
+    
+    // Fetch user data from Baserow
+    const response = await fetch(BASEROW_API_URL, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Token ${BASEROW_API_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Find user with matching mobile number and shop ID
+    const user = data.results.find(user => 
+      user.Username === mobileTag && user.ShopID === shopIDTag
+    );
+    
+    if (user) {
+      console.log('User found in database:', user);
+      
+      // Check if user is blocked
+      if (user.Block === true) {
+        console.log('User is blocked, showing block modal');
+        showBlockModal();
+        return true;
+      } else {
+        console.log('User is not blocked');
+        return false;
+      }
+    } else {
+      console.log('User not found in database');
+      // User not found in database, block access
+      showBlockModal();
+      return true;
+    }
+  } catch (error) {
+    console.error('Error checking user block status:', error);
+    // In case of error, don't block the user to avoid false positives
+    return false;
+  }
+}
+
+// Start background block check
+function startBlockCheck() {
+  // Run immediately
+  checkUserBlockStatus();
+  
+  // Then run every second
+  blockCheckInterval = setInterval(async () => {
+    const isBlocked = await checkUserBlockStatus();
+    if (isBlocked) {
+      // Stop checking if user is blocked
+      clearInterval(blockCheckInterval);
+    }
+  }, 30000);
+}
+
+// Show block modal and redirect
+function showBlockModal() {
+  // Hide all navigation and sidebar
+  sidebar.style.display = 'none';
+  document.querySelector('.top-bar').style.display = 'none';
+  document.querySelector('.main-content').style.display = 'none';
+  
+  // Show block modal
+  blockModal.classList.add('active');
+  
+  // Clear localStorage
+  localStorage.clear();
+  
+  // Start countdown for redirect
+  let countdown = 5;
+  const countdownElement = document.getElementById('countdown');
+  
+  const countdownInterval = setInterval(() => {
+    countdown--;
+    countdownElement.textContent = countdown;
+    
+    if (countdown <= 0) {
+      clearInterval(countdownInterval);
+      redirectToLogin();
+    }
+  }, 1000);
+}
+
+// Redirect to login page
+function redirectToLogin() {
+  window.location.href = 'login.html';
+}
+
+// Listen for authentication changes from iframe (login success)
+window.addEventListener('message', function(event) {
+  // Check if the message is from a trusted source (optional)
+  // if (event.origin !== "https://your-trusted-domain.com") return;
+  
+  if (event.data && event.data.type === 'LOGIN_SUCCESS') {
+    console.log('Login successful, updating UI');
+    
+    // Update localStorage with user data
+    if (event.data.userData) {
+      localStorage.setItem('NameTag', event.data.userData.name || 'User');
+      localStorage.setItem('ShopIDTag', event.data.userData.shopId || '');
+      localStorage.setItem('ShopTag', event.data.userData.shop || 'Shop');
+      localStorage.setItem('MobileTag', event.data.userData.mobile || '');
+    }
+    
+    // Re-check authentication
+    const isAuthenticated = checkAuthentication();
+    
+    if (isAuthenticated) {
+      // Update UI
+      updateUserInterface();
+      
+      // Redirect to dashboard
+      contentFrame.src = 'Dashboard.html';
+      currentPage.textContent = 'Dashboard';
+      
+      // Update active nav item
+      navItems.forEach(nav => nav.classList.remove('active'));
+      navItems[0].classList.add('active');
+    }
+  }
+});
+
+// Security restrictions for main window - ONLY COPY RESTRICTION
+document.addEventListener('copy', (e) => {
+  e.preventDefault();
+  showSecurityWarning('Copying content is disabled');
+});
+
+// Security warning function
+function showSecurityWarning(message) {
+  const warningText = securityWarning.querySelector('p');
+  if (warningText) {
+    warningText.textContent = message;
+  }
+  securityWarning.classList.add('active');
+}
+
+closeWarning.addEventListener('click', () => {
+  securityWarning.classList.remove('active');
+});
+
+// Security for iframe content - ONLY COPY RESTRICTION
+function applyIframeSecurity() {
+  try {
+    const iframeDoc = contentFrame.contentDocument || contentFrame.contentWindow.document;
+    const iframeWindow = contentFrame.contentWindow;
+    
+    if (iframeDoc && iframeWindow) {
+      // Apply copy restriction to iframe document
+      iframeDoc.addEventListener('copy', (e) => {
+        e.preventDefault();
+        showSecurityWarning('Copying content is disabled');
+      });
+      
+      // Apply CSS to prevent text selection in iframe
+      iframeDoc.body.style.userSelect = 'none';
+      iframeDoc.body.style.webkitUserSelect = 'none';
+      iframeDoc.body.style.mozUserSelect = 'none';
+      iframeDoc.body.style.msUserSelect = 'none';
+    }
+  } catch (e) {
+    // Cross-origin iframe - use overlay method
+    console.log('Cross-origin iframe detected, using overlay security');
+    iframeOverlay.classList.add('active');
+  }
+}
+
+// Fullscreen functionality
+function enterFullscreen() {
+  if (!document.fullscreenElement) {
+    if (appContainer.requestFullscreen) {
+      appContainer.requestFullscreen();
+    } else if (appContainer.webkitRequestFullscreen) {
+      appContainer.webkitRequestFullscreen();
+    } else if (appContainer.msRequestFullscreen) {
+      appContainer.msRequestFullscreen();
+    }
+    appContainer.classList.add('fullscreen');
+    fullscreenToggle.innerHTML = '<i class="fas fa-compress"></i>';
+  }
+}
+
+function exitFullscreen() {
+  if (document.exitFullscreen) {
+    document.exitFullscreen();
+  } else if (document.webkitExitFullscreen) {
+    document.webkitExitFullscreen();
+  } else if (document.msExitFullscreen) {
+    document.msExitFullscreen();
+  }
+  appContainer.classList.remove('fullscreen');
+  fullscreenToggle.innerHTML = '<i class="fas fa-expand"></i>';
+}
+
+fullscreenToggle.addEventListener('click', () => {
+  if (!document.fullscreenElement) {
+    enterFullscreen();
+  } else {
+    exitFullscreen();
+  }
+});
+
+// Handle fullscreen change events
+document.addEventListener('fullscreenchange', handleFullscreenChange);
+document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+document.addEventListener('msfullscreenchange', handleFullscreenChange);
+
+function handleFullscreenChange() {
+  if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+    appContainer.classList.remove('fullscreen');
+    fullscreenToggle.innerHTML = '<i class="fas fa-expand"></i>';
+  } else {
+    fullscreenToggle.innerHTML = '<i class="fas fa-compress"></i>';
+  }
+}
+
+// Toggle sidebar on mobile
+menuToggle.addEventListener('click', () => {
+  sidebar.classList.toggle('active');
+  overlay.classList.toggle('active');
+});
+
+// Close sidebar when clicking overlay
+overlay.addEventListener('click', () => {
+  sidebar.classList.remove('active');
+  overlay.classList.remove('active');
+});
+
+// Collapse sidebar on desktop
+collapseToggle.addEventListener('click', () => {
+  sidebar.classList.toggle('collapsed');
+});
+
+// Context menu for logout
+shopBadge.addEventListener('click', (e) => {
+  e.stopPropagation();
+  contextMenu.classList.toggle('active');
+});
+
+// Close context menu when clicking elsewhere
+document.addEventListener('click', (e) => {
+  if (!shopBadge.contains(e.target)) {
+    contextMenu.classList.remove('active');
+  }
+});
+
+// Context menu logout functionality
+contextLogout.addEventListener('click', () => {
+  showLogoutModal();
+});
+
+// Navigation handling - only if authenticated
+navItems.forEach(item => {
+  item.addEventListener('click', (e) => {
+    // Check authentication before navigation
+    if (!checkAuthentication()) {
+      e.preventDefault();
+      return;
+    }
+    
+    e.preventDefault();
+    
+    const pageUrl = item.getAttribute('href');
+    const pageName = item.getAttribute('data-page');
+    
+    // Show loading
+    showLoading();
+    
+    // Update active state
+    navItems.forEach(nav => nav.classList.remove('active'));
+    item.classList.add('active');
+    
+    // Update current page
+    currentPage.textContent = pageName;
+    
+    // Load content in iframe
+    contentFrame.src = pageUrl;
+    
+    // Close sidebar on mobile
+    if (window.innerWidth <= 768) {
+      sidebar.classList.remove('active');
+      overlay.classList.remove('active');
+    }
+    
+    // Close context menu
+    contextMenu.classList.remove('active');
+  });
+});
+
+// Loading functions
+function showLoading() {
+  loadingOverlay.style.display = 'flex';
+}
+
+function hideLoading() {
+  loadingOverlay.style.display = 'none';
+  
+  setTimeout(() => {
+    try {
+      const iframeDoc = contentFrame.contentDocument || contentFrame.contentWindow.document;
+      if (iframeDoc && iframeDoc.body) {
+        // Ensure iframe content is scrollable
+        iframeDoc.body.style.overflow = 'auto';
+        iframeDoc.body.style.overflowX = 'hidden';
+        iframeDoc.body.style.maxWidth = '100%';
+        iframeDoc.body.style.boxSizing = 'border-box';
+        
+        const allElements = iframeDoc.querySelectorAll('*');
+        allElements.forEach(el => {
+          el.style.boxSizing = 'border-box';
+          el.style.maxWidth = '100%';
+        });
+        
+        const tables = iframeDoc.querySelectorAll('table');
+        tables.forEach(table => {
+          table.style.maxWidth = '100%';
+          table.style.overflowX = 'auto';
+          table.style.display = 'block';
+        });
+        
+        // Apply security to iframe content
+        applyIframeSecurity();
+      }
+    } catch (e) {
+      // Cross-origin iframe
+      forceIframeScroll();
+      iframeOverlay.classList.add('active');
+    }
+  }, 500);
+}
+
+function forceIframeScroll() {
+  // Ensure iframe wrapper is scrollable
+  iframeWrapper.style.overflow = 'auto';
+  iframeWrapper.style.overflowX = 'hidden';
+  iframeWrapper.style.overflowY = 'auto';
+  
+  // Ensure iframe itself is scrollable
+  contentFrame.style.overflow = 'auto';
+  contentFrame.style.overflowX = 'hidden';
+  contentFrame.style.maxWidth = '100%';
+}
+
+// Logout Modal Functions
+function showLogoutModal() {
+  logoutModal.classList.add('active');
+  // Close context menu if open
+  contextMenu.classList.remove('active');
+}
+
+function hideLogoutModal() {
+  logoutModal.classList.remove('active');
+}
+
+// Logout functionality
+function performLogout() {
+  // Clear all localStorage data
+  localStorage.clear();
+  
+  // Stop block check interval
+  if (blockCheckInterval) {
+    clearInterval(blockCheckInterval);
+  }
+  
+  // Hide the modal
+  hideLogoutModal();
+  
+  // Redirect to login page
+  window.location.href = 'login.html';
+}
+
+// Logout button event listeners
+logoutBtn.addEventListener('click', showLogoutModal);
+cancelLogout.addEventListener('click', hideLogoutModal);
+confirmLogout.addEventListener('click', performLogout);
+
+// Close modal when clicking outside
+logoutModal.addEventListener('click', (e) => {
+  if (e.target === logoutModal) {
+    hideLogoutModal();
+  }
+});
+
+// Handle iframe loading events
+contentFrame.addEventListener('load', () => {
+  hideLoading();
+  
+  setTimeout(() => {
+    forceIframeScroll();
+  }, 1000);
+});
+
+contentFrame.addEventListener('error', () => {
+  hideLoading();
+  loadingOverlay.innerHTML = `
+    <div style="text-align: center;">
+      <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: var(--danger); margin-bottom: 15px;"></i>
+      <div class="loading-text">Failed to load page</div>
+      <button onclick="retryLoading()" style="margin-top: 15px; padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer;">Retry</button>
+    </div>
+  `;
+  loadingOverlay.style.display = 'flex';
+});
+
+function retryLoading() {
+  const activeNav = document.querySelector('.nav-item.active');
+  if (activeNav) {
+    showLoading();
+    contentFrame.src = activeNav.getAttribute('href');
+  }
+}
+
+// Ensure proper height calculation
+function updateIframeHeight() {
+  const iframeContainer = document.querySelector('.iframe-container');
+  const topBar = document.querySelector('.top-bar');
+  const topBarHeight = topBar.offsetHeight;
+  
+  iframeContainer.style.height = `calc(100vh - ${topBarHeight}px)`;
+}
+
+// Initial setup
+window.addEventListener('DOMContentLoaded', () => {
+  updateIframeHeight();
+  forceIframeScroll();
+});
+
+window.addEventListener('resize', updateIframeHeight);
+
+// Auto-hide loading after 10 seconds (fallback)
+setTimeout(hideLoading, 10000);
+</script>
+</body>
+</html>

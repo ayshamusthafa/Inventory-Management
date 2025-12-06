@@ -1,0 +1,2858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add Product & Inventory</title>
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+/* All CSS remains the same as previous version */
+:root {
+  --primary: #4361ee;
+  --primary-dark: #3a56d4;
+  --success: #06d6a0;
+  --danger: #ef476f;
+  --warning: #ffd166;
+  --dark: #333;
+  --light: #f8f9fa;
+  --gray: #6c757d;
+  --border: #dee2e6;
+  --border-radius: 12px;
+  --shadow: 0 4px 20px rgba(0,0,0,0.08);
+  --transition: all 0.3s ease;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body { 
+  font-family: 'Poppins', sans-serif; 
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  margin: 0; 
+  padding: 20px;
+  min-height: 100vh;
+  color: var(--dark);
+}
+
+.container { 
+  max-width: 1200px; 
+  margin: auto; 
+  background: white; 
+  padding: 30px; 
+  border-radius: var(--border-radius); 
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+
+.container:hover {
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+}
+
+h2 { 
+  text-align: center; 
+  color: var(--primary);
+  margin-bottom: 25px;
+  font-weight: 600;
+  position: relative;
+  padding-bottom: 15px;
+}
+
+h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: var(--primary);
+  border-radius: 2px;
+}
+
+.form-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+label { 
+  display: block; 
+  margin-bottom: 8px; 
+  font-weight: 500;
+  color: var(--dark);
+}
+
+input, select, button, textarea { 
+  width: 100%; 
+  padding: 14px 16px; 
+  margin: 8px 0; 
+  border-radius: var(--border-radius); 
+  border: 2px solid var(--border);
+  font-family: 'Poppins', sans-serif;
+  font-size: 15px;
+  transition: var(--transition);
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+}
+
+input:invalid, select:invalid, textarea:invalid {
+  border-color: var(--danger);
+}
+
+input:valid, select:valid, textarea:valid {
+  border-color: var(--success);
+}
+
+button { 
+  background: var(--primary); 
+  color: white; 
+  border: none; 
+  font-weight: 600; 
+  cursor: pointer;
+  transition: var(--transition);
+  padding: 15px;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+}
+
+button:hover { 
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(67, 97, 238, 0.25);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+button:disabled { 
+  background: var(--gray); 
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+#cameraContainer { 
+  display: none; 
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 100%; 
+  background: rgba(0,0,0,0.9); 
+  z-index: 9999;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#reader { 
+  width: 90%; 
+  max-width: 500px;
+  height: 60%; 
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: 0 0 30px rgba(255,255,255,0.1);
+}
+
+#switchCameraBtn, #closeCameraBtn { 
+  position: relative;
+  margin: 20px 10px 0;
+  background: white; 
+  color: var(--dark); 
+  border: none; 
+  padding: 12px 24px; 
+  border-radius: var(--border-radius); 
+  font-weight: 600; 
+  cursor: pointer; 
+  transition: var(--transition);
+  width: auto;
+}
+
+#switchCameraBtn:hover, #closeCameraBtn:hover {
+  background: var(--primary);
+  color: white;
+  transform: translateY(-2px);
+}
+
+#buttonsRow { 
+  display: flex; 
+  gap: 10px; 
+  align-items: stretch;
+}
+
+#buttonsRow input {
+  margin: 0;
+}
+
+#buttonsRow button {
+  width: auto;
+  min-width: 100px;
+  margin: 0;
+  padding: 12px 16px;
+}
+
+#fetchBtn {
+  background: var(--success);
+}
+
+#fetchBtn:hover {
+  background: #05c290;
+}
+
+#scanBtn {
+  background: var(--warning);
+  color: var(--dark);
+}
+
+#scanBtn:hover {
+  background: #ffc94d;
+}
+
+#searchBtn {
+  background: #8a2be2;
+}
+
+#searchBtn:hover {
+  background: #7b1fa2;
+}
+
+#status {
+  display: none;
+}
+
+#loginPrompt {
+  color: var(--danger);
+  display: none;
+  padding: 12px 16px;
+  background: rgba(239, 71, 111, 0.1);
+  border-radius: var(--border-radius);
+  margin-bottom: 20px;
+  border-left: 4px solid var(--danger);
+  font-weight: 500;
+}
+
+.error-message {
+  color: var(--danger);
+  font-size: 13px;
+  margin-top: 5px;
+  display: none;
+}
+
+.success-message {
+  color: var(--success);
+  font-size: 13px;
+  margin-top: 5px;
+  display: none;
+}
+
+.field-required::after {
+  content: " *";
+  color: var(--danger);
+}
+
+.price-container {
+  position: relative;
+}
+
+.rupee-symbol {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--dark);
+  z-index: 1;
+}
+
+.price-input {
+  padding-left: 35px !important;
+}
+
+.expire-date-container {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.expire-date-input {
+  flex: 1;
+}
+
+.quick-expire-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 14px;
+  cursor: pointer;
+  transition: var(--transition);
+  width: auto;
+  min-width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quick-expire-btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+.expire-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+}
+
+.expire-modal-content {
+  background-color: white;
+  padding: 30px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  max-width: 500px;
+  width: 90%;
+  animation: modalFadeIn 0.3s;
+}
+
+.expire-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.expire-modal-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.close-expire-modal {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--gray);
+  width: auto;
+  padding: 0;
+  margin: 0;
+}
+
+.period-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.period-btn {
+  flex: 1;
+  min-width: 100px;
+  background: var(--light);
+  color: var(--dark);
+  border: 2px solid var(--border);
+  border-radius: var(--border-radius);
+  padding: 12px;
+  cursor: pointer;
+  transition: var(--transition);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.period-btn:hover {
+  background: #e9ecef;
+}
+
+.period-btn.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.slider-container {
+  margin: 25px 0;
+}
+
+.slider-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.slider-label {
+  font-weight: 500;
+  color: var(--dark);
+}
+
+.slider-value {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.slider {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--border);
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.slider::-webkit-slider-thumb:hover {
+  background: var(--primary-dark);
+  transform: scale(1.1);
+}
+
+.slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  border: none;
+}
+
+.expire-result {
+  background: rgba(67, 97, 238, 0.1);
+  padding: 15px;
+  border-radius: var(--border-radius);
+  margin: 20px 0;
+  text-align: center;
+  font-weight: 500;
+}
+
+.expire-result-date {
+  color: var(--primary);
+  font-weight: 600;
+  margin-top: 5px;
+}
+
+.expire-modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.expire-modal-btn {
+  width: auto;
+  min-width: 100px;
+  padding: 12px 20px;
+}
+
+.expire-modal-cancel {
+  background: var(--gray);
+}
+
+.expire-modal-cancel:hover {
+  background: #5a6268;
+}
+
+.expire-modal-apply {
+  background: var(--success);
+}
+
+.expire-modal-apply:hover {
+  background: #05c290;
+}
+
+.search-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+}
+
+.search-modal-content {
+  background-color: white;
+  padding: 30px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: modalFadeIn 0.3s;
+}
+
+.search-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.search-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.close-search {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--gray);
+  width: auto;
+  padding: 0;
+  margin: 0;
+}
+
+.search-input-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.search-input {
+  flex: 1;
+}
+
+.search-button {
+  width: auto;
+  min-width: 100px;
+  margin: 0;
+}
+
+.search-results {
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.search-result-item {
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.search-result-item:hover {
+  background-color: rgba(67, 97, 238, 0.05);
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.product-id {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.product-name {
+  color: var(--dark);
+  margin-top: 5px;
+}
+
+.product-price {
+  color: var(--success);
+  font-weight: 500;
+  margin-top: 3px;
+}
+
+.product-price::before {
+  content: "₹ ";
+}
+
+.no-results {
+  padding: 20px;
+  text-align: center;
+  color: var(--gray);
+}
+
+.shop-info {
+  display: none !important;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 30px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  animation: modalFadeIn 0.3s;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+}
+
+.modal-success .modal-icon {
+  color: var(--success);
+}
+
+.modal-warning .modal-icon {
+  color: var(--warning);
+}
+
+.modal-error .modal-icon {
+  color: var(--danger);
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.modal-message {
+  margin-bottom: 20px;
+  color: var(--dark);
+}
+
+.modal-button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  width: auto;
+  margin: 0 auto;
+}
+
+.modal-button:hover {
+  background: var(--primary-dark);
+}
+
+.purchase-price-container {
+  position: relative;
+}
+
+.tax-options {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.tax-option {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
+  flex: 1;
+}
+
+.tax-option:hover {
+  background-color: rgba(67, 97, 238, 0.05);
+}
+
+.tax-option.selected {
+  background-color: rgba(67, 97, 238, 0.1);
+  border-color: var(--primary);
+}
+
+.tax-option input {
+  margin: 0;
+  width: auto;
+}
+
+.tax-option label {
+  margin: 0;
+  cursor: pointer;
+  font-weight: normal;
+}
+
+.tax-input-container {
+  display: none;
+  margin-top: 8px;
+}
+
+.tax-input-container.show {
+  display: block;
+}
+
+.tax-breakdown {
+  display: none;
+  margin-top: 10px;
+  padding: 12px;
+  background-color: rgba(67, 97, 238, 0.05);
+  border-radius: var(--border-radius);
+  border-left: 4px solid var(--primary);
+}
+
+.tax-breakdown.show {
+  display: block;
+}
+
+.tax-breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.tax-breakdown-row:last-child {
+  margin-bottom: 0;
+  font-weight: 600;
+  border-top: 1px solid var(--border);
+  padding-top: 5px;
+}
+
+.tax-breakdown-label {
+  color: var(--dark);
+}
+
+.tax-breakdown-value {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.margin-display {
+  margin-top: 8px;
+  padding: 10px;
+  background-color: rgba(6, 214, 160, 0.1);
+  border-radius: var(--border-radius);
+  border-left: 4px solid var(--success);
+  font-weight: 500;
+}
+
+.margin-display .margin-value {
+  font-weight: 600;
+  color: var(--success);
+}
+
+.margin-display .margin-percentage {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.supplier-section {
+  background-color: rgba(67, 97, 238, 0.05);
+  padding: 20px;
+  border-radius: var(--border-radius);
+  margin-bottom: 20px;
+  border-left: 4px solid var(--primary);
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-title i {
+  font-size: 20px;
+}
+
+.supplier-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.supplier-actions button {
+  width: auto;
+  min-width: 150px;
+}
+
+#addAnotherProductBtn {
+  background: var(--success);
+}
+
+#addAnotherProductBtn:hover {
+  background: #05c290;
+}
+
+#finishPurchaseBtn {
+  background: #8a2be2;
+}
+
+#finishPurchaseBtn:hover {
+  background: #7b1fa2;
+}
+
+.products-list {
+  margin-top: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+.products-list-header {
+  background-color: var(--primary);
+  color: white;
+  padding: 12px 15px;
+  font-weight: 600;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+.products-list-body {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.product-item {
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.product-item:last-child {
+  border-bottom: none;
+}
+
+.product-item:hover {
+  background-color: rgba(67, 97, 238, 0.05);
+}
+
+.product-item-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.product-item-actions button {
+  width: auto;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.edit-product-btn {
+  background: var(--warning);
+  color: var(--dark);
+}
+
+.edit-product-btn:hover {
+  background: #ffc94d;
+}
+
+.remove-product-btn {
+  background: var(--danger);
+}
+
+.remove-product-btn:hover {
+  background: #e0355f;
+}
+
+.no-products {
+  padding: 20px;
+  text-align: center;
+  color: var(--gray);
+  font-style: italic;
+}
+
+.purchase-summary {
+  background-color: rgba(67, 97, 238, 0.05);
+  padding: 20px;
+  border-radius: var(--border-radius);
+  margin-top: 20px;
+  border-left: 4px solid var(--success);
+}
+
+.summary-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--success);
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.summary-item {
+  background: white;
+  padding: 15px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.summary-label {
+  font-size: 14px;
+  color: var(--gray);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.summary-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.summary-value.total-invoice {
+  color: var(--success);
+  font-size: 22px;
+}
+
+.summary-breakdown {
+  background: white;
+  padding: 15px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+}
+
+.breakdown-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--dark);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.breakdown-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.breakdown-item:last-child {
+  border-bottom: none;
+  font-weight: 600;
+  color: var(--success);
+  font-size: 16px;
+}
+
+.breakdown-label {
+  color: var(--dark);
+}
+
+.breakdown-value {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.supplier-selection-container {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.supplier-select-group {
+  flex: 1;
+}
+
+.supplier-refresh-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 14px;
+  cursor: pointer;
+  transition: var(--transition);
+  width: auto;
+  min-width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.supplier-refresh-btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+.supplier-details-panel {
+  background: rgba(67, 97, 238, 0.05);
+  padding: 15px;
+  border-radius: var(--border-radius);
+  margin-top: 10px;
+  border-left: 4px solid var(--primary);
+  display: none;
+}
+
+.supplier-details-panel.show {
+  display: block;
+}
+
+.supplier-detail-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.supplier-detail-row:last-child {
+  margin-bottom: 0;
+}
+
+.supplier-detail-label {
+  color: var(--dark);
+  font-weight: 500;
+}
+
+.supplier-detail-value {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.new-supplier-btn {
+  background: var(--success);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 14px;
+  cursor: pointer;
+  transition: var(--transition);
+  width: auto;
+  min-width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.new-supplier-btn:hover {
+  background: #05c290;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 20px;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  #buttonsRow {
+    flex-direction: column;
+  }
+  
+  #buttonsRow button {
+    width: 100%;
+  }
+  
+  .search-input-group {
+    flex-direction: column;
+  }
+  
+  .search-button {
+    width: 100%;
+  }
+  
+  .search-modal-content {
+    padding: 20px;
+  }
+  
+  .expire-modal-content {
+    padding: 20px;
+  }
+  
+  .period-buttons {
+    flex-direction: column;
+  }
+  
+  .period-btn {
+    min-width: auto;
+  }
+  
+  .tax-options {
+    flex-direction: column;
+  }
+  
+  .supplier-actions {
+    flex-direction: column;
+  }
+  
+  .products-list-header, .product-item {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+  
+  .products-list-header {
+    display: none;
+  }
+  
+  .product-item {
+    padding: 15px;
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius);
+    margin-bottom: 10px;
+  }
+  
+  .summary-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .supplier-selection-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .supplier-refresh-btn, .new-supplier-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 10px;
+  }
+  
+  .container {
+    padding: 15px;
+  }
+  
+  input, select, button, textarea {
+    padding: 12px 14px;
+  }
+  
+  #reader {
+    height: 50%;
+  }
+  
+  .price-input {
+    padding-left: 32px !important;
+  }
+  
+  .rupee-symbol {
+    left: 14px;
+    font-size: 16px;
+  }
+}
+
+@media (min-width: 769px) {
+  .form-row {
+    flex-wrap: wrap;
+  }
+  
+  .form-group {
+    min-width: calc(50% - 10px);
+  }
+  
+  .full-width {
+    flex: 0 0 100%;
+  }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div id="status" class="status-message"></div>
+  <div id="loginPrompt" class="error-message">Please login first</div>
+  
+  <div id="app" style="display:none;">
+    
+    <!-- Shop info section is hidden but still present for functionality -->
+    <div class="shop-info">
+      Current Shop: <span id="currentShop">Loading...</span>
+    </div>
+    
+    <!-- Supplier Section -->
+    <div class="supplier-section">
+      <div class="section-title">
+        <i class="fas fa-truck"></i> Supplier Information
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="supplierSelection" class="field-required">Select Supplier:</label>
+          <div class="supplier-selection-container">
+            <div class="supplier-select-group">
+              <select id="supplierSelection" required>
+                <option value="">Loading suppliers...</option>
+              </select>
+              <div id="supplierSelectionError" class="error-message"></div>
+            </div>
+            <button id="refreshSuppliersBtn" class="supplier-refresh-btn" title="Refresh Suppliers">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+            <button id="newSupplierBtn" class="new-supplier-btn" title="Add New Supplier">
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
+          
+          <!-- Supplier Details Panel -->
+          <div class="supplier-details-panel" id="supplierDetailsPanel">
+            <div class="supplier-detail-row">
+              <span class="supplier-detail-label">Supplier ID:</span>
+              <span class="supplier-detail-value" id="selectedSupplierId">-</span>
+            </div>
+            <div class="supplier-detail-row">
+              <span class="supplier-detail-label">Supplier Name:</span>
+              <span class="supplier-detail-value" id="selectedSupplierName">-</span>
+            </div>
+            <div class="supplier-detail-row">
+              <span class="supplier-detail-label">Details:</span>
+              <span class="supplier-detail-value" id="selectedSupplierDetails">-</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="supplierName">Or Add New Supplier:</label>
+          <input type="text" id="supplierName" placeholder="Enter new supplier name">
+          <div id="supplierNameError" class="error-message"></div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="supplierDetails">Supplier Details:</label>
+          <textarea id="supplierDetails" placeholder="Supplier address, contact info, etc."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="purchaseInvoice" class="field-required">Purchase Invoice No:</label>
+          <input type="text" id="purchaseInvoice" placeholder="Invoice number (required)" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="purchaseDate" class="field-required">Purchase Date:</label>
+          <input type="date" id="purchaseDate" required>
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Information Section -->
+    <div class="section-title">
+      <i class="fas fa-box"></i> Product Information
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label for="productType" class="field-required">Product Type:</label>
+        <select id="productType" required>
+          <option value="existing">Existing Product</option>
+          <option value="new">New Product</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="productId" class="field-required">Product ID:</label>
+        <div id="buttonsRow">
+          <input type="text" id="productId" placeholder="Enter or Scan Product ID" required>
+          <button id="fetchBtn">Fetch</button>
+          <button id="scanBtn">Scan</button>
+          <button id="searchBtn">Search</button>
+        </div>
+        <div id="productIdError" class="error-message"></div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="productName" class="field-required">Product Name:</label>
+        <input type="text" id="productName" required>
+        <div id="productNameError" class="error-message"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="price" class="field-required">Selling Price:</label>
+        <div class="price-container">
+          <span class="rupee-symbol">₹</span>
+          <input type="number" id="price" class="price-input" min="0" step="0.01" placeholder="0.00" required>
+        </div>
+        <div id="priceError" class="error-message"></div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="purchasePrice" class="field-required">Purchase Price:</label>
+        <div class="purchase-price-container">
+          <span class="rupee-symbol">₹</span>
+          <input type="number" id="purchasePrice" class="price-input" min="0" step="0.01" placeholder="0.00" required>
+        </div>
+        <div id="purchasePriceError" class="error-message"></div>
+        
+        <!-- Tax Breakdown -->
+        <div class="tax-breakdown" id="taxBreakdown">
+          <div class="tax-breakdown-row">
+            <span class="tax-breakdown-label">Price without Tax:</span>
+            <span class="tax-breakdown-value" id="priceWithoutTax">₹ 0.00</span>
+          </div>
+          <div class="tax-breakdown-row">
+            <span class="tax-breakdown-label">Tax Amount:</span>
+            <span class="tax-breakdown-value" id="taxAmount">₹ 0.00</span>
+          </div>
+          <div class="tax-breakdown-row">
+            <span class="tax-breakdown-label">Total Purchase Price:</span>
+            <span class="tax-breakdown-value" id="totalWithTax">₹ 0.00</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Tax Included:</label>
+        <div class="tax-options">
+          <div class="tax-option" id="taxYesOption">
+            <input type="radio" id="taxYes" name="taxIncluded" value="yes">
+            <label for="taxYes">Yes</label>
+          </div>
+          <div class="tax-option" id="taxNoOption">
+            <input type="radio" id="taxNo" name="taxIncluded" value="no" checked>
+            <label for="taxNo">No</label>
+          </div>
+        </div>
+        
+        <div class="tax-input-container" id="taxInputContainer">
+          <label for="taxPercentage">GST Percentage:</label>
+          <select id="taxPercentage">
+            <option value="0">0%</option>
+            <option value="5">5%</option>
+            <option value="12">12%</option>
+            <option value="18">18%</option>
+            <option value="28">28%</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <div class="margin-display" id="marginDisplay">
+          Margin: <span class="margin-value">₹ 0.00</span> (<span class="margin-percentage">0%</span>)
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group full-width">
+        <label for="details">Product Details:</label>
+        <textarea id="details"></textarea>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="count" class="field-required">Count:</label>
+        <input type="number" id="count" min="1" required>
+        <div id="countError" class="error-message"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="batchNo" class="field-required">Batch No:</label>
+        <input type="text" id="batchNo" pattern="[0-9]+" title="Batch number should contain only numbers" required readonly>
+        <div id="batchNoError" class="error-message"></div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="expireDate" class="field-required">Expire Date:</label>
+        <div class="expire-date-container">
+          <input type="date" id="expireDate" class="expire-date-input" required>
+          <button id="quickExpireBtn" class="quick-expire-btn" title="Quick Set Expiry">
+            <i class="fas fa-bolt"></i>
+          </button>
+        </div>
+        <div id="expireDateError" class="error-message"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="date" class="field-required">Date Added:</label>
+        <input type="text" id="date" readonly required>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group full-width">
+        <label for="location" class="field-required">Location:</label>
+        <input type="text" id="location" required>
+        <div id="locationError" class="error-message"></div>
+      </div>
+    </div>
+
+    <div class="supplier-actions">
+      <button id="addProductToListBtn">Add Product to List</button>
+      <button id="addAnotherProductBtn">Add Another Product</button>
+      <button id="finishPurchaseBtn">Finish & Upload Purchase</button>
+    </div>
+
+    <!-- Products List Section -->
+    <div class="section-title">
+      <i class="fas fa-list"></i> Products in Current Purchase
+    </div>
+    
+    <div class="products-list">
+      <div class="products-list-header">
+        <div>Product ID</div>
+        <div>Product Name</div>
+        <div>Batch No</div>
+        <div>Count</div>
+        <div>Purchase Price</div>
+        <div>Selling Price</div>
+        <div>Actions</div>
+      </div>
+      <div class="products-list-body" id="productsListBody">
+        <div class="no-products">No products added yet</div>
+      </div>
+    </div>
+
+    <!-- Purchase Summary Section -->
+    <div class="purchase-summary" id="purchaseSummary" style="display: none;">
+      <div class="summary-title">
+        <i class="fas fa-file-invoice-dollar"></i> Purchase Summary
+      </div>
+      
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="summary-label">Total Price (Excl. Tax)</div>
+          <div class="summary-value" id="totalPriceExclTax">₹ 0.00</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Total Tax Amount</div>
+          <div class="summary-value" id="totalTaxAmount">₹ 0.00</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Total Invoice Value</div>
+          <div class="summary-value total-invoice" id="totalInvoiceValue">₹ 0.00</div>
+        </div>
+      </div>
+      
+      <div class="summary-breakdown">
+        <div class="breakdown-title">
+          <i class="fas fa-receipt"></i> Tax Breakdown
+        </div>
+        <div id="taxBreakdownDetails">
+          <!-- Tax breakdown will be populated here -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Camera Popup -->
+<div id="cameraContainer">
+  <div id="reader"></div>
+  <button id="switchCameraBtn">Switch Camera</button>
+  <button id="closeCameraBtn">Close</button>
+</div>
+
+<!-- Expire Date Modal -->
+<div id="expireModal" class="expire-modal">
+  <div class="expire-modal-content">
+    <div class="expire-modal-header">
+      <div class="expire-modal-title">Quick Set Expiry Date</div>
+      <button class="close-expire-modal">&times;</button>
+    </div>
+    
+    <div class="period-buttons">
+      <button class="period-btn" data-period="days">
+        <i class="fas fa-calendar-day"></i> Days
+      </button>
+      <button class="period-btn" data-period="weeks">
+        <i class="fas fa-calendar-week"></i> Weeks
+      </button>
+      <button class="period-btn" data-period="months">
+        <i class="fas fa-calendar-alt"></i> Months
+      </button>
+      <button class="period-btn" data-period="years">
+        <i class="fas fa-calendar"></i> Years
+      </button>
+    </div>
+    
+    <div class="slider-container">
+      <div class="slider-header">
+        <span class="slider-label">Duration:</span>
+        <span class="slider-value" id="sliderValue">1</span>
+      </div>
+      <input type="range" min="1" max="31" value="1" class="slider" id="durationSlider">
+    </div>
+    
+    <div class="expire-result">
+      <div>Expiry Date:</div>
+      <div class="expire-result-date" id="expireResultDate">Calculating...</div>
+    </div>
+    
+    <div class="expire-modal-actions">
+      <button class="expire-modal-btn expire-modal-cancel">Cancel</button>
+      <button class="expire-modal-btn expire-modal-apply">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- Search Modal -->
+<div id="searchModal" class="search-modal">
+  <div class="search-modal-content">
+    <div class="search-header">
+      <div class="search-title">Search Products</div>
+      <button class="close-search">&times;</button>
+    </div>
+    <!-- Hidden shop info in search modal -->
+    <div class="shop-info">
+      Showing products for: <span id="searchShopInfo">Loading...</span>
+    </div>
+    <div class="search-input-group">
+      <input type="text" id="searchInput" class="search-input" placeholder="Search by Product ID or Name">
+      <button id="searchProductsBtn" class="search-button">Search</button>
+    </div>
+    <div id="searchResults" class="search-results">
+      <div class="no-results">Enter a search term to find products</div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for alerts -->
+<div id="modal" class="modal">
+  <div class="modal-content" id="modalContent">
+    <div class="modal-icon" id="modalIcon"></div>
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-message" id="modalMessage"></div>
+    <button class="modal-button" id="modalButton">OK</button>
+  </div>
+</div>
+
+<script>
+// Table IDs and Field Names Configuration
+const API_KEY = "jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw";
+const BASEROW = "https://api.baserow.io";
+
+// Table IDs
+const USER_TABLE = 729979;
+const PRODUCT_TABLE = 734793;
+const INVENTORY_TABLE = 734795;
+const SUPPLIER_TABLE = 744412;
+const TRANSACTION_TABLE = 745465;
+
+// Field Names Configuration - ADDED REMARK FIELD
+const FIELD_NAMES = {
+  // User Table Fields
+  USER: {
+    USERNAME: "Username",
+    ROLE: "Role",
+    SHOP_ID: "ShopID"
+  },
+  
+  // Product Table Fields
+  PRODUCT: {
+    PRODUCT_ID: "Product ID",
+    PRODUCT_NAME: "Product Name",
+    DETAILS: "Details",
+    PRICE: "Price",
+    PURCHASE_PRICE: "Purchase Price",
+    TAX_INCLUDED: "Tax Included",
+    TAX_PERCENTAGE: "Tax Percentage",
+    SHOP_ID: "ShopID"
+  },
+  
+  // Inventory Table Fields
+  INVENTORY: {
+    PRODUCT_ID: "Product ID",
+    PRODUCT_NAME: "Product Name",
+    COUNT: "Count",
+    BATCH_NO: "Batch No",
+    EXPIRE_DATE: "Expire Date",
+    DATE: "Date",
+    LOCATION: "Location",
+    PURCHASE_PRICE: "Purchase Price",
+    TAX_INCLUDED: "Tax Included",
+    TAX_PERCENTAGE: "Tax Percentage",
+    SUPPLIER_ID: "Supplier ID",
+    SHOP_ID: "ShopID"
+  },
+  
+  // Supplier Table Fields
+  SUPPLIER: {
+    SUPPLIER_ID: "Supplier ID",
+    SUPPLIER_NAME: "Supplier Name",
+    SUPPLIER_DETAILS: "Supplier Details",
+    SHOP_ID: "ShopID"
+  },
+  
+  // Transaction Table Fields - ADDED REMARK FIELD
+  TRANSACTION: {
+    SUPPLIER_ID: "Supplier ID",
+    SUPPLIER_NAME: "Supplier Name",
+    TRANSACTION_TYPE: "Transaction Type",
+    INVOICE_NUMBER: "Invoice Number",
+    TOTAL_INVOICE_VALUE: "Total Invoice Value",
+    DATE: "Date",
+    SHOP_ID: "ShopID",
+    REMARK: "Remark" // NEW: Added Remark field for product details
+  }
+};
+
+const MobileTag = localStorage.getItem("MobileTag");
+const ShopID = localStorage.getItem("ShopIDTag") || "Unknown";
+
+const app = document.getElementById("app");
+const status = document.getElementById("status");
+const addProductToListBtn = document.getElementById("addProductToListBtn");
+const addAnotherProductBtn = document.getElementById("addAnotherProductBtn");
+const finishPurchaseBtn = document.getElementById("finishPurchaseBtn");
+const scanBtn = document.getElementById("scanBtn");
+const fetchBtn = document.getElementById("fetchBtn");
+const searchBtn = document.getElementById("searchBtn");
+const productIdInput = document.getElementById("productId");
+const productType = document.getElementById("productType");
+const dateInput = document.getElementById("date");
+const currentShopElement = document.getElementById("currentShop");
+const searchShopInfo = document.getElementById("searchShopInfo");
+const productsListBody = document.getElementById("productsListBody");
+const purchaseSummary = document.getElementById("purchaseSummary");
+
+// Supplier elements
+const supplierSelection = document.getElementById("supplierSelection");
+const refreshSuppliersBtn = document.getElementById("refreshSuppliersBtn");
+const newSupplierBtn = document.getElementById("newSupplierBtn");
+const supplierDetailsPanel = document.getElementById("supplierDetailsPanel");
+const selectedSupplierId = document.getElementById("selectedSupplierId");
+const selectedSupplierName = document.getElementById("selectedSupplierName");
+const selectedSupplierDetails = document.getElementById("selectedSupplierDetails");
+const supplierNameInput = document.getElementById("supplierName");
+const supplierDetailsInput = document.getElementById("supplierDetails");
+const purchaseInvoiceInput = document.getElementById("purchaseInvoice");
+const purchaseDateInput = document.getElementById("purchaseDate");
+
+const readerContainer = document.getElementById("cameraContainer");
+const modal = document.getElementById("modal");
+const modalContent = document.getElementById("modalContent");
+const modalIcon = document.getElementById("modalIcon");
+const modalTitle = document.getElementById("modalTitle");
+const modalMessage = document.getElementById("modalMessage");
+const modalButton = document.getElementById("modalButton");
+
+const searchModal = document.getElementById("searchModal");
+const searchInput = document.getElementById("searchInput");
+const searchProductsBtn = document.getElementById("searchProductsBtn");
+const searchResults = document.getElementById("searchResults");
+const closeSearch = document.querySelector(".close-search");
+
+// Expire date modal elements
+const expireModal = document.getElementById("expireModal");
+const quickExpireBtn = document.getElementById("quickExpireBtn");
+const closeExpireModal = document.querySelector(".close-expire-modal");
+const periodButtons = document.querySelectorAll(".period-btn");
+const durationSlider = document.getElementById("durationSlider");
+const sliderValue = document.getElementById("sliderValue");
+const expireResultDate = document.getElementById("expireResultDate");
+const expireModalCancel = document.querySelector(".expire-modal-cancel");
+const expireModalApply = document.querySelector(".expire-modal-apply");
+
+// New elements for purchase price, tax and margin
+const purchasePriceInput = document.getElementById("purchasePrice");
+const priceInput = document.getElementById("price");
+const taxYesOption = document.getElementById("taxYesOption");
+const taxNoOption = document.getElementById("taxNoOption");
+const taxInputContainer = document.getElementById("taxInputContainer");
+const taxPercentageSelect = document.getElementById("taxPercentage");
+const marginDisplay = document.getElementById("marginDisplay");
+const batchNoInput = document.getElementById("batchNo");
+
+// Tax breakdown elements
+const taxBreakdown = document.getElementById("taxBreakdown");
+const priceWithoutTaxElement = document.getElementById("priceWithoutTax");
+const taxAmountElement = document.getElementById("taxAmount");
+const totalWithTaxElement = document.getElementById("totalWithTax");
+
+// Purchase summary elements
+const totalPriceExclTaxElement = document.getElementById("totalPriceExclTax");
+const totalTaxAmountElement = document.getElementById("totalTaxAmount");
+const totalInvoiceValueElement = document.getElementById("totalInvoiceValue");
+const taxBreakdownDetails = document.getElementById("taxBreakdownDetails");
+
+let html5QrCode;
+let currentCamera = "environment";
+let allProducts = [];
+let allSuppliers = [];
+let selectedPeriod = "days";
+let selectedDuration = 1;
+let batchNumbers = {};
+let productsInPurchase = [];
+let currentSupplierId = null;
+let totalInvoiceValue = 0;
+
+// Set default dates
+dateInput.value = new Date().toISOString().split('T')[0];
+purchaseDateInput.value = new Date().toISOString().split('T')[0];
+
+// Update shop information
+currentShopElement.textContent = ShopID;
+searchShopInfo.textContent = ShopID;
+
+// Track if we're adding a new product
+let isNewProduct = false;
+
+// Fetch suppliers from the supplier table
+async function fetchSuppliers() {
+  try {
+    supplierSelection.innerHTML = '<option value="">Loading suppliers...</option>';
+    
+    const res = await fetch(`${BASEROW}/api/database/rows/table/${SUPPLIER_TABLE}/?user_field_names=true&filters={"filter_type":"AND","filters":[{"field":"${FIELD_NAMES.SUPPLIER.SHOP_ID}","type":"contains","value":"${ShopID}"}]}`, {
+      headers: { Authorization: `Token ${API_KEY}` }
+    });
+    
+    if (!res.ok) {
+      throw new Error(`API error: ${res.status}`);
+    }
+    
+    const data = await res.json();
+    allSuppliers = data.results;
+    
+    if (allSuppliers.length === 0) {
+      supplierSelection.innerHTML = '<option value="">No suppliers found</option>';
+      showModal("info", "No Suppliers", "No suppliers found for your shop. Please add a new supplier.");
+      return;
+    }
+    
+    // Populate the supplier dropdown with Supplier ID
+    let optionsHTML = '<option value="">Select a supplier</option>';
+    allSuppliers.forEach(supplier => {
+      const supplierId = supplier[FIELD_NAMES.SUPPLIER.SUPPLIER_ID] || 'No ID';
+      const supplierName = supplier[FIELD_NAMES.SUPPLIER.SUPPLIER_NAME] || 'Unnamed Supplier';
+      
+      // Display both Supplier ID and Name in dropdown
+      const displayText = `${supplierId} - ${supplierName}`;
+      
+      optionsHTML += `<option value="${supplier.id}" data-supplier='${JSON.stringify(supplier)}'>${displayText}</option>`;
+    });
+    
+    supplierSelection.innerHTML = optionsHTML;
+    
+  } catch (error) {
+    console.error("Error fetching suppliers:", error);
+    supplierSelection.innerHTML = '<option value="">Error loading suppliers</option>';
+    showModal("error", "Error", "Failed to load suppliers. Please try again.");
+  }
+}
+
+// Update supplier details panel when a supplier is selected
+function updateSupplierDetailsPanel(supplierId) {
+  const selectedOption = supplierSelection.querySelector(`option[value="${supplierId}"]`);
+  
+  if (!selectedOption || !selectedOption.dataset.supplier) {
+    supplierDetailsPanel.classList.remove('show');
+    return;
+  }
+  
+  const supplier = JSON.parse(selectedOption.dataset.supplier);
+  
+  // Update the details panel with Supplier ID
+  selectedSupplierId.textContent = supplier[FIELD_NAMES.SUPPLIER.SUPPLIER_ID] || '-';
+  selectedSupplierName.textContent = supplier[FIELD_NAMES.SUPPLIER.SUPPLIER_NAME] || '-';
+  selectedSupplierDetails.textContent = supplier[FIELD_NAMES.SUPPLIER.SUPPLIER_DETAILS] || 'No details available';
+  
+  // Auto-fill the new supplier name field
+  supplierNameInput.value = supplier[FIELD_NAMES.SUPPLIER.SUPPLIER_NAME] || '';
+  supplierDetailsInput.value = supplier[FIELD_NAMES.SUPPLIER.SUPPLIER_DETAILS] || '';
+  
+  // Show the details panel
+  supplierDetailsPanel.classList.add('show');
+  
+  // Store the current supplier ID
+  currentSupplierId = supplierId;
+}
+
+// Reset supplier form for new supplier
+function resetSupplierForm() {
+  supplierSelection.value = "";
+  supplierNameInput.value = "";
+  supplierDetailsInput.value = "";
+  supplierDetailsPanel.classList.remove('show');
+  currentSupplierId = null;
+}
+
+// Calculate and display expiry date
+function calculateExpiryDate() {
+  const today = new Date();
+  const resultDate = new Date(today);
+  
+  switch(selectedPeriod) {
+    case "days":
+      resultDate.setDate(today.getDate() + selectedDuration);
+      break;
+    case "weeks":
+      resultDate.setDate(today.getDate() + (selectedDuration * 7));
+      break;
+    case "months":
+      resultDate.setMonth(today.getMonth() + selectedDuration);
+      break;
+    case "years":
+      resultDate.setFullYear(today.getFullYear() + selectedDuration);
+      break;
+  }
+  
+  const formattedDate = resultDate.toISOString().split('T')[0];
+  expireResultDate.textContent = formattedDate;
+  
+  return formattedDate;
+}
+
+// Calculate and display margin
+function calculateMargin() {
+  const purchasePrice = parseFloat(purchasePriceInput.value) || 0;
+  const sellingPrice = parseFloat(priceInput.value) || 0;
+  
+  if (purchasePrice <= 0 || sellingPrice <= 0) {
+    marginDisplay.innerHTML = 'Margin: <span class="margin-value">₹ 0.00</span> (<span class="margin-percentage">0%</span>)';
+    return;
+  }
+  
+  const marginValue = sellingPrice - purchasePrice;
+  const marginPercentage = ((marginValue / purchasePrice) * 100).toFixed(2);
+  
+  marginDisplay.innerHTML = `Margin: <span class="margin-value">₹ ${marginValue.toFixed(2)}</span> (<span class="margin-percentage">${marginPercentage}%</span>)`;
+}
+
+// Calculate and display tax breakdown
+function calculateTaxBreakdown() {
+  const purchasePrice = parseFloat(purchasePriceInput.value) || 0;
+  const taxPercentage = parseFloat(taxPercentageSelect.value) || 0;
+  
+  if (taxPercentage > 0 && document.getElementById("taxYes").checked) {
+    taxBreakdown.classList.add('show');
+    
+    const priceWithoutTax = purchasePrice / (1 + (taxPercentage / 100));
+    const taxAmount = purchasePrice - priceWithoutTax;
+    
+    priceWithoutTaxElement.textContent = `₹ ${priceWithoutTax.toFixed(2)}`;
+    taxAmountElement.textContent = `₹ ${taxAmount.toFixed(2)} (${taxPercentage}%)`;
+    totalWithTaxElement.textContent = `₹ ${purchasePrice.toFixed(2)}`;
+  } else {
+    taxBreakdown.classList.remove('show');
+  }
+}
+
+// Calculate purchase totals for the entire purchase
+function calculatePurchaseTotals() {
+  if (productsInPurchase.length === 0) {
+    purchaseSummary.style.display = 'none';
+    totalInvoiceValue = 0;
+    return;
+  }
+  
+  let totalPriceExclTax = 0;
+  let totalTaxAmount = 0;
+  totalInvoiceValue = 0;
+  
+  const taxGroups = {};
+  
+  productsInPurchase.forEach(product => {
+    const productTotalPrice = product.purchasePrice * product.count;
+    
+    if (product.taxIncluded === "Yes" && parseFloat(product.taxPercentage) > 0) {
+      const taxPercentage = parseFloat(product.taxPercentage);
+      const priceWithoutTax = productTotalPrice / (1 + (taxPercentage / 100));
+      const taxAmount = productTotalPrice - priceWithoutTax;
+      
+      totalPriceExclTax += priceWithoutTax;
+      totalTaxAmount += taxAmount;
+      
+      if (!taxGroups[taxPercentage]) {
+        taxGroups[taxPercentage] = 0;
+      }
+      taxGroups[taxPercentage] += taxAmount;
+    } else {
+      totalPriceExclTax += productTotalPrice;
+    }
+    
+    totalInvoiceValue += productTotalPrice;
+  });
+  
+  totalPriceExclTaxElement.textContent = `₹ ${totalPriceExclTax.toFixed(2)}`;
+  totalTaxAmountElement.textContent = `₹ ${totalTaxAmount.toFixed(2)}`;
+  totalInvoiceValueElement.textContent = `₹ ${totalInvoiceValue.toFixed(2)}`;
+  
+  let breakdownHTML = '';
+  
+  if (Object.keys(taxGroups).length > 0) {
+    Object.keys(taxGroups).sort((a, b) => parseFloat(b) - parseFloat(a)).forEach(percentage => {
+      breakdownHTML += `
+        <div class="breakdown-item">
+          <span class="breakdown-label">GST ${percentage}%</span>
+          <span class="breakdown-value">₹ ${taxGroups[percentage].toFixed(2)}</span>
+        </div>
+      `;
+    });
+  } else {
+    breakdownHTML = `
+      <div class="breakdown-item">
+        <span class="breakdown-label">No Tax Applied</span>
+        <span class="breakdown-value">₹ 0.00</span>
+      </div>
+    `;
+  }
+  
+  breakdownHTML += `
+    <div class="breakdown-item">
+      <span class="breakdown-label">Total Invoice Value</span>
+      <span class="breakdown-value">₹ ${totalInvoiceValue.toFixed(2)}</span>
+    </div>
+  `;
+  
+  taxBreakdownDetails.innerHTML = breakdownHTML;
+  purchaseSummary.style.display = 'block';
+}
+
+// Get next batch number for a product
+async function getNextBatchNumber(productId) {
+  if (!productId) return 1;
+  
+  if (batchNumbers[productId]) {
+    return batchNumbers[productId] + 1;
+  }
+  
+  try {
+    const res = await fetch(`${BASEROW}/api/database/rows/table/${INVENTORY_TABLE}/?user_field_names=true&filters={"filter_type":"AND","filters":[{"field":"${FIELD_NAMES.INVENTORY.PRODUCT_ID}","type":"contains","value":"${productId}"},{"field":"${FIELD_NAMES.INVENTORY.SHOP_ID}","type":"contains","value":"${ShopID}"}]}`, {
+      headers: { Authorization: `Token ${API_KEY}` }
+    });
+    
+    if (!res.ok) {
+      throw new Error(`API error: ${res.status}`);
+    }
+    
+    const data = await res.json();
+    const existingBatches = data.results
+      .filter(item => item[FIELD_NAMES.INVENTORY.BATCH_NO])
+      .map(item => parseInt(item[FIELD_NAMES.INVENTORY.BATCH_NO]))
+      .filter(num => !isNaN(num));
+    
+    const maxBatch = existingBatches.length > 0 ? Math.max(...existingBatches) : 0;
+    batchNumbers[productId] = maxBatch;
+    
+    return maxBatch + 1;
+  } catch (error) {
+    console.error("Error fetching batch numbers:", error);
+    return 1;
+  }
+}
+
+// Add product to the current purchase list
+function addProductToList() {
+  if (!validateProductForm()) {
+    return;
+  }
+  
+  const product = {
+    id: Date.now(),
+    productId: productIdInput.value.trim(),
+    productName: document.getElementById("productName").value,
+    details: document.getElementById("details").value,
+    price: parseFloat(document.getElementById("price").value),
+    purchasePrice: parseFloat(document.getElementById("purchasePrice").value),
+    taxIncluded: document.getElementById("taxYes").checked ? "Yes" : "No",
+    taxPercentage: document.getElementById("taxYes").checked ? taxPercentageSelect.value : "0",
+    count: parseInt(document.getElementById("count").value),
+    batchNo: document.getElementById("batchNo").value,
+    expireDate: document.getElementById("expireDate").value,
+    date: document.getElementById("date").value,
+    location: document.getElementById("location").value,
+    isNewProduct: isNewProduct // Track if this is a new product
+  };
+  
+  const marginValue = product.price - product.purchasePrice;
+  const marginPercentage = ((marginValue / product.purchasePrice) * 100).toFixed(2);
+  product.marginValue = marginValue;
+  product.marginPercentage = marginPercentage;
+  
+  productsInPurchase.push(product);
+  updateProductsList();
+  calculatePurchaseTotals();
+  
+  showModal("success", "Product Added", `Product "${product.productId}" added to purchase list!`);
+  clearProductForm();
+}
+
+// Update the products list display
+function updateProductsList() {
+  if (productsInPurchase.length === 0) {
+    productsListBody.innerHTML = '<div class="no-products">No products added yet</div>';
+    purchaseSummary.style.display = 'none';
+    return;
+  }
+  
+  let html = '';
+  productsInPurchase.forEach((product, index) => {
+    html += `
+      <div class="product-item">
+        <div>${product.productId}</div>
+        <div>${product.productName}</div>
+        <div>${product.batchNo}</div>
+        <div>${product.count}</div>
+        <div>₹ ${product.purchasePrice.toFixed(2)}</div>
+        <div>₹ ${product.price.toFixed(2)}</div>
+        <div class="product-item-actions">
+          <button class="edit-product-btn" data-index="${index}">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="remove-product-btn" data-index="${index}">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  });
+  
+  productsListBody.innerHTML = html;
+  
+  document.querySelectorAll('.edit-product-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      const index = parseInt(this.getAttribute('data-index'));
+      editProduct(index);
+    });
+  });
+  
+  document.querySelectorAll('.remove-product-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      const index = parseInt(this.getAttribute('data-index'));
+      removeProduct(index);
+    });
+  });
+}
+
+// Edit a product from the list
+function editProduct(index) {
+  const product = productsInPurchase[index];
+  
+  productIdInput.value = product.productId;
+  document.getElementById("productName").value = product.productName;
+  document.getElementById("details").value = product.details;
+  document.getElementById("price").value = product.price;
+  document.getElementById("purchasePrice").value = product.purchasePrice;
+  
+  if (product.taxIncluded === "Yes") {
+    document.getElementById("taxYes").checked = true;
+    taxYesOption.classList.add("selected");
+    taxNoOption.classList.remove("selected");
+    taxInputContainer.classList.add("show");
+    taxPercentageSelect.value = product.taxPercentage;
+  } else {
+    document.getElementById("taxNo").checked = true;
+    taxNoOption.classList.add("selected");
+    taxYesOption.classList.remove("selected");
+    taxInputContainer.classList.remove("show");
+  }
+  
+  document.getElementById("count").value = product.count;
+  document.getElementById("batchNo").value = product.batchNo;
+  document.getElementById("expireDate").value = product.expireDate;
+  document.getElementById("location").value = product.location;
+  
+  // Set product type based on whether it was marked as new
+  productType.value = product.isNewProduct ? "new" : "existing";
+  isNewProduct = product.isNewProduct;
+  
+  calculateMargin();
+  calculateTaxBreakdown();
+  
+  productsInPurchase.splice(index, 1);
+  updateProductsList();
+  calculatePurchaseTotals();
+  
+  showModal("warning", "Edit Product", "Product loaded for editing. Make changes and click 'Add Product to List' to save.");
+}
+
+// Remove a product from the list
+function removeProduct(index) {
+  productsInPurchase.splice(index, 1);
+  updateProductsList();
+  calculatePurchaseTotals();
+  showModal("success", "Product Removed", "Product removed from purchase list.");
+}
+
+// Clear only the product form (not supplier info)
+function clearProductForm() {
+  const fieldsToClear = [
+    'productId', 'productName', 'details', 'price', 'purchasePrice', 'count', 
+    'batchNo', 'expireDate', 'location'
+  ];
+  
+  fieldsToClear.forEach(fieldId => {
+    const field = document.getElementById(fieldId);
+    if (fieldId !== 'productId' || productType.value === 'existing') {
+      field.value = '';
+    }
+  });
+  
+  document.getElementById("taxNo").checked = true;
+  taxNoOption.classList.add("selected");
+  taxYesOption.classList.remove("selected");
+  taxInputContainer.classList.remove("show");
+  taxBreakdown.classList.remove("show");
+  
+  productType.value = 'existing';
+  isNewProduct = false;
+  marginDisplay.innerHTML = 'Margin: <span class="margin-value">₹ 0.00</span> (<span class="margin-percentage">0%</span>)';
+  
+  document.querySelectorAll('.error-message').forEach(el => {
+    el.style.display = 'none';
+  });
+}
+
+// Clear entire form including supplier info
+function clearEntireForm() {
+  clearProductForm();
+  supplierDetailsInput.value = '';
+  purchaseInvoiceInput.value = '';
+  purchaseDateInput.value = new Date().toISOString().split('T')[0];
+  productsInPurchase = [];
+  updateProductsList();
+  totalInvoiceValue = 0;
+}
+
+// Event listeners for expire date modal
+quickExpireBtn.addEventListener("click", function() {
+  expireModal.style.display = "flex";
+  calculateExpiryDate();
+});
+
+closeExpireModal.addEventListener("click", function() {
+  expireModal.style.display = "none";
+});
+
+expireModalCancel.addEventListener("click", function() {
+  expireModal.style.display = "none";
+});
+
+expireModalApply.addEventListener("click", function() {
+  const expiryDate = calculateExpiryDate();
+  document.getElementById("expireDate").value = expiryDate;
+  expireModal.style.display = "none";
+});
+
+expireModal.addEventListener("click", function(e) {
+  if (e.target === expireModal) {
+    expireModal.style.display = "none";
+  }
+});
+
+// Period button selection
+periodButtons.forEach(button => {
+  button.addEventListener("click", function() {
+    periodButtons.forEach(btn => btn.classList.remove("active"));
+    this.classList.add("active");
+    selectedPeriod = this.getAttribute("data-period");
+    calculateExpiryDate();
+  });
+});
+
+// Set default active period
+document.querySelector('.period-btn[data-period="days"]').classList.add("active");
+
+// Slider functionality
+durationSlider.addEventListener("input", function() {
+  selectedDuration = parseInt(this.value);
+  sliderValue.textContent = selectedDuration;
+  calculateExpiryDate();
+});
+
+// Tax option selection
+taxYesOption.addEventListener("click", function() {
+  document.getElementById("taxYes").checked = true;
+  taxYesOption.classList.add("selected");
+  taxNoOption.classList.remove("selected");
+  taxInputContainer.classList.add("show");
+  calculateTaxBreakdown();
+});
+
+taxNoOption.addEventListener("click", function() {
+  document.getElementById("taxNo").checked = true;
+  taxNoOption.classList.add("selected");
+  taxYesOption.classList.remove("selected");
+  taxInputContainer.classList.remove("show");
+  taxBreakdown.classList.remove("show");
+});
+
+// Set default tax option
+taxNoOption.classList.add("selected");
+
+// Calculate margin when prices change
+purchasePriceInput.addEventListener("input", function() {
+  calculateMargin();
+  calculateTaxBreakdown();
+});
+
+priceInput.addEventListener("input", calculateMargin);
+taxPercentageSelect.addEventListener("change", calculateTaxBreakdown);
+
+// Supplier selection change event
+supplierSelection.addEventListener("change", function() {
+  const selectedSupplierId = this.value;
+  if (selectedSupplierId) {
+    updateSupplierDetailsPanel(selectedSupplierId);
+  } else {
+    supplierDetailsPanel.classList.remove('show');
+    currentSupplierId = null;
+  }
+});
+
+// Refresh suppliers button
+refreshSuppliersBtn.addEventListener("click", function() {
+  fetchSuppliers();
+  this.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i>';
+  setTimeout(() => {
+    this.innerHTML = '<i class="fas fa-sync-alt"></i>';
+  }, 1000);
+});
+
+// New supplier button
+newSupplierBtn.addEventListener("click", function() {
+  resetSupplierForm();
+  showModal("info", "New Supplier", "Please enter the new supplier details below.");
+});
+
+// Modal function
+function showModal(type, title, message) {
+  modalContent.className = "modal-content";
+  modalIcon.innerHTML = "";
+  
+  if (type === "success") {
+    modalContent.classList.add("modal-success");
+    modalIcon.innerHTML = "✅";
+  } else if (type === "warning") {
+    modalContent.classList.add("modal-warning");
+    modalIcon.innerHTML = "⚠️";
+  } else if (type === "error") {
+    modalContent.classList.add("modal-error");
+    modalIcon.innerHTML = "❌";
+  } else if (type === "info") {
+    modalContent.classList.add("modal-success");
+    modalIcon.innerHTML = "ℹ️";
+  }
+  
+  modalTitle.textContent = title;
+  modalMessage.textContent = message;
+  modal.style.display = "flex";
+}
+
+modalButton.addEventListener("click", function() {
+  modal.style.display = "none";
+});
+
+modal.addEventListener("click", function(e) {
+  if (e.target === modal) {
+    modal.style.display = "none";
+  }
+});
+
+// Search modal functions
+searchBtn.addEventListener("click", function() {
+  searchModal.style.display = "flex";
+  searchInput.focus();
+});
+
+closeSearch.addEventListener("click", function() {
+  searchModal.style.display = "none";
+});
+
+searchModal.addEventListener("click", function(e) {
+  if (e.target === searchModal) {
+    searchModal.style.display = "none";
+  }
+});
+
+// Search products function - Only products from current shop
+async function searchProducts() {
+  const searchTerm = searchInput.value.trim().toLowerCase();
+  
+  if (!searchTerm) {
+    searchResults.innerHTML = '<div class="no-results">Please enter a search term</div>';
+    return;
+  }
+  
+  try {
+    const res = await fetch(`${BASEROW}/api/database/rows/table/${PRODUCT_TABLE}/?user_field_names=true&filters={"filter_type":"AND","filters":[{"field":"${FIELD_NAMES.PRODUCT.SHOP_ID}","type":"contains","value":"${ShopID}"}]}`, {
+      headers: { Authorization: `Token ${API_KEY}` }
+    });
+    
+    if (!res.ok) {
+      throw new Error(`API error: ${res.status}`);
+    }
+    
+    const data = await res.json();
+    allProducts = data.results;
+    
+    const filteredProducts = allProducts.filter(product => {
+      const productId = String(product[FIELD_NAMES.PRODUCT.PRODUCT_ID] || "").toLowerCase();
+      const productName = String(product[FIELD_NAMES.PRODUCT.PRODUCT_NAME] || "").toLowerCase();
+      
+      return productId.includes(searchTerm) || productName.includes(searchTerm);
+    });
+    
+    if (filteredProducts.length === 0) {
+      searchResults.innerHTML = '<div class="no-results">No products found matching your search</div>';
+    } else {
+      let resultsHTML = '';
+      filteredProducts.forEach(product => {
+        resultsHTML += `
+          <div class="search-result-item" data-id="${product[FIELD_NAMES.PRODUCT.PRODUCT_ID]}">
+            <div class="product-id">${product[FIELD_NAMES.PRODUCT.PRODUCT_ID]}</div>
+            <div class="product-name">${product[FIELD_NAMES.PRODUCT.PRODUCT_NAME] || "No Name"}</div>
+            <div class="product-price">${parseFloat(product[FIELD_NAMES.PRODUCT.PRICE] || 0).toFixed(2)}</div>
+          </div>
+        `;
+      });
+      searchResults.innerHTML = resultsHTML;
+      
+      document.querySelectorAll('.search-result-item').forEach(item => {
+        item.addEventListener('click', function() {
+          const productId = this.getAttribute('data-id');
+          productIdInput.value = productId;
+          searchModal.style.display = "none";
+          fetchProduct(productId);
+        });
+      });
+    }
+  } catch (error) {
+    console.error("Error searching products:", error);
+    searchResults.innerHTML = '<div class="no-results">Error searching products</div>';
+  }
+}
+
+searchProductsBtn.addEventListener("click", searchProducts);
+
+searchInput.addEventListener("keyup", function(event) {
+  if (event.key === "Enter") {
+    searchProducts();
+  }
+});
+
+// Field validation functions
+function validateBatchNo(batchNo) {
+  const batchNoRegex = /^[0-9]+$/;
+  return batchNoRegex.test(batchNo);
+}
+
+function validateProductForm() {
+  let isValid = true;
+  
+  document.querySelectorAll('.error-message').forEach(el => {
+    el.style.display = 'none';
+  });
+  
+  const requiredFields = [
+    'productId', 'productName', 'price', 'purchasePrice', 'count', 'batchNo', 'expireDate', 'location'
+  ];
+  
+  requiredFields.forEach(fieldId => {
+    const field = document.getElementById(fieldId);
+    if (!field.value.trim()) {
+      document.getElementById(fieldId + 'Error').textContent = 'This field is required';
+      document.getElementById(fieldId + 'Error').style.display = 'block';
+      isValid = false;
+    }
+  });
+  
+  const batchNo = document.getElementById('batchNo').value;
+  if (batchNo && !validateBatchNo(batchNo)) {
+    document.getElementById('batchNoError').textContent = 'Batch number should contain only numbers';
+    document.getElementById('batchNoError').style.display = 'block';
+    isValid = false;
+  }
+  
+  const price = document.getElementById('price').value;
+  if (price && parseFloat(price) < 0) {
+    document.getElementById('priceError').textContent = 'Price cannot be negative';
+    document.getElementById('priceError').style.display = 'block';
+    isValid = false;
+  }
+  
+  const purchasePrice = document.getElementById('purchasePrice').value;
+  if (purchasePrice && parseFloat(purchasePrice) < 0) {
+    document.getElementById('purchasePriceError').textContent = 'Purchase price cannot be negative';
+    document.getElementById('purchasePriceError').style.display = 'block';
+    isValid = false;
+  }
+  
+  const count = document.getElementById('count').value;
+  if (count && parseInt(count) < 1) {
+    document.getElementById('countError').textContent = 'Count must be at least 1';
+    document.getElementById('countError').style.display = 'block';
+    isValid = false;
+  }
+  
+  return isValid;
+}
+
+function validateSupplierForm() {
+  let isValid = true;
+  
+  document.getElementById('supplierSelectionError').style.display = 'none';
+  document.getElementById('supplierNameError').style.display = 'none';
+  
+  const selectedSupplierId = supplierSelection.value;
+  const newSupplierName = supplierNameInput.value.trim();
+  
+  if (!selectedSupplierId && !newSupplierName) {
+    document.getElementById('supplierSelectionError').textContent = 'Please select a supplier or enter a new supplier name';
+    document.getElementById('supplierSelectionError').style.display = 'block';
+    isValid = false;
+  }
+  
+  if (!purchaseInvoiceInput.value) {
+    showModal("error", "Validation Error", "Purchase invoice number is required");
+    isValid = false;
+  }
+  
+  if (!purchaseDateInput.value) {
+    showModal("error", "Validation Error", "Purchase date is required");
+    isValid = false;
+  }
+  
+  return isValid;
+}
+
+// Add product to list button
+addProductToListBtn.addEventListener("click", addProductToList);
+
+// Add another product button
+addAnotherProductBtn.addEventListener("click", function() {
+  clearProductForm();
+  showModal("success", "Form Cleared", "Product form cleared. You can now add another product.");
+});
+
+// Handle product type change
+productType.addEventListener("change", function() {
+  isNewProduct = this.value === "new";
+  if (isNewProduct) {
+    productIdInput.value = "PRD-" + Date.now();
+    document.getElementById("productName").value = "";
+    document.getElementById("details").value = "";
+    document.getElementById("price").value = "";
+    document.getElementById("purchasePrice").value = "";
+    batchNoInput.value = "1";
+  } else {
+    productIdInput.value = "";
+    batchNoInput.value = "";
+  }
+});
+
+// NEW FUNCTION: Generate product details string for Remark column
+function generateProductDetailsRemark() {
+  if (productsInPurchase.length === 0) {
+    return "No products in purchase";
+  }
+  
+  const productDetails = productsInPurchase.map(product => {
+    const details = [
+      product.productName,
+      product.productId,
+      `₹${product.purchasePrice.toFixed(2)}`,
+      product.taxIncluded === "Yes" ? `${product.taxPercentage}% GST` : "No Tax",
+      `Batch:${product.batchNo}`,
+      `Qty:${product.count}`
+    ];
+    return details.join(",");
+  });
+  
+  return productDetails.join(" - ");
+}
+
+// Finish purchase and upload all data - UPDATED with Remark field
+finishPurchaseBtn.addEventListener("click", async function() {
+  if (!validateSupplierForm()) {
+    return;
+  }
+  
+  if (productsInPurchase.length === 0) {
+    showModal("error", "No Products", "Please add at least one product to the purchase.");
+    return;
+  }
+  
+  finishPurchaseBtn.disabled = true;
+  finishPurchaseBtn.textContent = 'Uploading...';
+
+  try {
+    let supplierId = currentSupplierId;
+    let supplierName = "";
+    let supplierCustomId = "";
+    const selectedSupplierId = supplierSelection.value;
+    const newSupplierName = supplierNameInput.value.trim();
+    
+    // If a supplier is selected from dropdown, use it
+    if (selectedSupplierId) {
+      supplierId = selectedSupplierId;
+      const selectedOption = supplierSelection.querySelector(`option[value="${selectedSupplierId}"]`);
+      if (selectedOption && selectedOption.dataset.supplier) {
+        const supplier = JSON.parse(selectedOption.dataset.supplier);
+        supplierName = supplier[FIELD_NAMES.SUPPLIER.SUPPLIER_NAME] || '';
+        supplierCustomId = supplier[FIELD_NAMES.SUPPLIER.SUPPLIER_ID] || '';
+      }
+    } 
+    // If new supplier name is provided, create new supplier
+    else if (newSupplierName) {
+      // Generate a new Supplier ID for the new supplier
+      supplierCustomId = "SUP-" + Date.now();
+      
+      const supplierBody = {
+        [FIELD_NAMES.SUPPLIER.SUPPLIER_ID]: supplierCustomId,
+        [FIELD_NAMES.SUPPLIER.SUPPLIER_NAME]: newSupplierName,
+        [FIELD_NAMES.SUPPLIER.SUPPLIER_DETAILS]: supplierDetailsInput.value,
+        [FIELD_NAMES.SUPPLIER.SHOP_ID]: ShopID
+      };
+      
+      const createSupplierRes = await fetch(`${BASEROW}/api/database/rows/table/${SUPPLIER_TABLE}/?user_field_names=true`, {
+        method:"POST",
+        headers:{ "Authorization":"Token "+API_KEY, "Content-Type":"application/json" },
+        body:JSON.stringify(supplierBody)
+      });
+      
+      if (!createSupplierRes.ok) {
+        throw new Error(`API error: ${createSupplierRes.status}`);
+      }
+      
+      const newSupplier = await createSupplierRes.json();
+      supplierId = newSupplier.id;
+      supplierName = newSupplierName;
+      supplierCustomId = supplierCustomId;
+    }
+    
+    // Now add all products to inventory and product tables
+    for (const product of productsInPurchase) {
+      // Add product to Product table if it's new
+      if (product.isNewProduct) {
+        try {
+          // Check if product already exists in this shop
+          const productRes = await fetch(`${BASEROW}/api/database/rows/table/${PRODUCT_TABLE}/?user_field_names=true&filters={"filter_type":"AND","filters":[{"field":"${FIELD_NAMES.PRODUCT.PRODUCT_ID}","type":"contains","value":"${product.productId}"},{"field":"${FIELD_NAMES.PRODUCT.SHOP_ID}","type":"contains","value":"${ShopID}"}]}`, {
+            headers:{Authorization:`Token ${API_KEY}`}
+          });
+          
+          if (!productRes.ok) {
+            throw new Error(`API error: ${productRes.status}`);
+          }
+          
+          const productData = await productRes.json();
+          const existing = productData.results.find(p=>String(p[FIELD_NAMES.PRODUCT.PRODUCT_ID])===String(product.productId));
+          
+          if(!existing){
+            const productBody = {
+              [FIELD_NAMES.PRODUCT.PRODUCT_ID]: product.productId,
+              [FIELD_NAMES.PRODUCT.PRODUCT_NAME]: product.productName,
+              [FIELD_NAMES.PRODUCT.DETAILS]: product.details,
+              [FIELD_NAMES.PRODUCT.PRICE]: product.price,
+              [FIELD_NAMES.PRODUCT.PURCHASE_PRICE]: product.purchasePrice,
+              [FIELD_NAMES.PRODUCT.TAX_INCLUDED]: product.taxIncluded,
+              [FIELD_NAMES.PRODUCT.TAX_PERCENTAGE]: product.taxPercentage,
+              [FIELD_NAMES.PRODUCT.SHOP_ID]: ShopID
+            };
+            
+            const createProductRes = await fetch(`${BASEROW}/api/database/rows/table/${PRODUCT_TABLE}/?user_field_names=true`, {
+              method:"POST",
+              headers:{ "Authorization":"Token "+API_KEY, "Content-Type":"application/json" },
+              body:JSON.stringify(productBody)
+            });
+            
+            if (!createProductRes.ok) {
+              throw new Error(`API error: ${createProductRes.status}`);
+            }
+            
+            console.log("New product added to Product table:", product.productId);
+          }
+        } catch(e) { 
+          console.error("Error adding product to Product table:", e); 
+        }
+      }
+
+      // Add to inventory with supplier reference
+      const inventoryBody = {
+        [FIELD_NAMES.INVENTORY.PRODUCT_ID]: product.productId,
+        [FIELD_NAMES.INVENTORY.PRODUCT_NAME]: product.productName,
+        [FIELD_NAMES.INVENTORY.COUNT]: product.count,
+        [FIELD_NAMES.INVENTORY.BATCH_NO]: product.batchNo,
+        [FIELD_NAMES.INVENTORY.EXPIRE_DATE]: product.expireDate,
+        [FIELD_NAMES.INVENTORY.DATE]: product.date,
+        [FIELD_NAMES.INVENTORY.LOCATION]: product.location,
+        [FIELD_NAMES.INVENTORY.PURCHASE_PRICE]: product.purchasePrice,
+        [FIELD_NAMES.INVENTORY.TAX_INCLUDED]: product.taxIncluded,
+        [FIELD_NAMES.INVENTORY.TAX_PERCENTAGE]: product.taxPercentage,
+        [FIELD_NAMES.INVENTORY.SUPPLIER_ID]: supplierCustomId,
+        [FIELD_NAMES.INVENTORY.SHOP_ID]: ShopID
+      };
+
+      const inventoryRes = await fetch(`${BASEROW}/api/database/rows/table/${INVENTORY_TABLE}/?user_field_names=true`, {
+        method:"POST",
+        headers:{ "Authorization":"Token "+API_KEY, "Content-Type":"application/json" },
+        body:JSON.stringify(inventoryBody)
+      });
+
+      if (!inventoryRes.ok) {
+        throw new Error(`API error: ${inventoryRes.status}`);
+      }
+
+      console.log("Product added to Inventory table with Supplier ID:", product.productId, supplierCustomId);
+    }
+
+    // Generate product details for Remark column
+    const productDetailsRemark = generateProductDetailsRemark();
+    console.log("Product Details for Remark:", productDetailsRemark);
+
+    // Create transaction record with Supplier ID from the table and product details in Remark
+    const transactionBody = {
+      [FIELD_NAMES.TRANSACTION.SUPPLIER_ID]: supplierCustomId,
+      [FIELD_NAMES.TRANSACTION.SUPPLIER_NAME]: supplierName,
+      [FIELD_NAMES.TRANSACTION.TRANSACTION_TYPE]: "Purchase",
+      [FIELD_NAMES.TRANSACTION.INVOICE_NUMBER]: purchaseInvoiceInput.value,
+      [FIELD_NAMES.TRANSACTION.TOTAL_INVOICE_VALUE]: totalInvoiceValue,
+      [FIELD_NAMES.TRANSACTION.DATE]: new Date().toISOString().split('T')[0],
+      [FIELD_NAMES.TRANSACTION.SHOP_ID]: ShopID,
+      [FIELD_NAMES.TRANSACTION.REMARK]: productDetailsRemark // ADDED: Product details in Remark column
+    };
+
+    const transactionRes = await fetch(`${BASEROW}/api/database/rows/table/${TRANSACTION_TABLE}/?user_field_names=true`, {
+      method:"POST",
+      headers:{ "Authorization":"Token "+API_KEY, "Content-Type":"application/json" },
+      body:JSON.stringify(transactionBody)
+    });
+
+    if (!transactionRes.ok) {
+      throw new Error(`API error: ${transactionRes.status}`);
+    }
+
+    showModal("success", "Purchase Complete", 
+      `✅ Successfully uploaded ${productsInPurchase.length} products!<br>
+       - Added to Inventory table: ${productsInPurchase.length} items<br>
+       - Added to Product table: ${productsInPurchase.filter(p => p.isNewProduct).length} new products<br>
+       - Supplier ID in Inventory: ${supplierCustomId}<br>
+       - Total Invoice Value: ₹ ${totalInvoiceValue.toFixed(2)}<br>
+       - Product details saved in Transaction Remark<br>
+       - Transaction recorded successfully.`);
+    
+    clearEntireForm();
+    
+    // Refresh suppliers list
+    fetchSuppliers();
+    
+  } catch (e) {
+    console.error("Error completing purchase:", e);
+    showModal("error", "Upload Error", "Error completing purchase. Please check console for details.");
+  } finally {
+    finishPurchaseBtn.disabled = false;
+    finishPurchaseBtn.textContent = 'Finish & Upload Purchase';
+  }
+});
+
+// Add real-time validation
+document.getElementById('batchNo').addEventListener('input', function() {
+  const batchNoError = document.getElementById('batchNoError');
+  if (this.value && !validateBatchNo(this.value)) {
+    batchNoError.textContent = 'Batch number should contain only numbers';
+    batchNoError.style.display = 'block';
+  } else {
+    batchNoError.style.display = 'none';
+  }
+});
+
+// Role Validation
+(async function init(){
+  if(!MobileTag){ document.getElementById("loginPrompt").style.display="block"; return; }
+
+  try{
+    const res = await fetch(`${BASEROW}/api/database/rows/table/${USER_TABLE}/?user_field_names=true`, { headers:{Authorization:`Token ${API_KEY}`}});
+    const data = await res.json();
+    const user = data.results.find(u=>String(u[FIELD_NAMES.USER.USERNAME])===String(MobileTag));
+    if(!user){ 
+      showModal("error", "User Not Found", "User not found in the system.");
+      return; 
+    }
+
+    const role = user[FIELD_NAMES.USER.ROLE] || "Staff";
+    app.style.display = "block";
+
+    if(role.toLowerCase()!=="manager"){
+      addProductToListBtn.disabled = true;
+      addAnotherProductBtn.disabled = true;
+      finishPurchaseBtn.disabled = true;
+      Array.from(app.querySelectorAll("input,textarea,select,button")).forEach(f=>f.disabled=true);
+      showModal("error", "Access Denied", "Only managers can add products and inventory.");
+      return;
+    }
+    
+    await fetchSuppliers();
+    
+  }catch(e){ 
+    console.error(e); 
+    showModal("error", "Error", "Error fetching user information.");
+  }
+})();
+
+// Fetch Product Details (manual fetch or scan) - Only from current shop
+async function fetchProduct(pid){
+  if(!pid){ 
+    document.getElementById("productIdError").textContent = "Enter Product ID";
+    document.getElementById("productIdError").style.display = "block";
+    return; 
+  }
+  
+  try{
+    const res = await fetch(`${BASEROW}/api/database/rows/table/${PRODUCT_TABLE}/?user_field_names=true&filters={"filter_type":"AND","filters":[{"field":"${FIELD_NAMES.PRODUCT.PRODUCT_ID}","type":"contains","value":"${pid}"},{"field":"${FIELD_NAMES.PRODUCT.SHOP_ID}","type":"contains","value":"${ShopID}"}]}`, {
+      headers:{Authorization:`Token ${API_KEY}`}
+    });
+    
+    if (!res.ok) {
+      throw new Error(`API error: ${res.status}`);
+    }
+    
+    const data = await res.json();
+    const product = data.results.find(p=>String(p[FIELD_NAMES.PRODUCT.PRODUCT_ID])===String(pid));
+    
+    if(product){
+      document.getElementById("productName").value = product[FIELD_NAMES.PRODUCT.PRODUCT_NAME] || "";
+      document.getElementById("details").value = product[FIELD_NAMES.PRODUCT.DETAILS] || "";
+      document.getElementById("price").value = product[FIELD_NAMES.PRODUCT.PRICE] || "";
+      document.getElementById("purchasePrice").value = product[FIELD_NAMES.PRODUCT.PURCHASE_PRICE] || "";
+      
+      if (product[FIELD_NAMES.PRODUCT.TAX_INCLUDED] === "Yes") {
+        document.getElementById("taxYes").checked = true;
+        taxYesOption.classList.add("selected");
+        taxNoOption.classList.remove("selected");
+        taxInputContainer.classList.add("show");
+        taxPercentageSelect.value = product[FIELD_NAMES.PRODUCT.TAX_PERCENTAGE] || "0";
+      } else {
+        document.getElementById("taxNo").checked = true;
+        taxNoOption.classList.add("selected");
+        taxYesOption.classList.remove("selected");
+        taxInputContainer.classList.remove("show");
+      }
+      
+      calculateMargin();
+      calculateTaxBreakdown();
+      
+      const nextBatchNo = await getNextBatchNumber(pid);
+      batchNoInput.value = nextBatchNo;
+      
+      document.getElementById("productIdError").style.display = 'none';
+      
+      const successMsg = document.createElement('div');
+      successMsg.className = 'success-message';
+      successMsg.textContent = '✅ Product details fetched!';
+      successMsg.style.display = 'block';
+      
+      const existingSuccess = document.querySelector('#productId + .success-message');
+      if (existingSuccess) existingSuccess.remove();
+      
+      productIdInput.parentNode.insertBefore(successMsg, productIdInput.nextSibling);
+      
+      setTimeout(() => {
+        successMsg.style.display = 'none';
+      }, 3000);
+    }else{
+      document.getElementById("productIdError").textContent = "⚠️ Product not found.";
+      document.getElementById("productIdError").style.display = "block";
+    }
+  }catch(err){ 
+    console.error(err); 
+    document.getElementById("productIdError").textContent = "Error fetching product.";
+    document.getElementById("productIdError").style.display = "block";
+  }
+}
+
+fetchBtn.addEventListener("click", ()=>fetchProduct(productIdInput.value));
+
+// Camera Scanning
+scanBtn.addEventListener("click", ()=>{
+  readerContainer.style.display="flex";
+  startCamera();
+});
+
+document.getElementById("closeCameraBtn").addEventListener("click", ()=>{
+  stopCamera();
+});
+
+document.getElementById("switchCameraBtn").addEventListener("click", ()=>{
+  currentCamera = currentCamera==="environment" ? "user" : "environment";
+  stopCamera();
+  startCamera();
+});
+
+function startCamera(){
+  html5QrCode = new Html5Qrcode("reader");
+  html5QrCode.start({facingMode: currentCamera}, {fps:10, qrbox:250},
+    qrCodeMessage=>{
+      productIdInput.value = qrCodeMessage;
+      stopCamera();
+      fetchProduct(qrCodeMessage);
+    },
+    error=>{}
+  ).catch(err=>{
+    console.error("Camera error:", err);
+    showModal("error", "Camera Error", "Failed to start camera. Please check permissions.");
+  });
+}
+
+function stopCamera(){
+  if(html5QrCode){
+    html5QrCode.stop().then(()=>{ html5QrCode.clear(); });
+  }
+  readerContainer.style.display="none";
+}
+</script>
+</body>
+</html>
