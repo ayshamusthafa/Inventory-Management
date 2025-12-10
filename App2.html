@@ -864,9 +864,13 @@
         <div class="nav-text">Sales Report</div>
       </a>
       
-      <a href="invoice.html" class="nav-item" data-page="Invoice Search">
+      <!-- INVOICE SEARCH - WILL OPEN IN NEW TAB -->
+      <a href="invoice.html" class="nav-item external-link" data-page="Invoice Search" data-target="_blank">
         <div class="nav-icon"><i class="fas fa-receipt"></i></div>
         <div class="nav-text">Invoice Search</div>
+        <span style="margin-left: auto; font-size: 12px; color: var(--gray-500);">
+          <i class="fas fa-external-link-alt"></i>
+        </span>
       </a>
     </div>
 
@@ -1300,6 +1304,31 @@ navItems.forEach(item => {
       return;
     }
     
+    // Check if this is an external link (should open in new tab)
+    const target = item.getAttribute('data-target');
+    const isExternalLink = item.classList.contains('external-link') || target === '_blank';
+    
+    if (isExternalLink) {
+      // Don't prevent default for external links
+      // Let the browser handle opening in new tab
+      const pageUrl = item.getAttribute('href');
+      
+      // Open in new tab
+      window.open(pageUrl, '_blank');
+      
+      // Close sidebar on mobile
+      if (window.innerWidth <= 768) {
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+      }
+      
+      // Close context menu
+      contextMenu.classList.remove('active');
+      
+      return; // Stop further processing
+    }
+    
+    // Regular internal navigation
     e.preventDefault();
     
     const pageUrl = item.getAttribute('href');
