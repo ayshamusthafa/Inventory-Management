@@ -2677,12 +2677,12 @@ finishPurchaseBtn.addEventListener("click", async function() {
     }
 
     showModal("success", "Purchase Complete", 
-      `✅ Successfully uploaded ${productsInPurchase.length} products!<br>
-       - Added to Inventory table: ${productsInPurchase.length} items<br>
-       - Added to Product table: ${productsInPurchase.filter(p => p.isNewProduct).length} new products<br>
-       - Supplier ID in Inventory: ${supplierCustomId}<br>
-       - Total Invoice Value: ₹ ${totalInvoiceValue.toFixed(2)}<br>
-       - Product details saved in Transaction Remark<br>
+      `✅ Successfully uploaded ${productsInPurchase.length} products!\n
+       - Added to Inventory table: ${productsInPurchase.length} items \n
+       - Added to Product table: ${productsInPurchase.filter(p => p.isNewProduct).length} new products \n
+       - Supplier ID in Inventory: ${supplierCustomId} \n
+       - Total Invoice Value: ₹ ${totalInvoiceValue.toFixed(2)} \n
+       - Product details saved in Transaction Remark \n
        - Transaction recorded successfully.`);
     
     clearEntireForm();
