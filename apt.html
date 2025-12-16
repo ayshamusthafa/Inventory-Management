@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shop Data Management</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: Arial, sans-serif; background:#f5f7fb; margin:0; padding:20px; }
+    .card { max-width:800px; margin:auto; background:#fff; padding:24px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.1); }
+    h2 { margin-top:0; }
+    .shop-header { 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px; 
+      border-radius: 8px; 
+      margin-bottom: 25px; 
+      color: white;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+    }
+    .shop-header h3 { 
+      margin: 0 0 10px 0; 
+      font-size: 24px; 
+      font-weight: 600;
+    }
+    .shop-header .shop-id { 
+      opacity: 0.9; 
+      font-size: 14px; 
+      font-family: 'Courier New', monospace; 
+      background: rgba(255,255,255,0.1);
+      padding: 5px 10px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+    .shop-details {
+      margin-top: 15px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+    }
+    .detail-item {
+      background: rgba(255,255,255,0.1);
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    button { 
+      padding:14px 22px; 
+      border:none; 
+      border-radius:8px; 
+      cursor:pointer; 
+      font-size:15px; 
+      font-weight:500;
+      margin: 5px;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+    .danger { background:linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color:#fff; }
+    .danger:hover { background:linear-gradient(135deg, #f5576c 0%, #f093fb 100%); }
+    .primary { background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:#fff; }
+    .primary:hover { background:linear-gradient(135deg, #764ba2 0%, #667eea 100%); }
+    .success { background:linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color:#fff; }
+    .success:hover { background:linear-gradient(135deg, #38ef7d 0%, #11998e 100%); }
+    .warning { background:linear-gradient(135deg, #f6d365 0%, #fda085 100%); color:#333; }
+    .warning:hover { background:linear-gradient(135deg, #fda085 0%, #f6d365 100%); }
+    .row { display:flex; gap:12px; flex-wrap:wrap; }
+    input[type=file] { padding:8px; }
+    .hidden { display:none; }
+    .log { 
+      margin-top:20px; 
+      font-size:14px; 
+      white-space:pre-line; 
+      background: #f8f9fa; 
+      padding: 20px; 
+      border-radius: 8px; 
+      border-left: 4px solid #6c757d;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+    }
+    .log.error { border-left-color: #f5576c; background: #f8d7da; }
+    .log.success { border-left-color: #38ef7d; background: #d4edda; }
+    .log.warning { border-left-color: #fda085; background: #fff3cd; }
+    .log.info { border-left-color: #667eea; background: #d1ecf1; }
+    .progress-container {
+      margin-top:20px;
+      background:#f8f9fa;
+      padding:20px;
+      border-radius:8px;
+      display:none;
+    }
+    .progress-bar {
+      background:#e9ecef;
+      border-radius:10px;
+      overflow:hidden;
+      height:18px;
+      margin-bottom:10px;
+    }
+    .progress-fill {
+      height:100%;
+      width:0%;
+      background:linear-gradient(90deg, #667eea, #764ba2);
+      transition:width .3s ease;
+      border-radius:10px;
+      position:relative;
+      overflow:hidden;
+    }
+    .progress-fill::after {
+      content:'';
+      position:absolute;
+      top:0;
+      left:0;
+      bottom:0;
+      right:0;
+      background-image:linear-gradient(
+        -45deg,
+        rgba(255,255,255,0.2) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255,255,255,0.2) 50%,
+        rgba(255,255,255,0.2) 75%,
+        transparent 75%,
+        transparent
+      );
+      background-size:50px 50px;
+      animation:move 2s linear infinite;
+    }
+    @keyframes move {
+      0% { background-position:0 0; }
+      100% { background-position:50px 50px; }
+    }
+    .progress-text {
+      font-size:14px;
+      display:flex;
+      justify-content:space-between;
+      font-weight:500;
+    }
+    .stats {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
+      gap:15px;
+      margin:20px 0;
+    }
+    .stat-card {
+      background:#f8f9fa;
+      padding:15px;
+      border-radius:8px;
+      text-align:center;
+      border-left:4px solid #667eea;
+    }
+    .stat-value {
+      font-size:24px;
+      font-weight:bold;
+      color:#667eea;
+      margin:5px 0;
+    }
+    .stat-label {
+      font-size:12px;
+      color:#6c757d;
+      text-transform:uppercase;
+      letter-spacing:1px;
+    }
+    .action-buttons {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+      gap:15px;
+      margin:25px 0;
+    }
+    
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+      backdrop-filter: blur(3px);
+    }
+    .modal {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+      animation: modalSlide 0.3s ease;
+      border-top: 5px solid #667eea;
+    }
+    @keyframes modalSlide {
+      from { transform: translateY(-30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .modal-icon {
+      text-align: center;
+      font-size: 48px;
+      margin-bottom: 20px;
+      color: #667eea;
+    }
+    .modal-icon.info { color: #667eea; }
+    .modal-icon.warning { color: #f6d365; }
+    .modal-icon.danger { color: #f5576c; }
+    .modal-icon.success { color: #38ef7d; }
+    .modal-icon.question { color: #764ba2; }
+    .modal h3 {
+      margin-top: 0;
+      color: #333;
+      text-align: center;
+      font-size: 22px;
+      margin-bottom: 15px;
+    }
+    .modal p {
+      text-align: center;
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 25px;
+      font-size: 16px;
+    }
+    .modal input, .modal textarea {
+      width: 100%;
+      padding: 14px;
+      margin: 15px 0;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 16px;
+      box-sizing: border-box;
+      font-family: inherit;
+      transition: all 0.3s;
+    }
+    .modal textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    .modal input:focus, .modal textarea:focus {
+      border-color: #667eea;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 25px;
+      justify-content: center;
+    }
+    .modal-buttons button {
+      min-width: 120px;
+      padding: 12px 24px;
+      font-size: 15px;
+    }
+    .modal-content {
+      max-height: 60vh;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+    .modal-content::-webkit-scrollbar {
+      width: 6px;
+    }
+    .modal-content::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    .modal-content::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 10px;
+    }
+    .modal-content::-webkit-scrollbar-thumb:hover {
+      background: #a1a1a1;
+    }
+  </style>
+</head>
+<body>
+<div class="card" id="page">
+  <div class="shop-header" id="shopHeader">
+    <h3 id="shopName"><i class="fas fa-store"></i> Loading shop information...</h3>
+    <div class="shop-id"><i class="fas fa-id-card"></i> Shop ID: <span id="shopIDDisplay">...</span></div>
+    <div class="shop-details" id="shopDetails"></div>
+  </div>
+  
+  <div class="stats" id="statsContainer" style="display:none;">
+    <!-- Stats will be populated dynamically -->
+  </div>
+  
+  <h2><i class="fas fa-database"></i> Shop Data Management</h2>
+  <p style="color: #666; line-height: 1.6;">
+    <b style="color: #f5576c;"><i class="fas fa-exclamation-triangle"></i> Warning:</b> Operations below affect all shop data. 
+    Delete Shop is <span style="color:red; font-weight:bold;">PERMANENT</span> and cannot be undone.
+  </p>
+  
+  <div class="action-buttons">
+    <button class="primary" onclick="downloadAllData()" id="btnBackup">
+      <i class="fas fa-download"></i>
+      Download Backup
+    </button>
+    <button class="success" onclick="triggerRestore()" id="btnRestore">
+      <i class="fas fa-undo"></i>
+      Restore Data
+    </button>
+    <button class="warning" onclick="showStats()" id="btnStats">
+      <i class="fas fa-chart-bar"></i>
+      Show Statistics
+    </button>
+    <button class="danger" onclick="deleteShop()" id="btnDelete">
+      <i class="fas fa-trash"></i>
+      Delete Shop
+    </button>
+  </div>
+  
+  <input type="file" id="restoreFile" accept=".json" class="hidden" />
+  
+  <div class="progress-container" id="progressContainer">
+    <div style="margin-bottom: 10px; font-weight: 500;"><i class="fas fa-spinner fa-spin"></i> Operation Progress:</div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressBar"></div>
+    </div>
+    <div class="progress-text">
+      <span id="progressText">0%</span>
+      <span id="progressCount">0 / 0</span>
+    </div>
+  </div>
+  
+  <div class="log" id="log"><i class="fas fa-check-circle" style="color: #38ef7d;"></i> Ready. Select an action to begin.</div>
+</div>
+
+<!-- Modal Container -->
+<div id="modalContainer"></div>
+
+<script>
+// ================= CONFIGURATION =================
+const API_KEY = 'jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw';
+const BASE_URL = 'https://api.baserow.io/api/database/rows/table';
+const TABLES = {
+  users: 729979,
+  inventory: 734795,
+  products: 734793,
+  customers: 736204,
+  ledger: 736207,
+  sale: 736209,
+  supplier: 744412,
+  transaction: 745465,
+  shops: 999999
+};
+
+// ================= STATE MANAGEMENT =================
+let shopInfo = null;
+let shopStats = {};
+let isOperationInProgress = false;
+let activeModal = null;
+let modalCallbacks = {};
+
+// ================= MODAL SYSTEM =================
+function showModal(type, title, message, options = {}) {
+  // Close any existing modal
+  if (activeModal) {
+    document.getElementById('modalContainer').innerHTML = '';
+    activeModal = null;
+  }
+  
+  const modalId = 'modal_' + Date.now();
+  let iconClass = 'fas fa-info-circle';
+  let iconType = 'info';
+  
+  switch(type) {
+    case 'warning':
+      iconClass = 'fas fa-exclamation-triangle';
+      iconType = 'warning';
+      break;
+    case 'danger':
+      iconClass = 'fas fa-exclamation-circle';
+      iconType = 'danger';
+      break;
+    case 'success':
+      iconClass = 'fas fa-check-circle';
+      iconType = 'success';
+      break;
+    case 'question':
+      iconClass = 'fas fa-question-circle';
+      iconType = 'question';
+      break;
+    case 'input':
+      iconClass = 'fas fa-key';
+      iconType = 'info';
+      break;
+    case 'confirm':
+      iconClass = 'fas fa-question-circle';
+      iconType = 'question';
+      break;
+  }
+  
+  let inputField = '';
+  let textareaField = '';
+  
+  if (type === 'input') {
+    inputField = `
+      <input type="text" 
+             id="${modalId}_input" 
+             placeholder="${options.placeholder || 'Enter value...'}" 
+             autocomplete="off"
+             value="${options.defaultValue || ''}">
+    `;
+  } else if (type === 'textarea') {
+    textareaField = `
+      <textarea id="${modalId}_textarea" 
+                placeholder="${options.placeholder || 'Enter text...'}"
+                rows="4">${options.defaultValue || ''}</textarea>
+    `;
+  }
+  
+  let buttons = '';
+  if (type === 'confirm' || type === 'question') {
+    buttons = `
+      <button onclick="modalCallback('${modalId}', 'cancel')" class="warning">
+        <i class="fas fa-times"></i> ${options.cancelText || 'Cancel'}
+      </button>
+      <button onclick="modalCallback('${modalId}', 'confirm')" class="primary">
+        <i class="fas fa-check"></i> ${options.confirmText || 'Confirm'}
+      </button>
+    `;
+  } else if (type === 'input') {
+    buttons = `
+      <button onclick="modalCallback('${modalId}', 'cancel')" class="warning">
+        <i class="fas fa-times"></i> Cancel
+      </button>
+      <button onclick="modalCallback('${modalId}', 'submit')" class="primary">
+        <i class="fas fa-check"></i> Submit
+      </button>
+    `;
+  } else {
+    buttons = `
+      <button onclick="closeModal('${modalId}')" class="primary" style="flex:1;">
+        <i class="fas fa-check"></i> OK
+      </button>
+    `;
+  }
+  
+  const modalHTML = `
+    <div class="modal-overlay" id="${modalId}">
+      <div class="modal">
+        <div class="modal-icon ${iconType}">
+          <i class="${iconClass}"></i>
+        </div>
+        <h3>${title}</h3>
+        <div class="modal-content">
+          <p>${message}</p>
+          ${inputField}
+          ${textareaField}
+        </div>
+        <div class="modal-buttons">
+          ${buttons}
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.getElementById('modalContainer').innerHTML = modalHTML;
+  activeModal = modalId;
+  
+  // Store callbacks
+  modalCallbacks[modalId] = options.callbacks || {};
+  
+  // Focus input if present
+  setTimeout(() => {
+    const input = document.getElementById(`${modalId}_input`);
+    if (input) input.focus();
+  }, 100);
+  
+  return modalId;
+}
+
+function closeModal(modalId) {
+  if (modalId && document.getElementById(modalId)) {
+    document.getElementById(modalId).remove();
+  } else if (activeModal) {
+    document.getElementById(activeModal).remove();
+  }
+  activeModal = null;
+  
+  // Clean up callbacks
+  if (modalId && modalCallbacks[modalId]) {
+    delete modalCallbacks[modalId];
+  }
+}
+
+function modalCallback(modalId, action) {
+  const callbacks = modalCallbacks[modalId];
+  let shouldClose = true;
+  
+  if (callbacks) {
+    if (action === 'submit') {
+      const input = document.getElementById(`${modalId}_input`);
+      const textarea = document.getElementById(`${modalId}_textarea`);
+      const value = input ? input.value : (textarea ? textarea.value : '');
+      
+      if (callbacks.onSubmit) {
+        shouldClose = callbacks.onSubmit(value) !== false;
+      }
+    } else if (action === 'confirm' && callbacks.onConfirm) {
+      shouldClose = callbacks.onConfirm() !== false;
+    } else if (action === 'cancel' && callbacks.onCancel) {
+      shouldClose = callbacks.onCancel() !== false;
+    }
+  }
+  
+  if (shouldClose) {
+    closeModal(modalId);
+  }
+}
+
+// Alert replacement
+function showAlert(title, message, type = 'info') {
+  return new Promise((resolve) => {
+    showModal(type, title, message, {
+      callbacks: {
+        onCancel: () => resolve(false),
+        onConfirm: () => resolve(true)
+      }
+    });
+  });
+}
+
+// Confirm replacement
+function showConfirm(title, message, confirmText = 'Confirm', cancelText = 'Cancel') {
+  return new Promise((resolve) => {
+    showModal('confirm', title, message, {
+      confirmText,
+      cancelText,
+      callbacks: {
+        onConfirm: () => {
+          resolve(true);
+          return true;
+        },
+        onCancel: () => {
+          resolve(false);
+          return true;
+        }
+      }
+    });
+  });
+}
+
+// Prompt replacement
+function showPrompt(title, message, placeholder = '', defaultValue = '') {
+  return new Promise((resolve) => {
+    showModal('input', title, message, {
+      placeholder,
+      defaultValue,
+      callbacks: {
+        onSubmit: (value) => {
+          resolve(value);
+          return true;
+        },
+        onCancel: () => {
+          resolve(null);
+          return true;
+        }
+      }
+    });
+  });
+}
+
+// ================= GET VALUES FROM LOCALSTORAGE =================
+function getShopID() {
+  // Check localStorage for ShopIDtag
+  const shopId = localStorage.getItem('ShopIDtag');
+  
+  if (!shopId) {
+    // Show modal to ask for Shop ID
+    return new Promise((resolve, reject) => {
+      showPrompt(
+        '<i class="fas fa-store"></i> Shop ID Required',
+        'Please enter your Shop ID to continue:',
+        'Enter Shop ID...',
+        ''
+      ).then((value) => {
+        if (value && value.trim()) {
+          localStorage.setItem('ShopIDtag', value.trim());
+          resolve(value.trim());
+        } else {
+          reject(new Error('Shop ID is required'));
+        }
+      });
+    });
+  }
+  
+  return Promise.resolve(shopId);
+}
+
+function getMobile() {
+  // Try different possible keys
+  const possibleKeys = ['MobileTag', 'mobileTag', 'Mobile', 'mobile', 'phone', 'Phone'];
+  
+  for (const key of possibleKeys) {
+    const value = localStorage.getItem(key);
+    if (value) {
+      return Promise.resolve(value);
+    }
+  }
+  
+  // If not found, show prompt
+  return showPrompt(
+    '<i class="fas fa-mobile-alt"></i> Mobile Number Required',
+    'Please enter your mobile number:',
+    'Enter mobile number...',
+    ''
+  ).then((value) => {
+    if (value) {
+      localStorage.setItem('MobileTag', value);
+      return value;
+    }
+    throw new Error('Mobile number is required');
+  });
+}
+
+// ================= API CONFIGURATION =================
+const headers = {
+  'Authorization': `Token ${API_KEY}`,
+  'Content-Type': 'application/json'
+};
+
+// ================= UI HELPER FUNCTIONS =================
+function updateButtonState(buttonId, isWorking) {
+  const button = document.getElementById(buttonId);
+  if (isWorking) {
+    button.disabled = true;
+    button.style.opacity = '0.7';
+    button.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${button.textContent}`;
+  } else {
+    button.disabled = false;
+    button.style.opacity = '1';
+    // Restore original icon based on button type
+    if (buttonId === 'btnBackup') button.innerHTML = `<i class="fas fa-download"></i> Download Backup`;
+    else if (buttonId === 'btnRestore') button.innerHTML = `<i class="fas fa-undo"></i> Restore Data`;
+    else if (buttonId === 'btnStats') button.innerHTML = `<i class="fas fa-chart-bar"></i> Show Statistics`;
+    else if (buttonId === 'btnDelete') button.innerHTML = `<i class="fas fa-trash"></i> Delete Shop`;
+  }
+}
+
+function setAllButtonsState(isWorking) {
+  const buttons = ['btnBackup', 'btnRestore', 'btnStats', 'btnDelete'];
+  buttons.forEach(btnId => updateButtonState(btnId, isWorking));
+  isOperationInProgress = isWorking;
+}
+
+function showProgress(show) {
+  document.getElementById('progressContainer').style.display = show ? 'block' : 'none';
+}
+
+function setProgress(done, total, message = '') {
+  const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+  document.getElementById('progressBar').style.width = percent + '%';
+  document.getElementById('progressText').innerText = `${percent}%`;
+  document.getElementById('progressCount').innerText = `${done} / ${total}`;
+  
+  if (message) {
+    log(message, 'info');
+  }
+}
+
+function log(message, type = 'info') {
+  const logElement = document.getElementById('log');
+  const timestamp = new Date().toLocaleTimeString();
+  const icon = {
+    'info': '<i class="fas fa-info-circle" style="color: #667eea;"></i>',
+    'success': '<i class="fas fa-check-circle" style="color: #38ef7d;"></i>',
+    'warning': '<i class="fas fa-exclamation-triangle" style="color: #fda085;"></i>',
+    'error': '<i class="fas fa-times-circle" style="color: #f5576c;"></i>'
+  }[type] || '<i class="fas fa-info-circle"></i>';
+  
+  const logEntry = `${icon} [${timestamp}] ${message}\n`;
+  logElement.innerText += logEntry;
+  logElement.className = `log ${type}`;
+  logElement.scrollTop = logElement.scrollHeight;
+}
+
+function clearLog() {
+  document.getElementById('log').innerText = '';
+  document.getElementById('log').className = 'log';
+}
+
+// ================= API HELPER FUNCTIONS =================
+async function fetchWithPagination(tableId, filters = {}) {
+  let allResults = [];
+  let page = 1;
+  
+  while (true) {
+    try {
+      let url = `${BASE_URL}/${tableId}/?user_field_names=true&page=${page}`;
+      
+      // Add filters
+      if (filters.shopID) {
+        url += `&filter__ShopID__equal=${filters.shopID}`;
+      }
+      
+      if (filters.mobile) {
+        url += `&filter__Username__equal=${filters.mobile}`;
+      }
+      
+      const response = await fetch(url, { headers });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      allResults = allResults.concat(data.results || []);
+      
+      if (!data.next) break;
+      page++;
+      
+    } catch (error) {
+      log(`Error fetching data: ${error.message}`, 'error');
+      throw error;
+    }
+  }
+  
+  return allResults;
+}
+
+// ================= SHOP INFORMATION =================
+async function loadShopInfo() {
+  try {
+    // Get values using promises
+    const shopID = await getShopID();
+    const mobile = await getMobile();
+    
+    log(`Loading shop info for Shop ID: ${shopID}, Mobile: ${mobile}`, 'info');
+    
+    // Fetch user info to check role
+    const users = await fetchWithPagination(TABLES.users, { 
+      shopID: shopID,
+      mobile: mobile 
+    });
+    
+    if (users.length === 0) {
+      throw new Error('User not found in database');
+    }
+    
+    const user = users[0];
+    
+    // Check if user is Manager
+    if (user.Role !== 'Manager') {
+      document.getElementById('page').innerHTML = `
+        <div style="text-align: center; padding: 40px;">
+          <h2 style="color: #f5576c;"><i class="fas fa-ban"></i> Access Denied</h2>
+          <p>Manager role required to access this page.</p>
+          <p>Your role: <strong>${user.Role}</strong></p>
+          <p>Your Shop ID: <strong>${shopID}</strong></p>
+          <p>Your Mobile: <strong>${mobile}</strong></p>
+          <button onclick="window.history.back()" class="primary" style="margin-top: 20px;">
+            <i class="fas fa-arrow-left"></i> Go Back
+          </button>
+        </div>
+      `;
+      return;
+    }
+    
+    // Try to fetch shop details from shops table
+    try {
+      const shops = await fetchWithPagination(TABLES.shops, { shopID: shopID });
+      if (shops.length > 0) {
+        shopInfo = shops[0];
+        log(`Found shop in shops table: ${shopInfo.name || 'Unnamed Shop'}`, 'success');
+      } else {
+        // If shops table doesn't exist or no shop found, create dummy info
+        shopInfo = {
+          name: `Shop ${shopID}`,
+          id: shopID,
+          owner: user.Username || mobile,
+          role: user.Role,
+          created: user.created_date || 'Unknown'
+        };
+        log(`No shop found in shops table, using generated info`, 'warning');
+      }
+    } catch (e) {
+      // If shops table doesn't exist or error accessing it
+      shopInfo = {
+        name: `Shop ${shopID}`,
+        id: shopID,
+        owner: user.Username || mobile,
+        role: user.Role,
+        created: user.created_date || 'Unknown'
+      };
+      log(`Could not access shops table: ${e.message}. Using generated shop info.`, 'warning');
+    }
+    
+    // Update UI with shop information
+    updateShopUI(shopInfo, user);
+    
+    // Load initial statistics
+    await loadShopStats();
+    
+  } catch (error) {
+    log(`Failed to load shop information: ${error.message}`, 'error');
+    document.getElementById('shopHeader').innerHTML = `
+      <h3 style="color: #f5576c;"><i class="fas fa-exclamation-circle"></i> Error Loading Shop</h3>
+      <div class="shop-id" style="background: rgba(255,255,255,0.2);">
+        Error: ${error.message}
+      </div>
+    `;
+  }
+}
+
+function updateShopUI(shopInfo, user) {
+  document.getElementById('shopName').innerHTML = `<i class="fas fa-store"></i> ${shopInfo.name || `Shop ${shopInfo.id}`}`;
+  document.getElementById('shopIDDisplay').textContent = shopInfo.id;
+  
+  const detailsHTML = `
+    <div class="detail-item">
+      <strong><i class="fas fa-user-tie"></i> Manager:</strong> ${user.Username || 'Unknown'}
+    </div>
+    <div class="detail-item">
+      <strong><i class="fas fa-mobile-alt"></i> Mobile:</strong> ${localStorage.getItem('MobileTag') || 'Not set'}
+    </div>
+    <div class="detail-item">
+      <strong><i class="fas fa-user-shield"></i> Role:</strong> ${user.Role}
+    </div>
+    ${shopInfo.address ? `
+      <div class="detail-item">
+        <strong><i class="fas fa-map-marker-alt"></i> Address:</strong> ${shopInfo.address}
+      </div>
+    ` : ''}
+    ${shopInfo.phone ? `
+      <div class="detail-item">
+        <strong><i class="fas fa-phone"></i> Phone:</strong> ${shopInfo.phone}
+      </div>
+    ` : ''}
+    ${shopInfo.email ? `
+      <div class="detail-item">
+        <strong><i class="fas fa-envelope"></i> Email:</strong> ${shopInfo.email}
+      </div>
+    ` : ''}
+    ${shopInfo.created ? `
+      <div class="detail-item">
+        <strong><i class="fas fa-calendar-alt"></i> Created:</strong> ${shopInfo.created}
+      </div>
+    ` : ''}
+  `;
+  
+  document.getElementById('shopDetails').innerHTML = detailsHTML;
+}
+
+async function loadShopStats() {
+  try {
+    const shopID = await getShopID();
+    
+    // Fetch counts from each table
+    const statsPromises = Object.entries(TABLES).map(async ([tableName, tableId]) => {
+      if (tableName === 'shops') return null;
+      
+      try {
+        const data = await fetchWithPagination(tableId, { shopID: shopID });
+        return { [tableName]: data.length };
+      } catch (e) {
+        return { [tableName]: 0 };
+      }
+    });
+    
+    const statsResults = await Promise.all(statsPromises);
+    shopStats = Object.assign({}, ...statsResults.filter(Boolean));
+    
+    // Update stats display
+    updateStatsUI();
+    
+  } catch (error) {
+    log(`Could not load statistics: ${error.message}`, 'warning');
+  }
+}
+
+function updateStatsUI() {
+  const statsContainer = document.getElementById('statsContainer');
+  if (Object.keys(shopStats).length === 0) return;
+  
+  const statsHTML = Object.entries(shopStats).map(([table, count]) => `
+    <div class="stat-card">
+      <div class="stat-value">${count}</div>
+      <div class="stat-label">
+        <i class="fas fa-table"></i> ${table.charAt(0).toUpperCase() + table.slice(1)}
+      </div>
+    </div>
+  `).join('');
+  
+  statsContainer.innerHTML = statsHTML;
+  statsContainer.style.display = 'grid';
+}
+
+async function showStats() {
+  try {
+    await getShopID(); // This will show modal if ShopID is missing
+    const statsContainer = document.getElementById('statsContainer');
+    statsContainer.style.display = statsContainer.style.display === 'none' ? 'grid' : 'none';
+    log(statsContainer.style.display === 'none' ? 'Statistics hidden' : 'Statistics displayed', 'info');
+  } catch (error) {
+    log(`Cannot show statistics: ${error.message}`, 'error');
+  }
+}
+
+// ================= BACKUP FUNCTION =================
+async function downloadAllData() {
+  if (isOperationInProgress) {
+    showAlert(
+      '<i class="fas fa-clock"></i> Operation in Progress',
+      'Please wait for the current operation to complete.',
+      'warning'
+    );
+    return;
+  }
+  
+  try {
+    const shopID = await getShopID();
+    
+    const confirmed = await showConfirm(
+      '<i class="fas fa-download"></i> Create Backup',
+      `This will download all data for <strong>Shop ${shopID}</strong> as a JSON backup file.<br><br>Continue?`,
+      '<i class="fas fa-download"></i> Download',
+      '<i class="fas fa-times"></i> Cancel'
+    );
+    
+    if (!confirmed) return;
+    
+    setAllButtonsState(true);
+    clearLog();
+    showProgress(true);
+    log('Starting backup process...', 'info');
+    
+    const backup = {};
+    let totalTables = Object.keys(TABLES).length;
+    let completedTables = 0;
+    
+    // Fetch data from each table
+    for (const [tableName, tableId] of Object.entries(TABLES)) {
+      if (tableName === 'shops') continue;
+      
+      log(`Fetching ${tableName} data...`, 'info');
+      try {
+        const data = await fetchWithPagination(tableId, { shopID: shopID });
+        backup[tableName] = data;
+        log(`✓ ${tableName}: ${data.length} records`, 'success');
+      } catch (error) {
+        log(`✗ ${tableName}: Failed to fetch - ${error.message}`, 'error');
+        backup[tableName] = [];
+      }
+      
+      completedTables++;
+      setProgress(completedTables, totalTables - 1);
+    }
+    
+    // Add metadata
+    backup.metadata = {
+      shopId: shopID,
+      shopName: shopInfo?.name || `Shop ${shopID}`,
+      mobile: localStorage.getItem('MobileTag') || '',
+      backupDate: new Date().toISOString(),
+      totalRecords: Object.values(backup).reduce((sum, data) => sum + (Array.isArray(data) ? data.length : 0), 0)
+    };
+    
+    // Create and download the file
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `SHOP_${shopID}_${shopInfo?.name?.replace(/\s+/g, '_') || 'BACKUP'}_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    log(`✅ Backup completed successfully! Total records: ${backup.metadata.totalRecords}`, 'success');
+    setProgress(totalTables - 1, totalTables - 1, 'Backup complete');
+    
+    // Show success modal
+    setTimeout(async () => {
+      showProgress(false);
+      await loadShopStats();
+      
+      showAlert(
+        '<i class="fas fa-check-circle"></i> Backup Complete',
+        `Backup created successfully!<br><br>
+        <strong>Shop:</strong> ${shopInfo?.name || `Shop ${shopID}`}<br>
+        <strong>Total Records:</strong> ${backup.metadata.totalRecords}<br>
+        <strong>File:</strong> ${a.download}`,
+        'success'
+      );
+    }, 1000);
+    
+  } catch (error) {
+    log(`Backup failed: ${error.message}`, 'error');
+    showAlert(
+      '<i class="fas fa-times-circle"></i> Backup Failed',
+      `Backup creation failed:<br><br>${error.message}`,
+      'error'
+    );
+  } finally {
+    setAllButtonsState(false);
+  }
+}
+
+// ================= RESTORE FUNCTION =================
+function triggerRestore() {
+  if (isOperationInProgress) {
+    showAlert(
+      '<i class="fas fa-clock"></i> Operation in Progress',
+      'Please wait for the current operation to complete.',
+      'warning'
+    );
+    return;
+  }
+  
+  // Check if Shop ID exists first
+  getShopID().then(() => {
+    // If Shop ID exists or was entered, proceed with file selection
+    document.getElementById('restoreFile').click();
+  }).catch(() => {
+    // User cancelled Shop ID input
+    log('Restore cancelled - Shop ID required', 'warning');
+  });
+}
+
+document.getElementById('restoreFile').onchange = async function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  try {
+    const shopID = await getShopID();
+    
+    const confirmed = await showConfirm(
+      '<i class="fas fa-exclamation-triangle"></i> Restore Warning',
+      `This will restore data to <strong>Shop ${shopID}</strong>.<br><br>
+      <span style="color: #f5576c;">
+        <i class="fas fa-exclamation-circle"></i> Existing data may be overwritten.
+      </span><br><br>Continue?`,
+      '<i class="fas fa-undo"></i> Restore',
+      '<i class="fas fa-times"></i> Cancel'
+    );
+    
+    if (!confirmed) {
+      this.value = '';
+      return;
+    }
+    
+    setAllButtonsState(true);
+    clearLog();
+    showProgress(true);
+    
+    log('Reading backup file...', 'info');
+    const backupText = await file.text();
+    const backupData = JSON.parse(backupText);
+    
+    // Validate backup
+    if (!backupData.metadata || !backupData.metadata.shopId) {
+      // Ask for Shop ID from backup
+      const backupShopId = await showPrompt(
+        '<i class="fas fa-question-circle"></i> Backup Shop ID',
+        'This backup file does not contain Shop ID information.<br><br>Please enter the Shop ID from the backup:',
+        'Enter Shop ID...',
+        shopID
+      );
+      
+      if (!backupShopId) {
+        this.value = '';
+        setAllButtonsState(false);
+        showProgress(false);
+        return;
+      }
+      
+      backupData.metadata = backupData.metadata || {};
+      backupData.metadata.shopId = backupShopId;
+      backupData.metadata.shopName = `Shop ${backupShopId}`;
+      
+      log(`Using Shop ID from backup: ${backupShopId}`, 'warning');
+    }
+    
+    const backupShopId = backupData.metadata.shopId;
+    
+    // Check if backup Shop ID matches current Shop ID
+    if (backupShopId !== shopID) {
+      const useBackupShopId = await showConfirm(
+        '<i class="fas fa-exchange-alt"></i> Different Shop ID Detected',
+        `This backup is for: <strong>Shop ${backupShopId}</strong><br>
+        You are currently in: <strong>Shop ${shopID}</strong><br><br>
+        Do you want to restore to the backup's Shop ID?`,
+        `<i class="fas fa-check"></i> Use ${backupShopId}`,
+        `<i class="fas fa-times"></i> Keep ${shopID}`
+      );
+      
+      if (useBackupShopId) {
+        // Update localStorage with backup's Shop ID
+        localStorage.setItem('ShopIDtag', backupShopId);
+        log(`Switched to Shop ID: ${backupShopId}`, 'info');
+        
+        // Reload shop info with new Shop ID
+        await loadShopInfo();
+      }
+    }
+    
+    const currentShopID = await getShopID(); // Get fresh Shop ID
+    
+    log(`Valid backup found for shop: ${backupData.metadata.shopName || 'Unknown'}`, 'success');
+    log(`Backup date: ${backupData.metadata.backupDate || 'Unknown'}`, 'info');
+    log(`Restoring to Shop ID: ${currentShopID}`, 'info');
+    
+    // Calculate total records to restore
+    let totalRecords = 0;
+    const tablesToRestore = [];
+    
+    for (const [tableName, data] of Object.entries(backupData)) {
+      if (tableName === 'metadata') continue;
+      if (Array.isArray(data) && data.length > 0) {
+        tablesToRestore.push({ tableName, data });
+        totalRecords += data.length;
+      }
+    }
+    
+    log(`Found ${tablesToRestore.length} tables with ${totalRecords} total records to restore`, 'info');
+    
+    // Start restore process
+    let restoredCount = 0;
+    let errors = 0;
+    
+    for (const { tableName, data } of tablesToRestore) {
+      log(`Restoring ${tableName} (${data.length} records)...`, 'info');
+      
+      for (const record of data) {
+        try {
+          // Remove ID to avoid conflicts
+          const recordToInsert = { ...record };
+          delete recordToInsert.id;
+          
+          // Ensure ShopID matches current shop
+          if (recordToInsert.ShopID !== undefined) {
+            recordToInsert.ShopID = currentShopID;
+          }
+          
+          await fetch(`${BASE_URL}/${TABLES[tableName]}/?user_field_names=true`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(recordToInsert)
+          });
+          
+          restoredCount++;
+          setProgress(restoredCount, totalRecords);
+          
+        } catch (error) {
+          errors++;
+          log(`Failed to restore record in ${tableName}: ${error.message}`, 'error');
+        }
+      }
+    }
+    
+    const successCount = restoredCount - errors;
+    log(`✅ Restore completed! Success: ${successCount}, Failed: ${errors}`, 
+        errors === 0 ? 'success' : 'warning');
+    
+    // Show result modal
+    setTimeout(async () => {
+      showProgress(false);
+      await loadShopStats();
+      
+      showAlert(
+        errors === 0 ? '<i class="fas fa-check-circle"></i> Restore Complete' : '<i class="fas fa-exclamation-triangle"></i> Restore Completed with Errors',
+        `Restore process finished:<br><br>
+        <strong>Successfully restored:</strong> ${successCount} records<br>
+        <strong>Failed:</strong> ${errors} records<br>
+        <strong>Shop:</strong> ${shopInfo?.name || `Shop ${currentShopID}`}`,
+        errors === 0 ? 'success' : 'warning'
+      );
+    }, 1000);
+    
+  } catch (error) {
+    log(`Restore failed: ${error.message}`, 'error');
+    showAlert(
+      '<i class="fas fa-times-circle"></i> Restore Failed',
+      `Restore process failed:<br><br>${error.message}`,
+      'error'
+    );
+  } finally {
+    setAllButtonsState(false);
+    e.target.value = '';
+  }
+};
+
+// ================= DELETE FUNCTION =================
+async function deleteShop() {
+  if (isOperationInProgress) {
+    showAlert(
+      '<i class="fas fa-clock"></i> Operation in Progress',
+      'Please wait for the current operation to complete.',
+      'warning'
+    );
+    return;
+  }
+  
+  try {
+    const shopID = await getShopID();
+    const shopName = shopInfo?.name || `Shop ${shopID}`;
+    
+    // First confirmation
+    const confirmed1 = await showConfirm(
+      '<i class="fas fa-exclamation-triangle"></i> Delete Shop - Warning',
+      `This will delete <strong>ALL DATA</strong> for:<br><br>
+      <span style="font-size: 18px; color: #f5576c;">
+        <i class="fas fa-store"></i> ${shopName}
+      </span><br><br>
+      This action cannot be undone!`,
+      '<i class="fas fa-trash"></i> Continue',
+      '<i class="fas fa-times"></i> Cancel'
+    );
+    
+    if (!confirmed1) return;
+    
+    // Second confirmation with text input
+    const confirmationText = await showPrompt(
+      '<i class="fas fa-keyboard"></i> Confirm Deletion',
+      `Type <strong>"DELETE ${shopName}"</strong> to confirm permanent deletion:`,
+      'DELETE [shop name]',
+      ''
+    );
+    
+    if (confirmationText !== `DELETE ${shopName}`) {
+      showAlert(
+        '<i class="fas fa-ban"></i> Deletion Cancelled',
+        'Confirmation text did not match. Deletion cancelled.',
+        'warning'
+      );
+      return;
+    }
+    
+    // Final confirmation
+    const finalConfirm = await showConfirm(
+      '<i class="fas fa-skull-crossbones"></i> FINAL WARNING',
+      `<span style="color: #f5576c; font-size: 18px;">
+        <i class="fas fa-exclamation-circle"></i> PERMANENT DELETION
+      </span><br><br>
+      This action <strong>CANNOT BE UNDONE</strong>!<br>
+      All data for "${shopName}" will be lost forever.<br><br>
+      Are you absolutely sure?`,
+      '<i class="fas fa-fire"></i> DELETE PERMANENTLY',
+      '<i class="fas fa-shield-alt"></i> CANCEL'
+    );
+    
+    if (!finalConfirm) return;
+    
+    setAllButtonsState(true);
+    clearLog();
+    showProgress(true);
+    
+    log('Starting shop deletion process...', 'warning');
+    
+    // Get counts first
+    let totalRecords = 0;
+    const tableCounts = {};
+    
+    for (const [tableName, tableId] of Object.entries(TABLES)) {
+      if (tableName === 'shops') continue;
+      
+      try {
+        const data = await fetchWithPagination(tableId, { shopID: shopID });
+        tableCounts[tableName] = data.length;
+        totalRecords += data.length;
+      } catch (error) {
+        tableCounts[tableName] = 0;
+      }
+    }
+    
+    log(`Found ${totalRecords} records to delete across ${Object.keys(tableCounts).length} tables`, 'warning');
+    
+    // Delete records from each table
+    let deletedCount = 0;
+    let errors = 0;
+    
+    for (const [tableName, tableId] of Object.entries(TABLES)) {
+      if (tableName === 'shops') continue;
+      
+      const count = tableCounts[tableName];
+      if (count === 0) continue;
+      
+      log(`Deleting ${tableName} (${count} records)...`, 'warning');
+      
+      try {
+        const data = await fetchWithPagination(tableId, { shopID: shopID });
+        
+        for (const record of data) {
+          try {
+            await fetch(`${BASE_URL}/${tableId}/${record.id}/`, {
+              method: 'DELETE',
+              headers
+            });
+            deletedCount++;
+            setProgress(deletedCount, totalRecords);
+          } catch (error) {
+            errors++;
+            log(`Failed to delete record in ${tableName}: ${error.message}`, 'error');
+          }
+        }
+      } catch (error) {
+        log(`Error accessing ${tableName}: ${error.message}`, 'error');
+      }
+    }
+    
+    if (errors > 0) {
+      log(`⚠️ Deletion completed with ${errors} errors. ${deletedCount} records deleted.`, 'warning');
+      
+      showAlert(
+        '<i class="fas fa-exclamation-triangle"></i> Deletion Completed with Errors',
+        `Deletion process finished with errors:<br><br>
+        <strong>Deleted:</strong> ${deletedCount} records<br>
+        <strong>Errors:</strong> ${errors} records failed<br>
+        <strong>Shop:</strong> ${shopName}`,
+        'warning'
+      );
+    } else {
+      log(`✅ Shop deletion completed! ${deletedCount} records deleted permanently.`, 'success');
+      
+      showAlert(
+        '<i class="fas fa-trash-alt"></i> Shop Deleted',
+        `Shop <strong>"${shopName}"</strong> has been deleted permanently.<br><br>
+        <strong>Records removed:</strong> ${deletedCount}<br><br>
+        You will be logged out in 5 seconds...`,
+        'success'
+      );
+      
+      // Clear localStorage and redirect
+      setTimeout(() => {
+        localStorage.clear();
+        window.location.href = 'app.html';
+      }, 5000);
+    }
+    
+  } catch (error) {
+    log(`Deletion failed: ${error.message}`, 'error');
+    showAlert(
+      '<i class="fas fa-times-circle"></i> Deletion Failed',
+      `Deletion process failed:<br><br>${error.message}`,
+      'error'
+    );
+  } finally {
+    setAllButtonsState(false);
+    showProgress(false);
+  }
+}
+
+// ================= INITIALIZATION =================
+async function initialize() {
+  try {
+    log('Initializing shop management system...', 'info');
+    await loadShopInfo();
+    log('✅ System ready. You can now perform backup, restore, or delete operations.', 'success');
+  } catch (error) {
+    log(`❌ Initialization failed: ${error.message}`, 'error');
+    showAlert(
+      '<i class="fas fa-exclamation-circle"></i> Initialization Error',
+      `Failed to initialize the system:<br><br>${error.message}<br><br>Please refresh the page.`,
+      'error'
+    );
+  }
+}
+
+// Start the application when page loads
+window.addEventListener('DOMContentLoaded', initialize);
+
+// Add keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  if (e.ctrlKey || e.metaKey) {
+    switch(e.key.toLowerCase()) {
+      case 'b':
+        e.preventDefault();
+        if (!isOperationInProgress) downloadAllData();
+        break;
+      case 'r':
+        e.preventDefault();
+        if (!isOperationInProgress) triggerRestore();
+        break;
+      case 'd':
+        if (e.shiftKey) {
+          e.preventDefault();
+          if (!isOperationInProgress) deleteShop();
+        }
+        break;
+    }
+  }
+  
+  // Escape key to close modal
+  if (e.key === 'Escape' && activeModal) {
+    closeModal(activeModal);
+  }
+});
+</script>
+</body>
+</html>

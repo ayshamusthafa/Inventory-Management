@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Ledger</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #4361ee;
+    --primary-light: #4895ef;
+    --secondary: #3f37c9;
+    --success: #4cc9f0;
+    --danger: #f72585;
+    --warning: #f8961e;
+    --info: #4895ef;
+    --light: #f8f9fa;
+    --dark: #212529;
+    --gray: #6c757d;
+    --gray-light: #e9ecef;
+    --border-radius: 12px;
+    --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --transition: all 0.3s ease;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+    color: var(--dark);
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    text-align: center;
+    color: var(--primary);
+    margin-bottom: 30px;
+    font-weight: 700;
+    font-size: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+  }
+
+  h1 i {
+    font-size: 2.2rem;
+  }
+
+  .search-container {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 20px;
+    box-shadow: var(--box-shadow);
+    margin-bottom: 25px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+  }
+
+  .search-box {
+    flex: 1;
+    position: relative;
+  }
+
+  .search-box i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray);
+  }
+
+  .search-box input {
+    width: 100%;
+    padding: 12px 15px 12px 45px;
+    border: 1px solid var(--gray-light);
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: var(--transition);
+  }
+
+  .search-box input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+  }
+
+  .filter-buttons {
+    display: flex;
+    gap: 10px;
+  }
+
+  .filter-btn {
+    padding: 10px 15px;
+    border: 1px solid var(--gray-light);
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 500;
+  }
+
+  .filter-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+
+  .filter-btn:hover {
+    background: var(--primary-light);
+    color: white;
+    border-color: var(--primary-light);
+  }
+
+  /* NEW CARD STYLES - Based on the provided image */
+  .summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+
+  .summary-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #f0f0f0;
+  }
+
+  .summary-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--primary);
+  }
+
+  .summary-card:nth-child(1)::before { background: #ff9800; }
+  .summary-card:nth-child(2)::before { background: #2196f3; }
+  .summary-card:nth-child(3)::before { background: #4caf50; }
+
+  .summary-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+  }
+
+  .card-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+  }
+
+  .summary-card:nth-child(1) .card-icon { background: #ff9800; }
+  .summary-card:nth-child(2) .card-icon { background: #2196f3; }
+  .summary-card:nth-child(3) .card-icon { background: #4caf50; }
+
+  .card-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #333;
+    line-height: 1;
+    margin-bottom: 5px;
+  }
+
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid #f0f0f0;
+  }
+
+  .card-trend {
+    font-size: 0.85rem;
+    color: #4caf50;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .card-trend.down {
+    color: #f44336;
+  }
+
+  .card-period {
+    font-size: 0.75rem;
+    color: #888;
+  }
+
+  .ledger-container {
+    background: #fff;
+    border-radius: var(--border-radius);
+    padding: 25px;
+    box-shadow: var(--box-shadow);
+    margin-bottom: 30px;
+  }
+
+  .customer {
+    border-bottom: 1px solid var(--gray-light);
+    padding: 20px;
+    cursor: pointer;
+    transition: var(--transition);
+    border-radius: 8px;
+    margin-bottom: 10px;
+  }
+
+  .customer:hover {
+    background: #f8f9ff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+
+  .customer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .customer-name {
+    font-weight: 600;
+    font-size: 1.2rem;
+    color: var(--dark);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .customer-name i {
+    color: var(--primary);
+  }
+
+  .rank {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: #fff;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .NewFace { background: var(--warning); }
+  .Acquainted { background: var(--info); }
+  .Trusted { background: var(--success); }
+
+  .customer-info {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    color: var(--gray);
+    font-size: 0.9rem;
+  }
+
+  .invoice-details {
+    display: none;
+    padding: 15px 0;
+    color: #444;
+  }
+
+  .invoice-details.active {
+    display: block;
+  }
+
+  .invoice {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 15px;
+    border-bottom: 1px dashed #ddd;
+    transition: var(--transition);
+    border-radius: 6px;
+    margin-bottom: 5px;
+  }
+
+  .invoice:hover {
+    background: var(--gray-light);
+  }
+
+  .invoice span:first-child {
+    color: var(--primary);
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .summary {
+    margin-top: 15px;
+    text-align: right;
+    font-weight: bold;
+    color: var(--dark);
+    font-size: 1.1rem;
+    padding-top: 10px;
+    border-top: 1px solid var(--gray-light);
+  }
+
+  .progress-container {
+    margin-top: 15px;
+    background: #eee;
+    border-radius: 10px;
+    height: 10px;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 10px;
+    border-radius: 10px;
+    transition: width 0.5s;
+  }
+
+  .progress-orange { background: var(--warning); }
+  .progress-blue { background: var(--info); }
+  .progress-green { background: var(--success); }
+
+  .contact-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 15px;
+  }
+
+  .contact-buttons button {
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    color: white;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: var(--transition);
+  }
+
+  .contact-buttons button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  .whatsapp-btn { background: #25d366; }
+  .call-btn { background: var(--success); }
+
+  /* Modal Styles */
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+    overflow: auto;
+    backdrop-filter: blur(5px);
+  }
+
+  .modal-content {
+    background-color: #fff;
+    margin: 2% auto;
+    padding: 0;
+    border-radius: var(--border-radius);
+    width: 95%;
+    max-width: 1000px;
+    height: 90vh;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    animation: modalFade 0.3s;
+    display: flex;
+    flex-direction: column;
+  }
+
+  @keyframes modalFade {
+    from { opacity: 0; transform: translateY(-50px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .modal-header {
+    padding: 20px 25px;
+    background: var(--primary);
+    color: white;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-header h2 {
+    margin: 0;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .close {
+    color: white;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+
+  .close:hover {
+    transform: rotate(90deg);
+  }
+
+  .modal-body {
+    flex: 1;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .modal-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 40px;
+    color: var(--gray);
+  }
+
+  .no-results i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    color: var(--gray-light);
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .summary-cards {
+      grid-template-columns: 1fr;
+    }
+    
+    .customer-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    
+    .search-container {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    
+    .filter-buttons {
+      justify-content: space-between;
+    }
+    
+    .modal-content {
+      width: 98%;
+      margin: 1% auto;
+      height: 95vh;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="search-container">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input type="text" id="searchInput" placeholder="Search by customer name or mobile number...">
+    </div>
+    <div class="filter-buttons">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="NewFace">New Face</button>
+      <button class="filter-btn" data-filter="Acquainted">Acquainted</button>
+      <button class="filter-btn" data-filter="Trusted">Trusted</button>
+    </div>
+  </div>
+
+  <div class="summary-cards">
+    <div class="summary-card">
+      <div class="card-header">
+        <div class="card-title">Total Customers</div>
+        <div class="card-icon">
+          <i class="fas fa-users"></i>
+        </div>
+      </div>
+      <div class="card-value" id="totalCustomers">0</div>
+      <div class="card-footer">
+        <div class="card-trend">
+          <i class="fas fa-arrow-up"></i>
+          <span>12%</span>
+        </div>
+        <div class="card-period">vs last month</div>
+      </div>
+    </div>
+    
+    <div class="summary-card">
+      <div class="card-header">
+        <div class="card-title">Total Invoices</div>
+        <div class="card-icon">
+          <i class="fas fa-file-invoice"></i>
+        </div>
+      </div>
+      <div class="card-value" id="totalInvoices">0</div>
+      <div class="card-footer">
+        <div class="card-trend">
+          <i class="fas fa-arrow-up"></i>
+          <span>8%</span>
+        </div>
+        <div class="card-period">vs last month</div>
+      </div>
+    </div>
+    
+    <div class="summary-card">
+      <div class="card-header">
+        <div class="card-title">Total Sales</div>
+        <div class="card-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+      </div>
+      <div class="card-value" id="totalSales">₹0</div>
+      <div class="card-footer">
+        <div class="card-trend">
+          <i class="fas fa-arrow-up"></i>
+          <span>15%</span>
+        </div>
+        <div class="card-period">vs last month</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ledger-container" id="ledgerContainer">Loading data...</div>
+</div>
+
+<!-- Invoice Modal -->
+<div id="invoiceModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2><i class="fas fa-file-invoice"></i> Invoice Details</h2>
+      <span class="close">&times;</span>
+    </div>
+    <div class="modal-body">
+      <iframe class="modal-iframe" id="invoiceIframe" src=""></iframe>
+    </div>
+  </div>
+</div>
+
+<script>
+const tableId = 736207;
+const apiKey = "jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw";
+const apiUrl = `https://api.baserow.io/api/database/rows/table/${tableId}/?user_field_names=true`;
+const shopIdTag = localStorage.getItem("ShopIDTag");
+
+// Sample data for demonstration (will be replaced with API data)
+let allRows = [];
+let customers = {};
+let filteredCustomers = {};
+
+async function loadLedger() {
+  try {
+    const response = await fetch(apiUrl, {
+      headers: { Authorization: `Token ${apiKey}` }
+    });
+    const data = await response.json();
+    allRows = data.results;
+    const rows = allRows.filter(r => r.ShopID === shopIdTag);
+
+    customers = {};
+
+    rows.forEach(r => {
+      if (!customers[r["Costomer Name"]]) {
+        customers[r["Costomer Name"]] = { 
+          mobile: r["Mobile"], 
+          invoices: [],
+          totalValue: 0,
+          rank: "NewFace"
+        };
+      }
+      customers[r["Costomer Name"]].invoices.push({
+        invoice: r["Invoice Number"],
+        value: parseFloat(r["Total Invoice Value"] || 0),
+        date: r["Date"] || "N/A",
+        status: r["Status"] || "Unknown"
+      });
+      customers[r["Costomer Name"]].totalValue += parseFloat(r["Total Invoice Value"] || 0);
+      
+      // Update rank based on purchase history
+      const invoiceCount = customers[r["Costomer Name"]].invoices.length;
+      const totalValue = customers[r["Costomer Name"]].totalValue;
+      
+      if (invoiceCount > 10 || totalValue > 50000) {
+        customers[r["Costomer Name"]].rank = "Trusted";
+      } else if (invoiceCount > 3) {
+        customers[r["Costomer Name"]].rank = "Acquainted";
+      }
+    });
+
+    // Set initial filtered customers to all customers
+    filteredCustomers = {...customers};
+    
+    // Update UI
+    updateSummaryCards();
+    renderCustomers();
+    
+  } catch (error) {
+    console.error(error);
+    document.getElementById("ledgerContainer").innerHTML = "<p>Error loading data.</p>";
+  }
+}
+
+function updateSummaryCards() {
+  const totalInvoices = Object.values(filteredCustomers).reduce((sum, customer) => sum + customer.invoices.length, 0);
+  const totalCustomers = Object.keys(filteredCustomers).length;
+  const totalSales = Object.values(filteredCustomers).reduce((sum, customer) => sum + customer.totalValue, 0);
+
+  document.getElementById("totalInvoices").innerText = totalInvoices;
+  document.getElementById("totalCustomers").innerText = totalCustomers;
+  document.getElementById("totalSales").innerText = `₹${totalSales.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+}
+
+function renderCustomers() {
+  // Sort customers by total purchase
+  const sortedCustomers = Object.entries(filteredCustomers)
+    .sort((a, b) => b[1].totalValue - a[1].totalValue);
+
+  let html = "";
+  
+  if (sortedCustomers.length === 0) {
+    html = `
+      <div class="no-results">
+        <i class="fas fa-search"></i>
+        <h3>No customers found</h3>
+        <p>Try adjusting your search or filter criteria</p>
+      </div>
+    `;
+  } else {
+    sortedCustomers.forEach(([name, data]) => {
+      const invoiceCount = data.invoices.length;
+      const totalValue = data.totalValue;
+
+      // Ranking logic
+      let rankLabel = data.rank;
+      let rankText = rankLabel === "Trusted" ? "Trusted" : rankLabel === "Acquainted" ? "Acquainted" : "New Face";
+      let progressPercent = rankLabel === "Trusted" ? 100 : rankLabel === "Acquainted" ? 60 : 25;
+      let progressColor = rankLabel === "Trusted" ? "progress-green" : rankLabel === "Acquainted" ? "progress-blue" : "progress-orange";
+
+      const encodedName = name.replace(/'/g, "\\'");
+      const detailId = `details-${name.replace(/\s/g, '_')}`;
+
+      html += `
+        <div class="customer" onclick="toggleDetails('${encodedName}')">
+          <div class="customer-header">
+            <span class="customer-name"><i class="fas fa-user"></i> ${name}</span>
+            <span class="rank ${rankLabel}"><i class="fas fa-${rankLabel === 'Trusted' ? 'crown' : rankLabel === 'Acquainted' ? 'handshake' : 'user-plus'}"></i> ${rankText}</span>
+          </div>
+          <div class="customer-info">
+            <span><i class="fas fa-file-invoice"></i> ${invoiceCount} Invoices</span>
+            <span><i class="fas fa-phone"></i> ${data.mobile || 'N/A'}</span>
+            <span><i class="fas fa-indian-rupee-sign"></i> ${totalValue.toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
+          </div>
+          <div class="progress-container">
+            <div class="progress-bar ${progressColor}" style="width: ${progressPercent}%;"></div>
+          </div>
+          <div class="invoice-details" id="${detailId}">
+            <p><strong>Invoice Count:</strong> ${invoiceCount}</p>
+            <p><strong>Total Purchase:</strong> ₹${totalValue.toLocaleString('en-IN', {minimumFractionDigits: 2})}</p>
+            ${data.invoices.map(inv => `
+              <div class="invoice">
+                <span onclick="event.stopPropagation(); openInvoiceModal('${inv.invoice}')"><i class="fas fa-file-invoice-dollar"></i> Invoice: ${inv.invoice}</span>
+                <span>₹${inv.value.toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
+              </div>
+            `).join('')}
+            <div class="summary">Total: ₹${totalValue.toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+            <div class="contact-buttons">
+              <button class="whatsapp-btn" onclick="event.stopPropagation(); openWhatsApp('${data.mobile}')"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+              <button class="call-btn" onclick="event.stopPropagation(); callCustomer('${data.mobile}')"><i class="fas fa-phone"></i> Call</button>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  document.getElementById("ledgerContainer").innerHTML = html;
+}
+
+function toggleDetails(name) {
+  const id = `details-${name.replace(/\s/g, '_')}`;
+  const el = document.getElementById(id);
+  el.classList.toggle("active");
+}
+
+function openInvoiceModal(invoiceNumber) {
+  // Set the iframe source to the invoice page with the invoice number
+  const iframe = document.getElementById("invoiceIframe");
+  iframe.src = `invoice.html?invoice=${encodeURIComponent(invoiceNumber)}`;
+  
+  // Show the modal
+  document.getElementById("invoiceModal").style.display = "block";
+}
+
+function openWhatsApp(mobile) {
+  window.open(`https://wa.me/91${mobile}`, '_blank');
+}
+
+function callCustomer(mobile) {
+  window.location.href = `tel:+91${mobile}`;
+}
+
+// Search functionality
+function filterCustomers() {
+  const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+  const activeFilter = document.querySelector('.filter-btn.active').dataset.filter;
+  
+  filteredCustomers = {};
+  
+  Object.entries(customers).forEach(([name, data]) => {
+    // Check if customer matches search term
+    const matchesSearch = name.toLowerCase().includes(searchTerm) || 
+                         (data.mobile && data.mobile.includes(searchTerm));
+    
+    // Check if customer matches filter
+    const matchesFilter = activeFilter === 'all' || data.rank === activeFilter;
+    
+    if (matchesSearch && matchesFilter) {
+      filteredCustomers[name] = data;
+    }
+  });
+  
+  updateSummaryCards();
+  renderCustomers();
+}
+
+// Modal close functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const modal = document.getElementById("invoiceModal");
+  const closeBtn = document.querySelector(".close");
+  
+  closeBtn.onclick = function() {
+    modal.style.display = "none";
+    // Reset iframe source when closing modal
+    document.getElementById("invoiceIframe").src = "";
+  }
+  
+  window.onclick = function(event) {
+    if (event.target == modal) {
+      modal.style.display = "none";
+      // Reset iframe source when closing modal
+      document.getElementById("invoiceIframe").src = "";
+    }
+  }
+  
+  // Search input event listener
+  document.getElementById('searchInput').addEventListener('input', filterCustomers);
+  
+  // Filter button event listeners
+  document.querySelectorAll('.filter-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      this.classList.add('active');
+      filterCustomers();
+    });
+  });
+});
+
+loadLedger();
+</script>
+
+</body>
+</html>

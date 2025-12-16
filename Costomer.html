@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Database</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  :root {
+    --primary: #4361ee;
+    --primary-light: #4895ef;
+    --secondary: #3f37c9;
+    --success: #4cc9f0;
+    --danger: #f72585;
+    --warning: #f8961e;
+    --info: #4cc9f0;
+    --light: #f8f9fa;
+    --dark: #212529;
+    --gray: #6c757d;
+    --gray-light: #e9ecef;
+    --border-radius: 12px;
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    color: var(--dark);
+    line-height: 1.6;
+    padding: 20px;
+    min-height: 100vh;
+    width: 100%;
+  }
+
+  /* Login Redirect Overlay */
+  .login-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+  }
+
+  .login-message {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 40px 30px;
+    text-align: center;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  }
+
+  .login-message i {
+    font-size: 4rem;
+    color: var(--primary);
+    margin-bottom: 20px;
+  }
+
+  .login-message h2 {
+    color: var(--dark);
+    margin-bottom: 15px;
+    font-size: 1.8rem;
+  }
+
+  .login-message p {
+    color: var(--gray);
+    margin-bottom: 25px;
+    font-size: 1.1rem;
+  }
+
+  .login-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .login-btn:hover {
+    background: var(--secondary);
+    transform: translateY(-2px);
+  }
+
+  /* Responsive text scaling */
+  h2 {
+    text-align: center;
+    color: var(--primary);
+    margin-bottom: 30px;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-size: clamp(1.8rem, 5vw, 2.5rem);
+  }
+
+  .card {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    overflow: hidden;
+    margin-bottom: 20px;
+    transition: var(--transition);
+    width: 100%;
+  }
+
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+  }
+
+  .card-header {
+    background: linear-gradient(to right, var(--primary), var(--primary-light));
+    color: white;
+    padding: clamp(12px, 3vw, 18px) clamp(15px, 4vw, 25px);
+    font-weight: 600;
+    font-size: clamp(1rem, 4vw, 1.3rem);
+  }
+
+  .card-body {
+    padding: clamp(15px, 4vw, 25px);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: clamp(8px, 2vw, 12px) clamp(15px, 3vw, 20px);
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition);
+    text-align: center;
+    font-size: clamp(0.85rem, 2.5vw, 1rem);
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: var(--secondary);
+    transform: translateY(-2px);
+  }
+
+  .btn-success {
+    background: var(--success);
+    color: white;
+  }
+
+  .btn-success:hover {
+    background: #3aabd5;
+    transform: translateY(-2px);
+  }
+
+  .btn-warning {
+    background: var(--warning);
+    color: white;
+  }
+
+  .btn-warning:hover {
+    background: #e07c0c;
+    transform: translateY(-2px);
+  }
+
+  .btn-danger {
+    background: var(--danger);
+    color: white;
+  }
+
+  .btn-danger:hover {
+    background: #e1156d;
+    transform: translateY(-2px);
+  }
+
+  .btn-sm {
+    padding: clamp(6px, 1.5vw, 8px) clamp(10px, 2vw, 15px);
+    font-size: clamp(0.75rem, 2vw, 0.85rem);
+  }
+
+  .form-group {
+    margin-bottom: clamp(10px, 3vw, 15px);
+  }
+
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: var(--dark);
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
+  }
+
+  input, textarea, select {
+    width: 100%;
+    padding: clamp(10px, 2.5vw, 12px) clamp(12px, 3vw, 15px);
+    border: 1px solid var(--gray-light);
+    border-radius: 6px;
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
+    transition: var(--transition);
+  }
+
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+  }
+
+  textarea {
+    min-height: clamp(80px, 20vw, 100px);
+    resize: vertical;
+  }
+
+  .search-container {
+    display: flex;
+    gap: clamp(10px, 3vw, 15px);
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .search-box {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .date-filter {
+    display: flex;
+    gap: clamp(5px, 2vw, 10px);
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .date-input {
+    min-width: clamp(120px, 25vw, 150px);
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: clamp(5px, 2vw, 10px);
+    flex-wrap: wrap;
+    margin-top: 15px;
+  }
+
+  .call-btn {
+    background: #25D366;
+    color: white;
+  }
+
+  .call-btn:hover {
+    background: #1da851;
+    transform: translateY(-2px);
+  }
+
+  .whatsapp-btn {
+    background: #128C7E;
+    color: white;
+  }
+
+  .whatsapp-btn:hover {
+    background: #0e6e5e;
+    transform: translateY(-2px);
+  }
+
+  /* Customer Card Styles */
+  .customer-card {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin-bottom: 15px;
+    overflow: hidden;
+    transition: var(--transition);
+    cursor: pointer;
+    width: 100%;
+  }
+
+  .customer-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+  }
+
+  .customer-header {
+    padding: clamp(15px, 4vw, 20px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transition: var(--transition);
+  }
+
+  .customer-card.expanded .customer-header {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  }
+
+  .customer-main-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+  }
+
+  .customer-name {
+    font-weight: 600;
+    font-size: clamp(1rem, 3.5vw, 1.2rem);
+  }
+
+  .customer-mobile {
+    font-size: clamp(0.85rem, 2.5vw, 1rem);
+    opacity: 0.9;
+  }
+
+  .expand-icon {
+    font-size: clamp(1rem, 3vw, 1.2rem);
+    transition: var(--transition);
+    margin-left: 10px;
+  }
+
+  .customer-details {
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: var(--transition);
+    background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+  }
+
+  .customer-card.expanded .customer-details {
+    padding: clamp(15px, 4vw, 20px);
+    max-height: 500px;
+  }
+
+  .customer-card.expanded .expand-icon {
+    transform: rotate(180deg);
+  }
+
+  .detail-row {
+    display: flex;
+    margin-bottom: clamp(8px, 2vw, 12px);
+    align-items: flex-start;
+  }
+
+  .detail-icon {
+    width: clamp(20px, 5vw, 24px);
+    margin-right: clamp(8px, 2vw, 10px);
+    text-align: center;
+    color: var(--primary);
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
+  }
+
+  .detail-content {
+    flex: 1;
+  }
+
+  .detail-label {
+    font-weight: 600;
+    color: var(--dark);
+    font-size: clamp(0.85rem, 2.5vw, 0.95rem);
+  }
+
+  .detail-value {
+    color: var(--gray);
+    margin-top: 2px;
+    font-size: clamp(0.8rem, 2.2vw, 0.9rem);
+    word-break: break-word;
+  }
+
+  /* Modal Styles */
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(10px, 3vw, 20px);
+  }
+
+  .modal-content {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 500px;
+    overflow: hidden;
+    animation: modalFadeIn 0.3s ease;
+  }
+
+  @keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .modal-header {
+    background: linear-gradient(to right, var(--primary), var(--primary-light));
+    color: white;
+    padding: clamp(12px, 3vw, 15px) clamp(15px, 4vw, 20px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-title {
+    font-size: clamp(1.1rem, 4vw, 1.3rem);
+    font-weight: 600;
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: clamp(1.2rem, 4vw, 1.5rem);
+    cursor: pointer;
+    transition: var(--transition);
+  }
+
+  .close-btn:hover {
+    transform: scale(1.2);
+  }
+
+  .modal-body {
+    padding: clamp(15px, 4vw, 20px);
+  }
+
+  .modal-footer {
+    padding: clamp(12px, 3vw, 15px) clamp(15px, 4vw, 20px);
+    background: var(--light);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  /* Edit Modal Styles */
+  .edit-modal-content {
+    max-width: 600px;
+  }
+
+  /* Role Badge */
+  .role-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-left: 10px;
+  }
+
+  .role-manager {
+    background: var(--warning);
+    color: white;
+  }
+
+  .role-staff {
+    background: var(--success);
+    color: white;
+  }
+
+  /* Notification Modal Styles */
+  .notification-modal .modal-content {
+    max-width: 450px;
+  }
+
+  .notification-icon {
+    font-size: 3rem;
+    text-align: center;
+    margin-bottom: 15px;
+  }
+
+  .notification-success {
+    color: var(--success);
+  }
+
+  .notification-error {
+    color: var(--danger);
+  }
+
+  .notification-warning {
+    color: var(--warning);
+  }
+
+  .notification-info {
+    color: var(--info);
+  }
+
+  .notification-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+
+  .notification-message {
+    text-align: center;
+    margin-bottom: 20px;
+    color: var(--gray);
+  }
+
+  .notification-footer {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+  }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+    body {
+      padding: 10px;
+    }
+    
+    .search-container {
+      flex-direction: column;
+    }
+    
+    .date-filter {
+      flex-direction: column;
+      align-items: flex-start;
+      width: 100%;
+    }
+    
+    .date-input {
+      width: 100%;
+    }
+    
+    .action-buttons {
+      flex-direction: column;
+    }
+    
+    .detail-row {
+      flex-direction: column;
+      gap: 5px;
+    }
+    
+    .detail-icon {
+      margin-right: 0;
+    }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: clamp(30px, 8vw, 50px) clamp(15px, 4vw, 25px);
+    color: var(--gray);
+  }
+
+  .empty-state i {
+    font-size: clamp(2rem, 10vw, 3.5rem);
+    margin-bottom: 15px;
+    color: var(--gray-light);
+  }
+
+  .empty-state div {
+    font-size: clamp(1rem, 4vw, 1.2rem);
+    margin-bottom: 10px;
+  }
+
+  .empty-state small {
+    font-size: clamp(0.8rem, 3vw, 0.9rem);
+  }
+
+  .loading {
+    text-align: center;
+    padding: 20px;
+    color: var(--gray);
+    font-size: clamp(0.9rem, 3vw, 1rem);
+  }
+
+  .fade-in {
+    animation: fadeIn 0.5s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Login Redirect Overlay -->
+<div id="loginOverlay" class="login-overlay" style="display: none;">
+  <div class="login-message">
+    <i class="fas fa-exclamation-circle"></i>
+    <h2>Authentication Required</h2>
+    <p>You need to be logged in to access the Customer Database. Please log in to continue.</p>
+    <button class="login-btn" onclick="redirectToLogin()">
+      <i class="fas fa-sign-in-alt"></i>
+      Go to Login
+    </button>
+  </div>
+</div>
+
+<div id="mainContent">
+  <div class="card" id="addForm">
+    <div class="card-header">
+      <i class="fas fa-user-plus"></i> Add New Customer
+      <span class="role-badge role-staff" id="userRoleBadge">Staff</span>
+    </div>
+    <div class="card-body">
+      <button class="btn btn-primary" onclick="openModal()">
+        <i class="fas fa-plus-circle"></i> Add New Customer
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <i class="fas fa-list"></i> Customer List
+    </div>
+    <div class="card-body">
+      <div class="search-container">
+        <div class="search-box">
+          <input type="text" id="search" placeholder="Search by Name or Mobile..." onkeyup="filterList()">
+        </div>
+        <div class="date-filter">
+          <input type="date" id="fromDate" class="date-input" onchange="filterList()">
+          <span>to</span>
+          <input type="date" id="toDate" class="date-input" onchange="filterList()">
+          <button class="btn btn-primary btn-sm" onclick="clearDateFilter()">
+            <i class="fas fa-times"></i> Clear
+          </button>
+        </div>
+      </div>
+      
+      <div id="customerListContainer">
+        <div class="loading">
+          <i class="fas fa-spinner fa-spin"></i> Loading customers...
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Customer Modal -->
+<div id="customerModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title"><i class="fas fa-user-plus"></i> Add New Customer</h3>
+      <button class="close-btn" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="name"><i class="fas fa-user"></i> Customer Name *</label>
+        <input type="text" id="name" placeholder="Enter customer name" required>
+      </div>
+      <div class="form-group">
+        <label for="mobile"><i class="fas fa-mobile-alt"></i> Mobile Number *</label>
+        <input type="number" id="mobile" placeholder="Enter mobile number" required>
+      </div>
+      <div class="form-group">
+        <label for="address"><i class="fas fa-map-marker-alt"></i> Address *</label>
+        <textarea id="address" placeholder="Enter customer address" required></textarea>
+      </div>
+      <div class="form-group">
+        <label for="gst"><i class="fas fa-file-invoice"></i> GST (optional)</label>
+        <input type="text" id="gst" placeholder="Enter GST number">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="closeModal()">
+        <i class="fas fa-times"></i> Cancel
+      </button>
+      <button class="btn btn-success" onclick="addCustomer()">
+        <i class="fas fa-check"></i> Add Customer
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Customer Modal -->
+<div id="editModal" class="modal">
+  <div class="modal-content edit-modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title"><i class="fas fa-edit"></i> Edit Customer</h3>
+      <button class="close-btn" onclick="closeEditModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="editName"><i class="fas fa-user"></i> Customer Name *</label>
+        <input type="text" id="editName" required>
+      </div>
+      <div class="form-group">
+        <label for="editMobile"><i class="fas fa-mobile-alt"></i> Mobile Number *</label>
+        <input type="number" id="editMobile" required>
+      </div>
+      <div class="form-group">
+        <label for="editAddress"><i class="fas fa-map-marker-alt"></i> Address *</label>
+        <textarea id="editAddress" required></textarea>
+      </div>
+      <div class="form-group">
+        <label for="editGst"><i class="fas fa-file-invoice"></i> GST</label>
+        <input type="text" id="editGst">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="closeEditModal()">
+        <i class="fas fa-times"></i> Cancel
+      </button>
+      <button class="btn btn-success" onclick="saveCustomer()">
+        <i class="fas fa-save"></i> Save Changes
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Notification Modal -->
+<div id="notificationModal" class="modal notification-modal">
+  <div class="modal-content">
+    <div class="modal-body">
+      <div class="notification-icon" id="notificationIcon">
+        <i class="fas fa-info-circle notification-info"></i>
+      </div>
+      <h3 class="notification-title" id="notificationTitle">Notification</h3>
+      <p class="notification-message" id="notificationMessage">This is a notification message.</p>
+      <div class="notification-footer">
+        <button class="btn btn-primary" id="notificationButton" onclick="closeNotification()">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div id="confirmationModal" class="modal notification-modal">
+  <div class="modal-content">
+    <div class="modal-body">
+      <div class="notification-icon" id="confirmationIcon">
+        <i class="fas fa-question-circle notification-warning"></i>
+      </div>
+      <h3 class="notification-title" id="confirmationTitle">Confirmation</h3>
+      <p class="notification-message" id="confirmationMessage">Are you sure you want to proceed?</p>
+      <div class="notification-footer">
+        <button class="btn btn-danger" id="confirmationCancel" onclick="closeConfirmation(false)">Cancel</button>
+        <button class="btn btn-success" id="confirmationConfirm" onclick="closeConfirmation(true)">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const CUSTOMER_API = "https://api.baserow.io/api/database/rows/table/736204/?user_field_names=true";
+const USERS_API = "https://api.baserow.io/api/database/rows/table/729979/?user_field_names=true";
+const API_KEY = "jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw";
+
+const shopID = localStorage.getItem("ShopIDTag");
+const addedBy = localStorage.getItem("NameTag");
+const mobileTag = localStorage.getItem("MobileTag");
+let role = "Staff"; // default
+let allCustomers = [];
+let currentEditId = null;
+let confirmationCallback = null;
+
+// Check if user is logged in
+function checkAuthentication() {
+  const shopID = localStorage.getItem("ShopIDTag");
+  const nameTag = localStorage.getItem("NameTag");
+  const mobileTag = localStorage.getItem("MobileTag");
+  
+  if (!shopID || !nameTag || !mobileTag) {
+    // Show login overlay and hide main content
+    document.getElementById('loginOverlay').style.display = 'flex';
+    document.getElementById('mainContent').style.display = 'none';
+    return false;
+  }
+  
+  // Hide login overlay and show main content
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('mainContent').style.display = 'block';
+  return true;
+}
+
+// Redirect to login page
+function redirectToLogin() {
+  window.location.href = 'login.html';
+}
+
+// Set default date range to last 30 days
+function setDefaultDateRange() {
+  const today = new Date();
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(today.getDate() - 30);
+  
+  document.getElementById('fromDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+  document.getElementById('toDate').value = today.toISOString().split('T')[0];
+}
+
+// Show notification modal
+function showNotification(title, message, type = "info") {
+  const modal = document.getElementById("notificationModal");
+  const icon = document.getElementById("notificationIcon");
+  const titleEl = document.getElementById("notificationTitle");
+  const messageEl = document.getElementById("notificationMessage");
+  
+  // Set content
+  titleEl.textContent = title;
+  messageEl.textContent = message;
+  
+  // Set icon and color based on type
+  icon.innerHTML = "";
+  let iconClass = "";
+  
+  switch(type) {
+    case "success":
+      iconClass = "fas fa-check-circle notification-success";
+      break;
+    case "error":
+      iconClass = "fas fa-exclamation-circle notification-error";
+      break;
+    case "warning":
+      iconClass = "fas fa-exclamation-triangle notification-warning";
+      break;
+    default:
+      iconClass = "fas fa-info-circle notification-info";
+  }
+  
+  const iconEl = document.createElement("i");
+  iconEl.className = iconClass;
+  icon.appendChild(iconEl);
+  
+  // Show modal
+  modal.style.display = "flex";
+}
+
+// Close notification modal
+function closeNotification() {
+  document.getElementById("notificationModal").style.display = "none";
+}
+
+// Show confirmation modal
+function showConfirmation(title, message, callback) {
+  const modal = document.getElementById("confirmationModal");
+  const titleEl = document.getElementById("confirmationTitle");
+  const messageEl = document.getElementById("confirmationMessage");
+  
+  // Set content
+  titleEl.textContent = title;
+  messageEl.textContent = message;
+  
+  // Store callback
+  confirmationCallback = callback;
+  
+  // Show modal
+  modal.style.display = "flex";
+}
+
+// Close confirmation modal
+function closeConfirmation(result) {
+  document.getElementById("confirmationModal").style.display = "none";
+  
+  // Execute callback with result
+  if (confirmationCallback) {
+    confirmationCallback(result);
+    confirmationCallback = null;
+  }
+}
+
+// 🔹 Step 1: Get Role from Users Table
+async function getUserRole() {
+  // Check authentication first
+  if (!checkAuthentication()) {
+    return;
+  }
+
+  try {
+    const res = await fetch(USERS_API, { headers: { Authorization: `Token ${API_KEY}` } });
+    const data = await res.json();
+    const user = data.results.find(u => u.Username == mobileTag);
+    if (user && user.Role) {
+      role = user.Role;
+    }
+    
+    // Update role badge
+    const roleBadge = document.getElementById('userRoleBadge');
+    roleBadge.textContent = role;
+    roleBadge.className = `role-badge role-${role.toLowerCase()}`;
+    
+  } catch (err) {
+    console.error("Error fetching role:", err);
+  }
+}
+
+// 🔹 Step 2: Load Customers
+async function loadCustomers() {
+  // Check authentication first
+  if (!checkAuthentication()) {
+    return;
+  }
+
+  try {
+    const res = await fetch(CUSTOMER_API, { headers: { Authorization: `Token ${API_KEY}` } });
+    const data = await res.json();
+    allCustomers = data.results.filter(c => c.ShopID == shopID);
+    renderCustomerList(allCustomers);
+  } catch (error) {
+    console.error("Error loading customers:", error);
+    document.getElementById("customerListContainer").innerHTML = `<div class="empty-state">
+      <i class="fas fa-exclamation-triangle"></i>
+      <div>Error loading customers. Please try again.</div>
+    </div>`;
+  }
+}
+
+// Render customer list as expandable cards
+function renderCustomerList(customers) {
+  const container = document.getElementById("customerListContainer");
+  
+  if (customers.length === 0) {
+    container.innerHTML = `<div class="empty-state">
+      <i class="fas fa-user-slash"></i>
+      <div>No customers found</div>
+      <small>Try adjusting your search or add a new customer</small>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = "";
+  
+  customers.forEach(c => {
+    const card = document.createElement("div");
+    card.className = "customer-card fade-in";
+    
+    // Format date as DD/MM/YYYY
+    const date = new Date(c["Date"]);
+    const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+    
+    card.innerHTML = `
+      <div class="customer-header" onclick="toggleCustomerCard(this.parentNode)">
+        <div class="customer-main-info">
+          <div class="customer-name">${c["Costomer Name"]}</div>
+          <div class="customer-mobile">${c["Mobile"]}</div>
+        </div>
+        <div class="expand-icon"><i class="fas fa-chevron-down"></i></div>
+      </div>
+      <div class="customer-details">
+        <div class="detail-row">
+          <div class="detail-icon"><i class="fas fa-map-marker-alt"></i></div>
+          <div class="detail-content">
+            <div class="detail-label">Address</div>
+            <div class="detail-value">${c["Address"]}</div>
+          </div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-icon"><i class="fas fa-file-invoice"></i></div>
+          <div class="detail-content">
+            <div class="detail-label">GST</div>
+            <div class="detail-value">${c["GST"] || "Nil"}</div>
+          </div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-icon"><i class="fas fa-user-plus"></i></div>
+          <div class="detail-content">
+            <div class="detail-label">Added By</div>
+            <div class="detail-value">${c["Added by"]}</div>
+          </div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-icon"><i class="fas fa-calendar-alt"></i></div>
+          <div class="detail-content">
+            <div class="detail-label">Date</div>
+            <div class="detail-value">${formattedDate}</div>
+          </div>
+        </div>
+        <div class="action-buttons">
+          ${role.toLowerCase() === "manager" ? `
+            <button class="btn btn-warning btn-sm" onclick="event.stopPropagation(); editCustomer(${c.id})">
+              <i class="fas fa-edit"></i> Edit
+            </button>
+            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); deleteCustomer(${c.id})">
+              <i class="fas fa-trash-alt"></i> Delete
+            </button>
+          ` : ""}
+          <button class="btn btn-primary btn-sm call-btn" onclick="event.stopPropagation(); callCustomer('${c["Mobile"]}')">
+            <i class="fas fa-phone-alt"></i> Call
+          </button>
+          <button class="btn btn-success btn-sm whatsapp-btn" onclick="event.stopPropagation(); whatsappCustomer('${c["Mobile"]}')">
+            <i class="fab fa-whatsapp"></i> WhatsApp
+          </button>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+// Toggle customer card expansion
+function toggleCustomerCard(card) {
+  // Close all other expanded cards
+  document.querySelectorAll('.customer-card.expanded').forEach(expandedCard => {
+    if (expandedCard !== card) {
+      expandedCard.classList.remove('expanded');
+    }
+  });
+  
+  // Toggle current card
+  card.classList.toggle('expanded');
+}
+
+// 🔹 Step 3: Add New Customer
+async function addCustomer() {
+  // Check authentication first
+  if (!checkAuthentication()) {
+    return;
+  }
+
+  const name = document.getElementById("name").value.trim();
+  const mobile = document.getElementById("mobile").value.trim();
+  const address = document.getElementById("address").value.trim();
+  const gst = document.getElementById("gst").value.trim() || "Nil";
+
+  if (!name || !mobile || !address) {
+    showNotification("Missing Information", "Please fill all required fields!", "warning");
+    return;
+  }
+
+  try {
+    const res = await fetch(CUSTOMER_API, { headers: { Authorization: `Token ${API_KEY}` } });
+    const data = await res.json();
+    const existing = data.results.find(c => c.Mobile == Number(mobile) && c.ShopID == shopID);
+    if (existing) {
+      showNotification("Duplicate Customer", "Customer with this mobile number already exists in your shop!", "error");
+      return;
+    }
+
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+
+    await fetch(CUSTOMER_API, {
+      method: "POST",
+      headers: {
+        "Authorization": `Token ${API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        "Costomer Name": name,
+        "Mobile": Number(mobile),
+        "Address": address,
+        "GST": gst,
+        "Added by": addedBy || "Unknown",
+        "Date": today,
+        "ShopID": shopID
+      })
+    });
+
+    showNotification("Success", "Customer added successfully!", "success");
+    closeModal();
+    loadCustomers();
+  } catch (error) {
+    console.error("Error adding customer:", error);
+    showNotification("Error", "Error adding customer. Please try again.", "error");
+  }
+}
+
+// 🔹 Step 4: Edit Customer (Manager only)
+function editCustomer(id) {
+  // Check authentication first
+  if (!checkAuthentication()) {
+    return;
+  }
+
+  // Only managers can edit
+  if (role.toLowerCase() !== "manager") {
+    showNotification("Permission Denied", "Only managers can edit customer information.", "warning");
+    return;
+  }
+  
+  const customer = allCustomers.find(c => c.id === id);
+  if (!customer) return;
+  
+  currentEditId = id;
+  document.getElementById("editName").value = customer["Costomer Name"];
+  document.getElementById("editMobile").value = customer["Mobile"];
+  document.getElementById("editAddress").value = customer["Address"];
+  document.getElementById("editGst").value = customer["GST"] || "";
+  
+  document.getElementById("editModal").style.display = "flex";
+}
+
+// Save edited customer (Manager only)
+async function saveCustomer() {
+  // Check authentication first
+  if (!checkAuthentication()) {
+    return;
+  }
+
+  // Only managers can save edits
+  if (role.toLowerCase() !== "manager") {
+    showNotification("Permission Denied", "Only managers can edit customer information.", "warning");
+    closeEditModal();
+    return;
+  }
+  
+  if (!currentEditId) return;
+  
+  const name = document.getElementById("editName").value.trim();
+  const mobile = document.getElementById("editMobile").value.trim();
+  const address = document.getElementById("editAddress").value.trim();
+  const gst = document.getElementById("editGst").value.trim() || "Nil";
+
+  if (!name || !mobile || !address) {
+    showNotification("Missing Information", "Please fill all required fields!", "warning");
+    return;
+  }
+
+  try {
+    // Check if mobile number already exists (excluding current customer)
+    const res = await fetch(CUSTOMER_API, { headers: { Authorization: `Token ${API_KEY}` } });
+    const data = await res.json();
+    const existing = data.results.find(c => 
+      c.Mobile == Number(mobile) && 
+      c.ShopID == shopID && 
+      c.id !== currentEditId
+    );
+    
+    if (existing) {
+      showNotification("Duplicate Customer", "Customer with this mobile number already exists in your shop!", "error");
+      return;
+    }
+
+    await fetch(`https://api.baserow.io/api/database/rows/table/736204/${currentEditId}/?user_field_names=true`, {
+      method: "PATCH",
+      headers: {
+        "Authorization": `Token ${API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        "Costomer Name": name,
+        "Mobile": Number(mobile),
+        "Address": address,
+        "GST": gst
+      })
+    });
+    
+    showNotification("Success", "Customer updated successfully!", "success");
+    closeEditModal();
+    loadCustomers();
+  } catch (error) {
+    console.error("Error updating customer:", error);
+    showNotification("Error", "Error updating customer. Please try again.", "error");
+  }
+}
+
+// 🔹 Delete Customer (Manager only)
+async function deleteCustomer(id) {
+  // Check authentication first
+  if (!checkAuthentication()) {
+    return;
+  }
+
+  // Only managers can delete
+  if (role.toLowerCase() !== "manager") {
+    showNotification("Permission Denied", "Only managers can delete customers.", "warning");
+    return;
+  }
+  
+  showConfirmation(
+    "Delete Customer", 
+    "Are you sure you want to delete this customer? This action cannot be undone.",
+    async (confirmed) => {
+      if (!confirmed) return;
+      
+      try {
+        await fetch(`https://api.baserow.io/api/database/rows/table/736204/${id}/?user_field_names=true`, {
+          method: "DELETE",
+          headers: {
+            "Authorization": `Token ${API_KEY}`
+          }
+        });
+        
+        showNotification("Success", "Customer deleted successfully!", "success");
+        loadCustomers();
+      } catch (error) {
+        console.error("Error deleting customer:", error);
+        showNotification("Error", "Error deleting customer. Please try again.", "error");
+      }
+    }
+  );
+}
+
+// 🔹 Step 5: Search Filter
+function filterList() {
+  const searchInput = document.getElementById("search").value.toLowerCase();
+  const fromDate = document.getElementById("fromDate").value;
+  const toDate = document.getElementById("toDate").value;
+  
+  let filteredCustomers = allCustomers;
+  
+  // Text search filter
+  if (searchInput) {
+    filteredCustomers = filteredCustomers.filter(c => 
+      c["Costomer Name"].toLowerCase().includes(searchInput) || 
+      c["Mobile"].toString().includes(searchInput)
+    );
+  }
+  
+  // Date range filter
+  if (fromDate || toDate) {
+    filteredCustomers = filteredCustomers.filter(c => {
+      const customerDate = new Date(c["Date"]);
+      const from = fromDate ? new Date(fromDate) : new Date(0);
+      const to = toDate ? new Date(toDate) : new Date();
+      
+      return customerDate >= from && customerDate <= to;
+    });
+  }
+  
+  renderCustomerList(filteredCustomers);
+}
+
+// Clear date filter
+function clearDateFilter() {
+  setDefaultDateRange();
+  filterList();
+}
+
+// Modal functions
+function openModal() {
+  // Check authentication first
+  if (!checkAuthentication()) {
+    return;
+  }
+  
+  document.getElementById("customerModal").style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById("customerModal").style.display = "none";
+  // Clear form fields
+  document.getElementById("name").value = "";
+  document.getElementById("mobile").value = "";
+  document.getElementById("address").value = "";
+  document.getElementById("gst").value = "";
+}
+
+function closeEditModal() {
+  document.getElementById("editModal").style.display = "none";
+  currentEditId = null;
+}
+
+// Contact functions
+function callCustomer(mobile) {
+  // Add +91 prefix for Indian numbers
+  const formattedMobile = mobile.startsWith('+91') ? mobile : `+91${mobile}`;
+  window.open(`tel:${formattedMobile}`, '_self');
+}
+
+function whatsappCustomer(mobile) {
+  // Add +91 prefix for Indian numbers
+  const formattedMobile = mobile.startsWith('+91') ? mobile : `+91${mobile}`;
+  window.open(`https://wa.me/${formattedMobile}`, '_blank');
+}
+
+// Run
+(async () => {
+  // Check authentication on page load
+  if (!checkAuthentication()) {
+    return;
+  }
+  
+  await getUserRole();
+  setDefaultDateRange();
+  await loadCustomers();
+})();
+</script>
+
+</body>
+</html>
