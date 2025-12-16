@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Invoice Viewer</title>
+  <!-- Include jsPDF library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- Include html2canvas for screenshot capture -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     :root {
       --primary: #4361ee;
@@ -184,6 +188,58 @@
       font-size: 16px;
     }
     
+    /* Customer Info Section */
+    .customer-section {
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 25px;
+      margin-bottom: 30px;
+      border: 1px solid var(--gray-light);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .customer-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      color: var(--primary);
+    }
+    
+    .customer-header h3 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+    
+    .customer-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+    
+    .customer-field {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .field-label {
+      font-weight: 600;
+      color: var(--gray);
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+    
+    .field-value {
+      font-weight: 500;
+      color: var(--dark);
+      font-size: 15px;
+      padding: 10px 12px;
+      background: var(--light);
+      border-radius: 8px;
+      border: 1px solid var(--gray-light);
+    }
+    
+    /* Items Table */
     .items-table {
       width: 100%;
       border-collapse: separate;
@@ -219,6 +275,7 @@
       padding: 18px 16px;
       border: none;
       background: white;
+      vertical-align: top;
     }
     
     .items-table tbody tr {
@@ -239,6 +296,14 @@
       background: rgba(67, 97, 238, 0.05);
     }
     
+    /* Batch number styling */
+    .batch-info {
+      font-size: 13px;
+      color: var(--gray);
+      margin-top: 4px;
+      font-weight: 500;
+    }
+    
     .summary {
       text-align: right;
       margin-top: 30px;
@@ -251,11 +316,14 @@
       font-size: 28px;
       font-weight: 700;
       color: var(--primary);
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 2px solid var(--gray-light);
     }
     
     .tax-details {
       margin-top: 15px;
-      padding: 15px;
+      padding: 20px;
       background: white;
       border-radius: var(--border-radius);
       border: 1px solid var(--gray-light);
@@ -264,12 +332,14 @@
     .tax-row {
       display: flex;
       justify-content: space-between;
-      padding: 8px 0;
+      padding: 10px 0;
       border-bottom: 1px solid var(--gray-light);
     }
     
     .tax-row:last-child {
       border-bottom: none;
+      font-weight: 600;
+      color: var(--primary);
     }
     
     .tax-label {
@@ -282,36 +352,249 @@
       color: var(--dark);
     }
     
-    .print-btn {
-      display: block;
-      margin: 40px auto 10px;
-      padding: 16px 35px;
+    .tax-breakdown {
+      margin-top: 25px;
+      padding: 20px;
+      background: var(--light);
+      border-radius: var(--border-radius);
+    }
+    
+    .tax-category {
+      margin-bottom: 20px;
+    }
+    
+    .tax-category-title {
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+    
+    .tax-category-items {
+      padding-left: 20px;
+    }
+    
+    .tax-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      color: var(--gray);
+    }
+    
+    /* Action Buttons */
+    .action-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin: 30px 0;
+      flex-wrap: wrap;
+    }
+    
+    .action-btn {
+      padding: 14px 28px;
       border: none;
       border-radius: var(--border-radius);
-      background: linear-gradient(135deg, #4cc9f0 0%, #4361ee 100%);
-      color: white;
       font-weight: 600;
-      font-size: 16px;
+      font-size: 15px;
       cursor: pointer;
       transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 180px;
+      justify-content: center;
+    }
+    
+    .whatsapp-btn {
+      background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+      color: white;
+    }
+    
+    .copy-btn {
+      background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+      color: white;
+    }
+    
+    .template-btn {
+      background: linear-gradient(135deg, #4361ee 0%, #3a56d4 100%);
+      color: white;
+    }
+    
+    .print-btn {
+      background: linear-gradient(135deg, #4cc9f0 0%, #4361ee 100%);
+      color: white;
+    }
+    
+    .pdf-btn {
+      background: linear-gradient(135deg, #f72585 0%, #b5179e 100%);
+      color: white;
+    }
+    
+    .action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .whatsapp-btn:hover {
+      box-shadow: 0 6px 20px rgba(37, 211, 102, 0.3);
+    }
+    
+    .copy-btn:hover {
+      box-shadow: 0 6px 20px rgba(108, 117, 125, 0.3);
+    }
+    
+    .template-btn:hover {
+      box-shadow: 0 6px 20px rgba(67, 97, 238, 0.3);
     }
     
     .print-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(67, 97, 238, 0.3);
+      box-shadow: 0 6px 20px rgba(67, 97, 238, 0.3);
+    }
+    
+    .pdf-btn:hover {
+      box-shadow: 0 6px 20px rgba(247, 37, 133, 0.3);
+    }
+    
+    /* Template Selector */
+    .template-selector {
+      display: none;
+      background: var(--light);
+      padding: 25px;
+      border-radius: var(--border-radius);
+      margin: 20px 0;
+    }
+    
+    .template-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    
+    .template-option {
+      background: white;
+      padding: 25px;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: var(--transition);
+      border: 2px solid transparent;
+    }
+    
+    .template-option:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow);
+      border-color: var(--primary);
+    }
+    
+    .template-option.active {
+      border-color: var(--primary);
+      background: rgba(67, 97, 238, 0.05);
+    }
+    
+    .template-name {
+      font-weight: 700;
+      font-size: 18px;
+      margin-bottom: 10px;
+      color: var(--primary);
+    }
+    
+    .template-desc {
+      color: var(--gray);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+    /* Share Section */
+    .share-section {
+      background: var(--light);
+      padding: 25px;
+      border-radius: var(--border-radius);
+      margin: 20px 0;
+    }
+    
+    .copy-link-container {
+      margin-top: 20px;
+    }
+    
+    .copy-link-input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid var(--gray-light);
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      margin-bottom: 10px;
+      background: white;
+    }
+    
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 15px 25px;
+      background: var(--dark);
+      color: white;
+      border-radius: var(--border-radius);
+      z-index: 1000;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    
+    /* Screenshot Container Styles */
+    .screenshot-container {
+      position: fixed;
+      top: -9999px;
+      left: -9999px;
+      width: 800px;
+      background: white;
+      padding: 40px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      z-index: 3000;
+    }
+    
+    .screenshot-invoice {
+      transform: scale(1);
+      transform-origin: top left;
     }
     
     @media print {
-      .search-section, .print-btn {
-        display: none;
+      .screenshot-container {
+        position: relative !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        padding: 20px !important;
+        box-shadow: none !important;
+      }
+    }
+    
+    /* Print Styles */
+    @media print {
+      .search-section, .action-buttons, .template-selector, .share-section {
+        display: none !important;
       }
       body {
-        background: white;
-        padding: 0;
+        background: white !important;
+        padding: 0 !important;
+        margin: 0 !important;
       }
       .invoice-container {
-        box-shadow: none;
-        margin: 0;
+        box-shadow: none !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+      }
+      .invoice-header {
+        padding: 20px !important;
+      }
+      .invoice-body {
+        padding: 20px !important;
       }
     }
     
@@ -344,6 +627,10 @@
         padding: 20px;
       }
       
+      .customer-details {
+        grid-template-columns: 1fr;
+      }
+      
       .items-table {
         display: block;
         overflow-x: auto;
@@ -352,13 +639,24 @@
       .items-table th,
       .items-table td {
         padding: 14px 12px;
+        font-size: 13px;
       }
       
-      .tax-details {
-        padding: 10px;
+      .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .action-btn {
+        width: 100%;
+      }
+      
+      .tax-details, .tax-breakdown {
+        padding: 15px;
       }
     }
     
+    /* Animations */
     .fade-in {
       animation: fadeIn 0.5s ease-in-out;
     }
@@ -382,9 +680,123 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+    
+    /* WhatsApp Preview */
+    .whatsapp-preview {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 20px 0;
+      font-family: monospace;
+      white-space: pre-wrap;
+      line-height: 1.4;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    /* Info Badges */
+    .info-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(67, 97, 238, 0.1);
+      border-radius: 6px;
+      font-size: 13px;
+      color: var(--primary);
+      font-weight: 500;
+      margin-top: 5px;
+    }
+    
+    /* Batch Number Highlight */
+    .batch-highlight {
+      background: #e8f4fd;
+      color: #0366d6;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 5px;
+    }
+    
+    /* PDF Generation Loading */
+    .pdf-loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .pdf-loading-content {
+      background: white;
+      padding: 40px;
+      border-radius: var(--border-radius);
+      text-align: center;
+      max-width: 400px;
+    }
+    
+    .pdf-loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid var(--gray-light);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    
+    .pdf-loading-text {
+      color: var(--dark);
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .pdf-loading-subtext {
+      color: var(--gray);
+      margin-top: 10px;
+    }
+    
+    /* Action Buttons Container */
+    .action-buttons-container {
+      margin-top: 40px;
+      padding-top: 30px;
+      border-top: 2px solid var(--gray-light);
+    }
+    
+    .action-buttons-title {
+      text-align: center;
+      color: var(--primary);
+      margin-bottom: 20px;
+      font-size: 18px;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
+
+  <!-- PDF Loading Overlay -->
+  <div id="pdfLoading" class="pdf-loading" style="display: none;">
+    <div class="pdf-loading-content">
+      <div class="pdf-loading-spinner"></div>
+      <div class="pdf-loading-text">Generating PDF...</div>
+      <div class="pdf-loading-subtext">Preparing invoice for capture. This will take about 5 seconds.</div>
+      <div id="pdfProgress" class="pdf-loading-subtext" style="margin-top: 10px; color: #4361ee; font-weight: 600;"></div>
+    </div>
+  </div>
+
+  <!-- Screenshot Container (hidden) -->
+  <div id="screenshotContainer" class="screenshot-container">
+    <div id="screenshotContent" class="screenshot-invoice"></div>
+  </div>
 
   <div class="invoice-container">
     <div class="invoice-header">
@@ -413,80 +825,151 @@
     <div class="invoice-body">
       <div id="errorMsg" class="error"></div>
       <div id="invoiceDetails" class="invoice-details"></div>
+      
+      <!-- Customer Information Section -->
+      <div id="customerSection" class="customer-section" style="display:none;">
+        <div class="customer-header">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="#4361ee"/>
+            <path d="M12 14C7.58172 14 4 17.5817 4 22H20C20 17.5817 16.4183 14 12 14Z" fill="#4361ee"/>
+          </svg>
+          <h3>Customer Information</h3>
+        </div>
+        <div class="customer-details" id="customerDetails"></div>
+      </div>
 
       <div id="itemsTable"></div>
+      <div id="taxBreakdown"></div>
       <div id="totalAmount" class="summary"></div>
-
-      <button id="printBtn" class="print-btn" style="display:none;" onclick="window.print()">🖨 Print / Save PDF</button>
+      
+      <!-- Action Buttons Container -->
+      <div id="actionButtonsContainer" class="action-buttons-container" style="display:none;">
+        <div class="action-buttons-title">Invoice Actions</div>
+        <div id="actionButtons" class="action-buttons">
+          <button class="action-btn whatsapp-btn" onclick="shareToWhatsApp()">
+            <span>📱</span> Share to WhatsApp
+          </button>
+          <button class="action-btn copy-btn" onclick="copyInvoiceText()">
+            <span>📋</span> Copy Invoice Text
+          </button>
+          <button class="action-btn pdf-btn" onclick="generatePDF()">
+            <span>📄</span> Download as PDF
+          </button>
+          <button class="action-btn template-btn" onclick="toggleTemplateSelector()">
+            <span>🎨</span> Change Template
+          </button>
+          <button class="action-btn print-btn" onclick="window.print()">
+            <span>🖨</span> Print Invoice
+          </button>
+        </div>
+      </div>
+      
+      <!-- Template Selector -->
+      <div id="templateSelector" class="template-selector">
+        <h3 style="margin-bottom: 20px; color: var(--primary);">Choose Invoice Template</h3>
+        <div class="template-options">
+          <div class="template-option active" data-template="modern" onclick="changeTemplate('modern')">
+            <div class="template-name">Modern Gradient</div>
+            <div class="template-desc">Modern design with detailed tax breakdown</div>
+          </div>
+          <div class="template-option" data-template="whatsapp" onclick="changeTemplate('whatsapp')">
+            <div class="template-name">WhatsApp Style</div>
+            <div class="template-desc">Formatted exactly like WhatsApp bill template with tax details</div>
+          </div>
+          <div class="template-option" data-template="detailed" onclick="changeTemplate('detailed')">
+            <div class="template-name">Detailed Tax View</div>
+            <div class="template-desc">Comprehensive tax calculation breakdown</div>
+          </div>
+          <div class="template-option" data-template="compact" onclick="changeTemplate('compact')">
+            <div class="template-name">Compact View</div>
+            <div class="template-desc">Space-efficient design with essential tax info</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Share Section -->
+      <div id="shareSection" class="share-section" style="display:none;">
+        <h3 style="margin-bottom: 15px; color: var(--primary);">Share Invoice</h3>
+        <div class="copy-link-container">
+          <p style="margin-bottom: 10px; color: var(--gray);">Share this link to view invoice:</p>
+          <input type="text" id="invoiceLink" class="copy-link-input" readonly>
+          <button class="action-btn copy-btn" onclick="copyInvoiceLink()" style="min-width: auto; padding: 10px 20px;">
+            <span>🔗</span> Copy Link
+          </button>
+        </div>
+        
+        <!-- WhatsApp Template Preview -->
+        <div id="whatsappPreview" style="margin-top: 25px;">
+          <h4 style="color: #25D366; margin-bottom: 15px;">WhatsApp Preview:</h4>
+          <div id="whatsappTemplatePreview" class="whatsapp-preview"></div>
+        </div>
+      </div>
     </div>
   </div>
 
+  <!-- Toast Notification -->
+  <div id="toast" class="toast"></div>
+
   <script>
+    // Initialize jsPDF
+    const { jsPDF } = window.jspdf;
+    
     const apiKey = "jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw";
     const salesTableId = 736209;
     const productTableId = 734793;
-
     const salesUrl = `https://api.baserow.io/api/database/rows/table/${salesTableId}/?user_field_names=true`;
     const productUrl = `https://api.baserow.io/api/database/rows/table/${productTableId}/?user_field_names=true`;
+    
+    let currentInvoiceData = null;
+    let currentInvoiceNumber = null;
+    let currentTemplate = 'modern';
+    let shopGST = "Not Available";
+    let taxBreakdownByRate = {};
 
     // Initialize the page
     document.addEventListener('DOMContentLoaded', function() {
-      // Load shop information from localStorage
       loadShopInfo();
       
-      // Check for invoice parameter in URL
       const urlParams = new URLSearchParams(window.location.search);
       const invoiceParam = urlParams.get('invoice');
       
       if (invoiceParam) {
-        // Hide search section if invoice parameter is present
         document.getElementById('searchSection').style.display = 'none';
         document.getElementById('invoiceNumber').value = invoiceParam;
         fetchInvoice();
       }
+      
+      const savedTemplate = localStorage.getItem('invoiceTemplate') || 'modern';
+      changeTemplate(savedTemplate, false);
     });
 
     function parseShopTag(shopTag) {
-      // Expected format: ShopName-Address/PhoneNumber
       let shopName = "Your Shop";
       let address = "Address not available";
       let phone = "Phone not available";
       
       if (shopTag) {
-        // Split by '-' to separate shop name from address/phone
         const firstSplit = shopTag.split('-');
-        
         if (firstSplit.length > 1) {
           shopName = firstSplit[0].trim();
-          
-          // Split the remaining part by '/' to separate address and phone
           const secondSplit = firstSplit[1].split('/');
-          
           if (secondSplit.length > 1) {
             address = secondSplit[0].trim();
             phone = secondSplit[1].trim();
           } else {
-            // If no '/' found, treat the whole remaining part as address
             address = firstSplit[1].trim();
           }
         } else {
-          // If no '-' found, use the whole string as shop name
           shopName = shopTag.trim();
         }
       }
       
-      return {
-        shopName,
-        address,
-        phone
-      };
+      return { shopName, address, phone };
     }
 
     function loadShopInfo() {
       const shopIDTag = localStorage.getItem("ShopIDTag");
       const shopTagValue = localStorage.getItem("ShopTag") || "Your Shop";
-      
-      // Parse the ShopTag value
       const shopInfo = parseShopTag(shopTagValue);
       
       if (shopIDTag) {
@@ -497,32 +980,20 @@
       } else {
         document.getElementById('shopTag').textContent = "Not Set";
         document.getElementById('shopName').textContent = "Please Set Shop Information";
-        document.getElementById('shopAddress').textContent = "Please set ShopTag in localStorage";
-        document.getElementById('shopPhone').textContent = "Please set ShopTag in localStorage";
       }
     }
 
     function formatDate(dateString) {
       if (!dateString) return "N/A";
-      
       try {
-        // Try to parse the date string
         const date = new Date(dateString);
-        
-        // Check if date is valid
-        if (isNaN(date.getTime())) {
-          return dateString; // Return original if invalid
-        }
-        
-        // Format as DD/MM/YYYY
+        if (isNaN(date.getTime())) return dateString;
         const day = String(date.getDate()).padStart(2, '0');
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const year = date.getFullYear();
-        
         return `${day}/${month}/${year}`;
       } catch (error) {
-        console.error("Date formatting error:", error);
-        return dateString; // Return original if error
+        return dateString;
       }
     }
 
@@ -548,7 +1019,8 @@
         taxableAmount,
         taxAmount,
         sgst,
-        cgst
+        cgst,
+        total: taxableAmount + taxAmount
       };
     }
 
@@ -556,20 +1028,33 @@
       const invoiceNumber = document.getElementById("invoiceNumber").value.trim();
       const shopIDTag = localStorage.getItem("ShopIDTag");
       const detailsDiv = document.getElementById("invoiceDetails");
+      const customerSection = document.getElementById("customerSection");
+      const customerDetails = document.getElementById("customerDetails");
       const errorDiv = document.getElementById("errorMsg");
       const itemsDiv = document.getElementById("itemsTable");
+      const taxBreakdownDiv = document.getElementById("taxBreakdown");
       const totalDiv = document.getElementById("totalAmount");
-      const printBtn = document.getElementById("printBtn");
+      const actionButtonsContainer = document.getElementById("actionButtonsContainer");
+      const actionButtons = document.getElementById("actionButtons");
+      const shareSection = document.getElementById("shareSection");
       const searchBtn = document.getElementById("searchBtn");
       const btnText = document.getElementById("btnText");
       const invoiceTag = document.getElementById("invoiceTag");
 
+      // Reset displays
       detailsDiv.innerHTML = "";
+      customerSection.style.display = "none";
+      customerDetails.innerHTML = "";
       errorDiv.innerText = "";
       itemsDiv.innerHTML = "";
-      totalDiv.innerText = "";
-      printBtn.style.display = "none";
+      taxBreakdownDiv.innerHTML = "";
+      totalDiv.innerHTML = "";
+      actionButtonsContainer.style.display = "none";
+      actionButtons.style.display = "none";
+      shareSection.style.display = "none";
       invoiceTag.style.display = "none";
+      currentInvoiceData = null;
+      taxBreakdownByRate = {};
 
       // Show loading state
       searchBtn.disabled = true;
@@ -583,23 +1068,19 @@
       }
 
       if (!shopIDTag) {
-        errorDiv.innerText = "⚠️ ShopIDTag not found in local storage. Please log in first.";
+        errorDiv.innerText = "⚠️ ShopIDTag not found. Please log in first.";
         searchBtn.disabled = false;
         btnText.textContent = "Search Invoice";
         return;
       }
 
       try {
-        // Fetch Product Table for mapping
-        const productResponse = await fetch(productUrl, {
-          headers: { Authorization: `Token ${apiKey}` }
-        });
+        const [productResponse, salesResponse] = await Promise.all([
+          fetch(productUrl, { headers: { Authorization: `Token ${apiKey}` } }),
+          fetch(salesUrl, { headers: { Authorization: `Token ${apiKey}` } })
+        ]);
+        
         const productData = await productResponse.json();
-
-        // Fetch Sales Table
-        const salesResponse = await fetch(salesUrl, {
-          headers: { Authorization: `Token ${apiKey}` }
-        });
         const salesData = await salesResponse.json();
 
         const invoiceRows = salesData.results.filter(
@@ -613,171 +1094,1111 @@
           return;
         }
 
-        // Basic customer info from first row
-        const invoice = invoiceRows[0];
+        // Get shop GST from first row
+        shopGST = invoiceRows[0]["GST"] || "Not Available";
+        
+        // Store invoice data
+        currentInvoiceData = {
+          invoice: invoiceRows[0],
+          rows: invoiceRows,
+          productData: productData.results
+        };
+        currentInvoiceNumber = invoiceNumber;
 
-        // Display Tag value at top right if available
-        if (invoice["Tag"]) {
-          invoiceTag.textContent = invoice["Tag"];
-          invoiceTag.style.display = "block";
+        // Display invoice
+        displayInvoice();
+
+        // Show action buttons and share section
+        actionButtonsContainer.style.display = "block";
+        actionButtons.style.display = "flex";
+        shareSection.style.display = "block";
+        
+        // Generate and display shareable link
+        const shareableLink = generateShareableLink(invoiceNumber);
+        document.getElementById('invoiceLink').value = shareableLink;
+        
+        // Show WhatsApp preview
+        if (currentTemplate === 'whatsapp') {
+          displayWhatsAppPreview();
         }
-
-        // Customer Details
-        detailsDiv.innerHTML = `
-          <div class="detail-group">
-            <span class="label">Invoice Number</span>
-            <span class="value">${invoice["Invoice Number"]}</span>
-          </div>
-          <div class="detail-group">
-            <span class="label">Customer Name</span>
-            <span class="value">${invoice["Costomer Name"]}</span>
-          </div>
-          <div class="detail-group">
-            <span class="label">Mobile</span>
-            <span class="value">${invoice["Mobile"]}</span>
-          </div>
-          <div class="detail-group">
-            <span class="label">Address</span>
-            <span class="value">${invoice["Address"]}</span>
-          </div>
-          <div class="detail-group">
-            <span class="label">GST</span>
-            <span class="value">${invoice["GST"] || "Nil"}</span>
-          </div>
-          <div class="detail-group">
-            <span class="label">Date</span>
-            <span class="value">${formatDate(invoice["Date"])}</span>
-          </div>
-          <div class="detail-group">
-            <span class="label">Sales Person</span>
-            <span class="value">${invoice["Sales Person"]}</span>
-          </div>
-        `;
-
-        // Table Header with Item Name between Sl. No and Product ID
-        let tableHTML = `
-          <table class="items-table">
-            <thead>
-              <tr>
-                <th>Sl. No</th>
-                <th>Item Name</th>
-                <th>Product ID</th>
-                <th>Batch No</th>
-                <th>Quantity</th>
-                <th>Price</th>
-                <th>Tax %</th>
-                <th>Taxable Amount</th>
-                <th>SGST</th>
-                <th>CGST</th>
-                <th>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-        `;
-
-        let grandTotal = 0;
-        let totalTaxableAmount = 0;
-        let totalSGST = 0;
-        let totalCGST = 0;
-        let totalTaxAmount = 0;
         
-        // FIXED: Added index parameter to forEach
-        invoiceRows.forEach((row, index) => {
-          const product = productData.results.find(
-            p => p["Product ID"] === row["Product ID"]
-          );
-          
-          const productName = product ? product["Product Name"] : "Not Found";
-          const quantity = Number(row["Quantity"]) || 0;
-          const price = Number(row["Price"]) || 0;
-          
-          // Get tax details from product table
-          const taxIncluded = product ? product["Tax Included"] : false;
-          const taxPercentage = product ? Number(product["Tax Percentage"]) || 0 : 0;
-          
-          // Calculate taxes
-          const taxes = calculateTaxes(price, quantity, taxPercentage, taxIncluded);
-          
-          const total = taxes.taxableAmount + taxes.taxAmount;
-          
-          grandTotal += total;
-          totalTaxableAmount += taxes.taxableAmount;
-          totalSGST += taxes.sgst;
-          totalCGST += taxes.cgst;
-          totalTaxAmount += taxes.taxAmount;
-
-          tableHTML += `
-            <tr>
-              <td>${index + 1}</td>
-              <td>${productName}</td>
-              <td>${row["Product ID"]}</td>
-              <td>${row["Batch No"]}</td>
-              <td>${quantity}</td>
-              <td>₹${price.toFixed(2)}</td>
-              <td>${taxPercentage}%</td>
-              <td>₹${taxes.taxableAmount.toFixed(2)}</td>
-              <td>₹${taxes.sgst.toFixed(2)}</td>
-              <td>₹${taxes.cgst.toFixed(2)}</td>
-              <td>₹${total.toFixed(2)}</td>
-            </tr>
-          `;
-        });
-
-        tableHTML += `</tbody></table>`;
-        itemsDiv.innerHTML = tableHTML;
-        
-        // Calculate effective tax percentage for display
-        const effectiveTaxPercentage = totalTaxableAmount > 0 ? 
-          (totalTaxAmount / totalTaxableAmount * 100).toFixed(2) : "0.00";
-        
-        // Create tax breakdown
-        const taxDetailsHTML = `
-          <div class="tax-details">
-            <div class="tax-row">
-              <span class="tax-label">Taxable Amount:</span>
-              <span class="tax-value">₹${totalTaxableAmount.toFixed(2)}</span>
-            </div>
-            <div class="tax-row">
-              <span class="tax-label">SGST (${(parseFloat(effectiveTaxPercentage)/2).toFixed(2)}%):</span>
-              <span class="tax-value">₹${totalSGST.toFixed(2)}</span>
-            </div>
-            <div class="tax-row">
-              <span class="tax-label">CGST (${(parseFloat(effectiveTaxPercentage)/2).toFixed(2)}%):</span>
-              <span class="tax-value">₹${totalCGST.toFixed(2)}</span>
-            </div>
-            <div class="tax-row">
-              <span class="tax-label">Total Tax:</span>
-              <span class="tax-value">₹${totalTaxAmount.toFixed(2)}</span>
-            </div>
-          </div>
-        `;
-        
-        totalDiv.innerHTML = `
-          ${taxDetailsHTML}
-          <div class="total-amount" style="margin-top: 20px;">Grand Total: ₹${grandTotal.toFixed(2)}</div>
-        `;
-        
-        printBtn.style.display = "block";
-        
-        // Add fade-in animation
-        detailsDiv.classList.add('fade-in');
-        itemsDiv.classList.add('fade-in');
-        totalDiv.classList.add('fade-in');
-        
-        // Update URL without page reload
+        // Update URL
         const newUrl = new URL(window.location);
         newUrl.searchParams.set('invoice', invoiceNumber);
         window.history.pushState({}, '', newUrl);
         
+        showToast('✅ Invoice loaded successfully!');
+        
       } catch (error) {
         console.error(error);
         errorDiv.innerText = "⚠️ Error fetching data. Please try again.";
+        showToast('❌ Error loading invoice');
       } finally {
         searchBtn.disabled = false;
         btnText.textContent = "Search Invoice";
       }
     }
-    
+
+    function displayInvoice() {
+      if (!currentInvoiceData) return;
+      
+      const { invoice, rows, productData } = currentInvoiceData;
+      const detailsDiv = document.getElementById("invoiceDetails");
+      const customerSection = document.getElementById("customerSection");
+      const customerDetails = document.getElementById("customerDetails");
+      const itemsDiv = document.getElementById("itemsTable");
+      const taxBreakdownDiv = document.getElementById("taxBreakdown");
+      const totalDiv = document.getElementById("totalAmount");
+      const invoiceTag = document.getElementById("invoiceTag");
+
+      // Display invoice tag
+      if (invoice["Tag"]) {
+        invoiceTag.textContent = invoice["Tag"];
+        invoiceTag.style.display = "block";
+      }
+
+      // Apply current template
+      applyTemplate();
+
+      // Reset tax breakdown
+      taxBreakdownByRate = {};
+      
+      // Calculate totals
+      let grandTotal = 0;
+      let totalTaxableAmount = 0;
+      let totalSGST = 0;
+      let totalCGST = 0;
+      let totalTaxAmount = 0;
+      let itemCount = 0;
+
+      // Display invoice details section
+      detailsDiv.innerHTML = `
+        <div class="detail-group">
+          <span class="label">Invoice Number</span>
+          <span class="value">${invoice["Invoice Number"]}</span>
+        </div>
+        <div class="detail-group">
+          <span class="label">Invoice Date</span>
+          <span class="value">${formatDate(invoice["Date"])}</span>
+        </div>
+        <div class="detail-group">
+          <span class="label">Sales Person</span>
+          <span class="value">${invoice["Sales Person"] || "Not Specified"}</span>
+        </div>
+        <div class="detail-group">
+          <span class="label">Shop GST</span>
+          <span class="value">${shopGST}</span>
+        </div>
+      `;
+
+      // Display customer information section
+      customerSection.style.display = "block";
+      customerDetails.innerHTML = `
+        <div class="customer-field">
+          <span class="field-label">Customer Name</span>
+          <div class="field-value">${invoice["Costomer Name"] || "Not Specified"}</div>
+        </div>
+        <div class="customer-field">
+          <span class="field-label">Customer Phone</span>
+          <div class="field-value">${invoice["Mobile"] || "Not Provided"}</div>
+        </div>
+        <div class="customer-field">
+          <span class="field-label">Customer GST</span>
+          <div class="field-value">${invoice["GST"] || "Not Registered"}</div>
+        </div>
+        <div class="customer-field" style="grid-column: 1 / -1;">
+          <span class="field-label">Customer Address</span>
+          <div class="field-value">${invoice["Address"] || "Not Provided"}</div>
+        </div>
+      `;
+
+      // Build items table based on template
+      let tableHTML = '';
+      
+      if (currentTemplate === 'detailed' || currentTemplate === 'modern') {
+        tableHTML = `
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Item Description</th>
+                <th>Batch No</th>
+                <th>Qty</th>
+                <th>Rate (₹)</th>
+                <th>Tax Rate</th>
+                <th>Taxable Amt (₹)</th>
+                <th>SGST (₹)</th>
+                <th>CGST (₹)</th>
+                <th>Total (₹)</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+      } else if (currentTemplate === 'compact') {
+        tableHTML = `
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Item</th>
+                <th>Batch</th>
+                <th>Qty</th>
+                <th>Rate</th>
+                <th>Tax %</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+      } else if (currentTemplate === 'whatsapp') {
+        tableHTML = `
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Item Description</th>
+                <th>Batch</th>
+                <th>Qty</th>
+                <th>Rate</th>
+                <th>Tax %</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+      }
+
+      rows.forEach((row, index) => {
+        const product = productData.find(p => p["Product ID"] === row["Product ID"]);
+        const productName = product ? product["Product Name"] : "Not Found";
+        const quantity = Number(row["Quantity"]) || 0;
+        const price = Number(row["Price"]) || 0;
+        const taxIncluded = product ? product["Tax Included"] : false;
+        const taxPercentage = product ? Number(product["Tax Percentage"]) || 0 : 0;
+        const batchNo = row["Batch No"] || "N/A";
+        
+        const taxes = calculateTaxes(price, quantity, taxPercentage, taxIncluded);
+        
+        // Update tax breakdown by rate
+        if (!taxBreakdownByRate[taxPercentage]) {
+          taxBreakdownByRate[taxPercentage] = {
+            taxableAmount: 0,
+            sgst: 0,
+            cgst: 0,
+            taxAmount: 0,
+            count: 0
+          };
+        }
+        taxBreakdownByRate[taxPercentage].taxableAmount += taxes.taxableAmount;
+        taxBreakdownByRate[taxPercentage].sgst += taxes.sgst;
+        taxBreakdownByRate[taxPercentage].cgst += taxes.cgst;
+        taxBreakdownByRate[taxPercentage].taxAmount += taxes.taxAmount;
+        taxBreakdownByRate[taxPercentage].count++;
+        
+        grandTotal += taxes.total;
+        totalTaxableAmount += taxes.taxableAmount;
+        totalSGST += taxes.sgst;
+        totalCGST += taxes.cgst;
+        totalTaxAmount += taxes.taxAmount;
+        itemCount++;
+
+        if (currentTemplate === 'detailed' || currentTemplate === 'modern') {
+          tableHTML += `
+            <tr>
+              <td>${index + 1}</td>
+              <td>
+                <strong>${productName}</strong><br>
+                <span class="batch-info">Product ID: ${row["Product ID"]}</span>
+              </td>
+              <td>
+                <span class="batch-highlight">${batchNo}</span>
+              </td>
+              <td>${quantity}</td>
+              <td>${price.toFixed(2)}</td>
+              <td>${taxPercentage}%</td>
+              <td>${taxes.taxableAmount.toFixed(2)}</td>
+              <td>${taxes.sgst.toFixed(2)}</td>
+              <td>${taxes.cgst.toFixed(2)}</td>
+              <td><strong>${taxes.total.toFixed(2)}</strong></td>
+            </tr>
+          `;
+        } else if (currentTemplate === 'compact') {
+          tableHTML += `
+            <tr>
+              <td>${index + 1}</td>
+              <td>${productName}</td>
+              <td><span class="batch-highlight">${batchNo}</span></td>
+              <td>${quantity}</td>
+              <td>${price.toFixed(2)}</td>
+              <td>${taxPercentage}%</td>
+              <td>${taxes.total.toFixed(2)}</td>
+            </tr>
+          `;
+        } else if (currentTemplate === 'whatsapp') {
+          tableHTML += `
+            <tr>
+              <td>${index + 1}</td>
+              <td>
+                ${productName}<br>
+                <span class="batch-info">Batch: ${batchNo}</span>
+              </td>
+              <td>${batchNo}</td>
+              <td>${quantity}</td>
+              <td>${price.toFixed(2)}</td>
+              <td>${taxPercentage}%</td>
+              <td>${taxes.total.toFixed(2)}</td>
+            </tr>
+          `;
+        }
+      });
+
+      tableHTML += `</tbody></table>`;
+      itemsDiv.innerHTML = tableHTML;
+      
+      // Calculate effective tax percentage
+      const effectiveTaxPercentage = totalTaxableAmount > 0 ? 
+        (totalTaxAmount / totalTaxableAmount * 100).toFixed(2) : "0.00";
+      
+      // Build tax breakdown section for detailed templates
+      if (currentTemplate === 'detailed' || currentTemplate === 'modern') {
+        let taxBreakdownHTML = '<div class="tax-breakdown">';
+        taxBreakdownHTML += '<div class="tax-category"><div class="tax-category-title">Tax Breakdown by Rate</div><div class="tax-category-items">';
+        
+        // Sort tax rates
+        const sortedRates = Object.keys(taxBreakdownByRate).sort((a, b) => parseFloat(a) - parseFloat(b));
+        
+        sortedRates.forEach(rate => {
+          const rateData = taxBreakdownByRate[rate];
+          if (parseFloat(rate) > 0) {
+            taxBreakdownHTML += `
+              <div class="tax-item">
+                <span>Items @ ${rate}% GST (${rateData.count} items):</span>
+                <span>₹${rateData.taxableAmount.toFixed(2)}</span>
+              </div>
+              <div class="tax-item">
+                <span>&nbsp;&nbsp;SGST @ ${(rate/2).toFixed(2)}%:</span>
+                <span>₹${rateData.sgst.toFixed(2)}</span>
+              </div>
+              <div class="tax-item">
+                <span>&nbsp;&nbsp;CGST @ ${(rate/2).toFixed(2)}%:</span>
+                <span>₹${rateData.cgst.toFixed(2)}</span>
+              </div>
+            `;
+          }
+        });
+        
+        taxBreakdownHTML += '</div></div></div>';
+        taxBreakdownDiv.innerHTML = taxBreakdownHTML;
+      }
+      
+      // Build total section with tax details
+      let taxDetailsHTML = `
+        <div class="tax-details">
+          <div class="tax-row">
+            <span class="tax-label">Total Items:</span>
+            <span class="tax-value">${itemCount}</span>
+          </div>
+          <div class="tax-row">
+            <span class="tax-label">Taxable Amount:</span>
+            <span class="tax-value">₹${totalTaxableAmount.toFixed(2)}</span>
+          </div>
+      `;
+      
+      if (totalTaxAmount > 0) {
+        taxDetailsHTML += `
+          <div class="tax-row">
+            <span class="tax-label">SGST (${(parseFloat(effectiveTaxPercentage)/2).toFixed(2)}%):</span>
+            <span class="tax-value">₹${totalSGST.toFixed(2)}</span>
+          </div>
+          <div class="tax-row">
+            <span class="tax-label">CGST (${(parseFloat(effectiveTaxPercentage)/2).toFixed(2)}%):</span>
+            <span class="tax-value">₹${totalCGST.toFixed(2)}</span>
+          </div>
+          <div class="tax-row">
+            <span class="tax-label">Total GST:</span>
+            <span class="tax-value">₹${totalTaxAmount.toFixed(2)}</span>
+          </div>
+        `;
+      } else {
+        taxDetailsHTML += `
+          <div class="tax-row">
+            <span class="tax-label">GST:</span>
+            <span class="tax-value">NIL</span>
+          </div>
+        `;
+      }
+      
+      taxDetailsHTML += `
+          <div class="tax-row">
+            <span class="tax-label"><strong>Grand Total:</strong></span>
+            <span class="tax-value"><strong>₹${grandTotal.toFixed(2)}</strong></span>
+          </div>
+        </div>
+      `;
+      
+      totalDiv.innerHTML = taxDetailsHTML;
+      
+      // Add animations
+      detailsDiv.classList.add('fade-in');
+      customerSection.classList.add('fade-in');
+      itemsDiv.classList.add('fade-in');
+      if (taxBreakdownDiv.innerHTML) {
+        taxBreakdownDiv.classList.add('fade-in');
+      }
+      totalDiv.classList.add('fade-in');
+      
+      // Display WhatsApp preview if needed
+      if (currentTemplate === 'whatsapp') {
+        displayWhatsAppPreview();
+      }
+    }
+
+    function displayWhatsAppPreview() {
+      if (!currentInvoiceData) return;
+      
+      const { invoice, rows, productData } = currentInvoiceData;
+      const shopInfo = parseShopTag(localStorage.getItem("ShopTag") || "Your Shop");
+      
+      // Calculate totals
+      let grandTotal = 0;
+      let totalTaxableAmount = 0;
+      let totalSGST = 0;
+      let totalCGST = 0;
+      let totalTaxAmount = 0;
+      
+      // Build items list with batch numbers
+      let itemsList = '';
+      rows.forEach((row, index) => {
+        const product = productData.find(p => p["Product ID"] === row["Product ID"]);
+        const productName = product ? product["Product Name"] : "Not Found";
+        const quantity = Number(row["Quantity"]) || 0;
+        const price = Number(row["Price"]) || 0;
+        const taxIncluded = product ? product["Tax Included"] : false;
+        const taxPercentage = product ? Number(product["Tax Percentage"]) || 0 : 0;
+        const batchNo = row["Batch No"] || "N/A";
+        
+        const taxes = calculateTaxes(price, quantity, taxPercentage, taxIncluded);
+        const total = taxes.taxableAmount + taxes.taxAmount;
+        
+        grandTotal += total;
+        totalTaxableAmount += taxes.taxableAmount;
+        totalSGST += taxes.sgst;
+        totalCGST += taxes.cgst;
+        totalTaxAmount += taxes.taxAmount;
+        
+        itemsList += `${index + 1}. ${productName} (Batch: ${batchNo})\n   Qty: ${quantity} x ₹${price.toFixed(2)} = ₹${total.toFixed(2)}\n   GST: ${taxPercentage}% (SGST: ${(taxPercentage/2).toFixed(2)}%, CGST: ${(taxPercentage/2).toFixed(2)}%)\n\n`;
+      });
+      
+      // Calculate effective tax rates
+      const effectiveTaxPercentage = totalTaxableAmount > 0 ? 
+        (totalTaxAmount / totalTaxableAmount * 100).toFixed(2) : "0.00";
+      const cgstRate = (parseFloat(effectiveTaxPercentage) / 2).toFixed(2);
+      const sgstRate = (parseFloat(effectiveTaxPercentage) / 2).toFixed(2);
+      
+      // Generate WhatsApp template
+      const whatsappTemplate = `*${shopInfo.shopName}*
+${shopInfo.address}
+📞 Ph: ${shopInfo.phone}
+📍 GSTIN: ${shopGST}
+
+🧾 *TAX INVOICE*
+━━━━━━━━━━━━━━━━━━━━
+📋 Invoice No : ${invoice["Invoice Number"]}
+📅 Date       : ${formatDate(invoice["Date"])}
+👤 Sales By   : ${invoice["Sales Person"] || "Not Specified"}
+
+👤 *CUSTOMER DETAILS*
+━━━━━━━━━━━━━━━━━━━━
+👤 Name    : ${invoice["Costomer Name"] || "Not Specified"}
+📱 Phone   : ${invoice["Mobile"] || "Not Provided"}
+🏠 Address : ${invoice["Address"] || "Not Provided"}
+📋 GST No  : ${invoice["GST"] || "Not Registered"}
+
+📦 *ITEM DETAILS (with Batch Numbers)*
+━━━━━━━━━━━━━━━━━━━━
+${itemsList}
+📊 *TAX SUMMARY*
+━━━━━━━━━━━━━━━━━━━━
+Taxable Amount : ₹${totalTaxableAmount.toFixed(2)}
+CGST @ ${cgstRate}% : ₹${totalCGST.toFixed(2)}
+SGST @ ${sgstRate}% : ₹${totalSGST.toFixed(2)}
+━━━━━━━━━━━━━━━━━━━━
+*GRAND TOTAL : ₹${grandTotal.toFixed(2)}*
+━━━━━━━━━━━━━━━━━━━━
+
+🔗 *Invoice Link:*
+${generateShareableLink(currentInvoiceNumber)}
+
+📞 *Contact for Queries:*
+${shopInfo.phone}
+
+Thank you for your Business! 🙏
+*Terms:*
+• Goods once sold will not be taken back
+• Subject to ${shopInfo.shopName} jurisdiction`;
+      
+      // Display preview
+      document.getElementById('whatsappTemplatePreview').textContent = whatsappTemplate;
+      document.getElementById('whatsappPreview').style.display = 'block';
+    }
+
+    function applyTemplate() {
+      const container = document.querySelector('.invoice-container');
+      const header = document.querySelector('.invoice-header');
+      
+      // Reset styles
+      container.style = '';
+      header.style = '';
+      
+      switch(currentTemplate) {
+        case 'modern':
+          break;
+          
+        case 'whatsapp':
+          container.style.backgroundColor = '#ffffff';
+          header.style.background = '#25D366';
+          header.style.color = 'white';
+          break;
+          
+        case 'detailed':
+          container.style.backgroundColor = '#ffffff';
+          header.style.background = 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)';
+          break;
+          
+        case 'compact':
+          container.style.padding = '0';
+          header.style.padding = '20px';
+          document.querySelector('.invoice-body').style.padding = '20px';
+          break;
+      }
+    }
+
+    function changeTemplate(templateName, updateDisplay = true) {
+      currentTemplate = templateName;
+      localStorage.setItem('invoiceTemplate', templateName);
+      
+      // Update active template in selector
+      document.querySelectorAll('.template-option').forEach(option => {
+        option.classList.remove('active');
+        if (option.dataset.template === templateName) {
+          option.classList.add('active');
+        }
+      });
+      
+      // Show/hide WhatsApp preview
+      const whatsappPreview = document.getElementById('whatsappPreview');
+      if (templateName === 'whatsapp' && currentInvoiceData) {
+        displayWhatsAppPreview();
+      } else {
+        whatsappPreview.style.display = 'none';
+      }
+      
+      // Re-display invoice if we have data
+      if (currentInvoiceData && updateDisplay) {
+        displayInvoice();
+      }
+    }
+
+    function toggleTemplateSelector() {
+      const selector = document.getElementById('templateSelector');
+      selector.style.display = selector.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function generateShareableLink(invoiceNumber) {
+      const baseUrl = window.location.origin + window.location.pathname;
+      return `${baseUrl}?invoice=${encodeURIComponent(invoiceNumber)}`;
+    }
+
+    function copyInvoiceLink() {
+      const linkInput = document.getElementById('invoiceLink');
+      linkInput.select();
+      linkInput.setSelectionRange(0, 99999);
+      
+      navigator.clipboard.writeText(linkInput.value)
+        .then(() => showToast('✅ Invoice link copied to clipboard!'))
+        .catch(() => {
+          document.execCommand('copy');
+          showToast('✅ Invoice link copied to clipboard!');
+        });
+    }
+
+    function shareToWhatsApp() {
+      if (!currentInvoiceData) return;
+      
+      const { invoice, rows, productData } = currentInvoiceData;
+      const shopInfo = parseShopTag(localStorage.getItem("ShopTag") || "Your Shop");
+      
+      // Calculate totals
+      let grandTotal = 0;
+      let totalTaxableAmount = 0;
+      let totalSGST = 0;
+      let totalCGST = 0;
+      let totalTaxAmount = 0;
+      
+      // Build items list with batch numbers
+      let itemsList = '';
+      rows.forEach((row, index) => {
+        const product = productData.find(p => p["Product ID"] === row["Product ID"]);
+        const productName = product ? product["Product Name"] : "Not Found";
+        const quantity = Number(row["Quantity"]) || 0;
+        const price = Number(row["Price"]) || 0;
+        const taxIncluded = product ? product["Tax Included"] : false;
+        const taxPercentage = product ? Number(product["Tax Percentage"]) || 0 : 0;
+        const batchNo = row["Batch No"] || "N/A";
+        
+        const taxes = calculateTaxes(price, quantity, taxPercentage, taxIncluded);
+        const total = taxes.taxableAmount + taxes.taxAmount;
+        
+        grandTotal += total;
+        totalTaxableAmount += taxes.taxableAmount;
+        totalSGST += taxes.sgst;
+        totalCGST += taxes.cgst;
+        totalTaxAmount += taxes.taxAmount;
+        
+        itemsList += `${index + 1}. ${productName} (Batch: ${batchNo})\n   Qty: ${quantity} x ₹${price.toFixed(2)} = ₹${total.toFixed(2)}\n   GST: ${taxPercentage}% (SGST: ${(taxPercentage/2).toFixed(2)}%, CGST: ${(taxPercentage/2).toFixed(2)}%)\n\n`;
+      });
+      
+      // Calculate effective tax rates
+      const effectiveTaxPercentage = totalTaxableAmount > 0 ? 
+        (totalTaxAmount / totalTaxableAmount * 100).toFixed(2) : "0.00";
+      const cgstRate = (parseFloat(effectiveTaxPercentage) / 2).toFixed(2);
+      const sgstRate = (parseFloat(effectiveTaxPercentage) / 2).toFixed(2);
+      
+      // Create WhatsApp message
+      const message = `*${shopInfo.shopName}*
+${shopInfo.address}
+📞 Ph: ${shopInfo.phone}
+📍 GSTIN: ${shopGST}
+
+🧾 *TAX INVOICE*
+━━━━━━━━━━━━━━━━━━━━
+📋 Invoice No : ${invoice["Invoice Number"]}
+📅 Date       : ${formatDate(invoice["Date"])}
+👤 Sales By   : ${invoice["Sales Person"] || "Not Specified"}
+
+👤 *CUSTOMER DETAILS*
+━━━━━━━━━━━━━━━━━━━━
+👤 Name    : ${invoice["Costomer Name"] || "Not Specified"}
+📱 Phone   : ${invoice["Mobile"] || "Not Provided"}
+🏠 Address : ${invoice["Address"] || "Not Provided"}
+📋 GST No  : ${invoice["GST"] || "Not Registered"}
+
+📦 *ITEM DETAILS (with Batch Numbers)*
+━━━━━━━━━━━━━━━━━━━━
+${itemsList}
+📊 *TAX SUMMARY*
+━━━━━━━━━━━━━━━━━━━━
+Taxable Amount : ₹${totalTaxableAmount.toFixed(2)}
+CGST @ ${cgstRate}% : ₹${totalCGST.toFixed(2)}
+SGST @ ${sgstRate}% : ₹${totalSGST.toFixed(2)}
+━━━━━━━━━━━━━━━━━━━━
+*GRAND TOTAL : ₹${grandTotal.toFixed(2)}*
+━━━━━━━━━━━━━━━━━━━━
+
+🔗 *Invoice Link:*
+${generateShareableLink(currentInvoiceNumber)}
+
+📞 *Contact for Queries:*
+${shopInfo.phone}
+
+Thank you for your Business! 🙏
+*Terms:*
+• Goods once sold will not be taken back
+• Subject to ${shopInfo.shopName} jurisdiction`;
+      
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+      
+      window.open(whatsappUrl, '_blank');
+    }
+
+    function copyInvoiceText() {
+      if (!currentInvoiceData) return;
+      
+      const { invoice, rows, productData } = currentInvoiceData;
+      const shopInfo = parseShopTag(localStorage.getItem("ShopTag") || "Your Shop");
+      
+      // Calculate totals
+      let grandTotal = 0;
+      let totalTaxableAmount = 0;
+      let totalSGST = 0;
+      let totalCGST = 0;
+      let totalTaxAmount = 0;
+      
+      // Build detailed text version
+      let text = `TAX INVOICE\n`;
+      text += `============\n\n`;
+      text += `Seller Details:\n`;
+      text += `--------------\n`;
+      text += `Shop Name: ${shopInfo.shopName}\n`;
+      text += `Address: ${shopInfo.address}\n`;
+      text += `Phone: ${shopInfo.phone}\n`;
+      text += `GSTIN: ${shopGST}\n`;
+      text += `Sales Person: ${invoice["Sales Person"] || "Not Specified"}\n\n`;
+      
+      text += `Invoice Information:\n`;
+      text += `-------------------\n`;
+      text += `Invoice Number: ${invoice["Invoice Number"]}\n`;
+      text += `Invoice Date: ${formatDate(invoice["Date"])}\n\n`;
+      
+      text += `Customer Details:\n`;
+      text += `----------------\n`;
+      text += `Customer Name: ${invoice["Costomer Name"] || "Not Specified"}\n`;
+      text += `Customer Phone: ${invoice["Mobile"] || "Not Provided"}\n`;
+      text += `Customer Address: ${invoice["Address"] || "Not Provided"}\n`;
+      text += `Customer GSTIN: ${invoice["GST"] || "Not Registered"}\n\n`;
+      
+      text += `Item Details (with Batch Numbers):\n`;
+      text += `-------------------------------\n`;
+      text += `S.No | Item Description | Batch No | Qty | Rate | Tax % | Taxable Amt | SGST | CGST | Total\n`;
+      text += `------------------------------------------------------------------------------------------------\n`;
+      
+      rows.forEach((row, index) => {
+        const product = productData.find(p => p["Product ID"] === row["Product ID"]);
+        const productName = product ? product["Product Name"] : "Not Found";
+        const quantity = Number(row["Quantity"]) || 0;
+        const price = Number(row["Price"]) || 0;
+        const taxIncluded = product ? product["Tax Included"] : false;
+        const taxPercentage = product ? Number(product["Tax Percentage"]) || 0 : 0;
+        const batchNo = row["Batch No"] || "N/A";
+        
+        const taxes = calculateTaxes(price, quantity, taxPercentage, taxIncluded);
+        const total = taxes.taxableAmount + taxes.taxAmount;
+        
+        grandTotal += total;
+        totalTaxableAmount += taxes.taxableAmount;
+        totalSGST += taxes.sgst;
+        totalCGST += taxes.cgst;
+        totalTaxAmount += taxes.taxAmount;
+        
+        text += `${(index + 1).toString().padEnd(4)} | ${productName.padEnd(20)} | ${batchNo.padEnd(10)} | ${quantity.toString().padEnd(4)} | ${price.toFixed(2).padEnd(6)} | ${taxPercentage.toString().padEnd(5)}% | ${taxes.taxableAmount.toFixed(2).padEnd(12)} | ${taxes.sgst.toFixed(2).padEnd(6)} | ${taxes.cgst.toFixed(2).padEnd(6)} | ${total.toFixed(2)}\n`;
+      });
+      
+      text += `\n`;
+      
+      // Calculate effective tax percentage
+      const effectiveTaxPercentage = totalTaxableAmount > 0 ? 
+        (totalTaxAmount / totalTaxableAmount * 100).toFixed(2) : "0.00";
+      
+      text += `Tax Summary:\n`;
+      text += `-----------\n`;
+      text += `Total Items: ${rows.length}\n`;
+      text += `Taxable Amount: ₹${totalTaxableAmount.toFixed(2)}\n`;
+      text += `SGST @ ${(parseFloat(effectiveTaxPercentage)/2).toFixed(2)}%: ₹${totalSGST.toFixed(2)}\n`;
+      text += `CGST @ ${(parseFloat(effectiveTaxPercentage)/2).toFixed(2)}%: ₹${totalCGST.toFixed(2)}\n`;
+      text += `Total GST: ₹${totalTaxAmount.toFixed(2)}\n\n`;
+      
+      text += `GRAND TOTAL: ₹${grandTotal.toFixed(2)}\n\n`;
+      text += `Invoice Link: ${generateShareableLink(currentInvoiceNumber)}\n\n`;
+      text += `Terms and Conditions:\n`;
+      text += `--------------------\n`;
+      text += `1. Goods once sold will not be taken back\n`;
+      text += `2. Subject to ${shopInfo.shopName} jurisdiction\n`;
+      text += `3. E. & O.E.\n\n`;
+      text += `Generated on: ${new Date().toLocaleDateString()}\n`;
+      text += `Thank you for your business!`;
+      
+      // Copy to clipboard
+      navigator.clipboard.writeText(text)
+        .then(() => showToast('✅ Invoice text with all details copied to clipboard!'))
+        .catch(() => {
+          const textarea = document.createElement('textarea');
+          textarea.value = text;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          showToast('✅ Invoice text with all details copied to clipboard!');
+        });
+    }
+
+    // SCREENSHOT-BASED PDF GENERATION WITH 5-SECOND DELAY - SINGLE PAGE
+    async function generatePDF() {
+      if (!currentInvoiceData) {
+        showToast('⚠️ Please load an invoice first');
+        return;
+      }
+      
+      // Show loading overlay
+      const pdfLoading = document.getElementById('pdfLoading');
+      const pdfProgress = document.getElementById('pdfProgress');
+      pdfLoading.style.display = 'flex';
+      
+      try {
+        // Step 1: Prepare the screenshot content with compact layout
+        await prepareScreenshotContent();
+        
+        // Step 2: Wait for 5 seconds to ensure all content is loaded and rendered
+        await waitForRendering(pdfProgress);
+        
+        // Step 3: Capture the screenshot
+        const canvas = await captureScreenshot();
+        
+        // Step 4: Generate PDF from the canvas (single page)
+        await generateSinglePagePDF(canvas);
+        
+        // Step 5: Clean up
+        cleanupScreenshot();
+        
+        showToast('✅ PDF downloaded successfully!');
+        
+      } catch (error) {
+        console.error('PDF Generation Error:', error);
+        showToast('❌ Error generating PDF. Please try again.');
+        cleanupScreenshot();
+      } finally {
+        // Hide loading overlay
+        pdfLoading.style.display = 'none';
+      }
+    }
+
+    async function prepareScreenshotContent() {
+      const { invoice, rows, productData } = currentInvoiceData;
+      const shopInfo = parseShopTag(localStorage.getItem("ShopTag") || "Your Shop");
+      
+      // Calculate totals
+      let grandTotal = 0;
+      let totalTaxableAmount = 0;
+      let totalSGST = 0;
+      let totalCGST = 0;
+      let totalTaxAmount = 0;
+      let itemCount = 0;
+      
+      // Build compact HTML for screenshot (single page)
+      let screenshotHTML = `
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; width: 750px; margin: 0 auto; background: white; padding: 20px; box-sizing: border-box;">
+          <!-- Header - Compact -->
+          <div style="background: linear-gradient(135deg, #4361ee 0%, #7209b7 100%); color: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-size: 22px; font-weight: 700; margin-bottom: 5px;">${shopInfo.shopName}</div>
+                <div style="font-size: 11px; opacity: 0.9; line-height: 1.3;">
+                  <div>${shopInfo.address}</div>
+                  <div>Phone: ${shopInfo.phone}</div>
+                </div>
+              </div>
+              ${invoice["Tag"] ? `<div style="background: rgba(255, 255, 255, 0.25); padding: 6px 12px; border-radius: 15px; font-weight: 600; font-size: 12px; backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.4);">${invoice["Tag"]}</div>` : ''}
+            </div>
+          </div>
+          
+          <!-- Invoice Title and Details - Compact -->
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+            <div>
+              <h1 style="color: #4361ee; margin: 0 0 10px 0; font-size: 20px;">TAX INVOICE</h1>
+              <div style="font-size: 12px; color: #6c757d;">
+                <div><strong>Invoice:</strong> ${invoice["Invoice Number"]}</div>
+                <div><strong>Date:</strong> ${formatDate(invoice["Date"])}</div>
+                <div><strong>Sales By:</strong> ${invoice["Sales Person"] || "Not Specified"}</div>
+              </div>
+            </div>
+            <div style="text-align: right; font-size: 12px; color: #6c757d;">
+              <div><strong>Shop GST:</strong> ${shopGST}</div>
+              <div><strong>Shop ID:</strong> ${localStorage.getItem("ShopIDTag") || "Not Set"}</div>
+            </div>
+          </div>
+          
+          <!-- Customer Information - Compact -->
+          <div style="background: #f8f9fa; border-radius: 8px; padding: 15px; margin-bottom: 15px; border: 1px solid #e9ecef;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; color: #4361ee;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="#4361ee"/>
+                <path d="M12 14C7.58172 14 4 17.5817 4 22H20C20 17.5817 16.4183 14 12 14Z" fill="#4361ee"/>
+              </svg>
+              <h3 style="font-size: 16px; font-weight: 600; margin: 0;">Customer Information</h3>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 12px;">
+              <div>
+                <div style="font-weight: 600; color: #6c757d; margin-bottom: 3px;">Name</div>
+                <div style="padding: 5px; background: white; border-radius: 4px; border: 1px solid #e9ecef;">${invoice["Costomer Name"] || "Not Specified"}</div>
+              </div>
+              <div>
+                <div style="font-weight: 600; color: #6c757d; margin-bottom: 3px;">Phone</div>
+                <div style="padding: 5px; background: white; border-radius: 4px; border: 1px solid #e9ecef;">${invoice["Mobile"] || "Not Provided"}</div>
+              </div>
+              <div>
+                <div style="font-weight: 600; color: #6c757d; margin-bottom: 3px;">GST</div>
+                <div style="padding: 5px; background: white; border-radius: 4px; border: 1px solid #e9ecef;">${invoice["GST"] || "Not Registered"}</div>
+              </div>
+            </div>
+            <div style="margin-top: 10px; font-size: 12px;">
+              <div style="font-weight: 600; color: #6c757d; margin-bottom: 3px;">Address</div>
+              <div style="padding: 5px; background: white; border-radius: 4px; border: 1px solid #e9ecef;">${invoice["Address"] || "Not Provided"}</div>
+            </div>
+          </div>
+          
+          <!-- Items Table - Compact -->
+          <div style="margin-bottom: 15px;">
+            <h3 style="color: #4361ee; margin-bottom: 10px; font-size: 16px; border-bottom: 2px solid #4361ee; padding-bottom: 5px;">Item Details</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 10px;">
+              <thead>
+                <tr style="background: linear-gradient(135deg, #4361ee 0%, #3a56d4 100%); color: white;">
+                  <th style="padding: 8px; text-align: left; font-weight: 600; border: none;">#</th>
+                  <th style="padding: 8px; text-align: left; font-weight: 600; border: none;">Item</th>
+                  <th style="padding: 8px; text-align: left; font-weight: 600; border: none;">Batch</th>
+                  <th style="padding: 8px; text-align: left; font-weight: 600; border: none;">Qty</th>
+                  <th style="padding: 8px; text-align: left; font-weight: 600; border: none;">Rate</th>
+                  <th style="padding: 8px; text-align: left; font-weight: 600; border: none;">Tax%</th>
+                  <th style="padding: 8px; text-align: left; font-weight: 600; border: none;">Tax Amt</th>
+                  <th style="padding: 8px; text-align: left; font-weight: 600; border: none;">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+      `;
+      
+      // Limit to 15 items for single page
+      const maxItems = Math.min(rows.length, 15);
+      
+      for (let i = 0; i < maxItems; i++) {
+        const row = rows[i];
+        const product = productData.find(p => p["Product ID"] === row["Product ID"]);
+        const productName = product ? product["Product Name"] : "Not Found";
+        const quantity = Number(row["Quantity"]) || 0;
+        const price = Number(row["Price"]) || 0;
+        const taxIncluded = product ? product["Tax Included"] : false;
+        const taxPercentage = product ? Number(product["Tax Percentage"]) || 0 : 0;
+        const batchNo = row["Batch No"] || "N/A";
+        
+        const taxes = calculateTaxes(price, quantity, taxPercentage, taxIncluded);
+        
+        grandTotal += taxes.total;
+        totalTaxableAmount += taxes.taxableAmount;
+        totalSGST += taxes.sgst;
+        totalCGST += taxes.cgst;
+        totalTaxAmount += taxes.taxAmount;
+        itemCount++;
+        
+        // Truncate long product names
+        const displayName = productName.length > 25 ? productName.substring(0, 22) + "..." : productName;
+        
+        screenshotHTML += `
+                <tr style="${i % 2 === 0 ? 'background: rgba(0,0,0,0.015);' : ''}">
+                  <td style="padding: 6px; border-bottom: 1px solid #e9ecef;">${i + 1}</td>
+                  <td style="padding: 6px; border-bottom: 1px solid #e9ecef;">
+                    <div style="font-weight: 600;">${displayName}</div>
+                    <div style="font-size: 9px; color: #6c757d;">ID: ${row["Product ID"]}</div>
+                  </td>
+                  <td style="padding: 6px; border-bottom: 1px solid #e9ecef;">
+                    <span style="background: #e8f4fd; color: #0366d6; padding: 2px 5px; border-radius: 3px; font-size: 10px; font-weight: 600;">${batchNo}</span>
+                  </td>
+                  <td style="padding: 6px; border-bottom: 1px solid #e9ecef; text-align: center;">${quantity}</td>
+                  <td style="padding: 6px; border-bottom: 1px solid #e9ecef; text-align: right;">${price.toFixed(2)}</td>
+                  <td style="padding: 6px; border-bottom: 1px solid #e9ecef; text-align: center;">${taxPercentage}%</td>
+                  <td style="padding: 6px; border-bottom: 1px solid #e9ecef; text-align: right;">${taxes.taxAmount.toFixed(2)}</td>
+                  <td style="padding: 6px; border-bottom: 1px solid #e9ecef; text-align: right; font-weight: 600;">${taxes.total.toFixed(2)}</td>
+                </tr>
+        `;
+      }
+      
+      // Add note if items were truncated
+      if (rows.length > maxItems) {
+        screenshotHTML += `
+                <tr>
+                  <td colspan="8" style="padding: 8px; text-align: center; font-style: italic; color: #6c757d; border-bottom: 1px solid #e9ecef;">
+                    ... and ${rows.length - maxItems} more items
+                  </td>
+                </tr>
+        `;
+      }
+      
+      // Calculate effective tax percentage
+      const effectiveTaxPercentage = totalTaxableAmount > 0 ? 
+        (totalTaxAmount / totalTaxableAmount * 100).toFixed(2) : "0.00";
+      
+      screenshotHTML += `
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Tax Summary - Compact -->
+          <div style="background: #f8f9fa; border-radius: 8px; padding: 15px; margin-bottom: 15px; border: 1px solid #e9ecef;">
+            <h3 style="color: #4361ee; margin-bottom: 10px; font-size: 16px; border-bottom: 2px solid #4361ee; padding-bottom: 5px;">Tax Summary</h3>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 12px;">
+              <div>
+                <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #e9ecef;">
+                  <span style="color: #6c757d;">Total Items:</span>
+                  <span style="font-weight: 600;">${itemCount}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #e9ecef;">
+                  <span style="color: #6c757d;">Taxable Amount:</span>
+                  <span style="font-weight: 600;">₹${totalTaxableAmount.toFixed(2)}</span>
+                </div>
+      `;
+      
+      if (totalTaxAmount > 0) {
+        screenshotHTML += `
+                <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #e9ecef;">
+                  <span style="color: #6c757d;">SGST (${(parseFloat(effectiveTaxPercentage)/2).toFixed(2)}%):</span>
+                  <span style="font-weight: 600;">₹${totalSGST.toFixed(2)}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #e9ecef;">
+                  <span style="color: #6c757d;">CGST (${(parseFloat(effectiveTaxPercentage)/2).toFixed(2)}%):</span>
+                  <span style="font-weight: 600;">₹${totalCGST.toFixed(2)}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #e9ecef;">
+                  <span style="color: #6c757d;">Total GST:</span>
+                  <span style="font-weight: 600;">₹${totalTaxAmount.toFixed(2)}</span>
+                </div>
+        `;
+      } else {
+        screenshotHTML += `
+                <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #e9ecef;">
+                  <span style="color: #6c757d;">GST:</span>
+                  <span style="font-weight: 600;">NIL</span>
+                </div>
+        `;
+      }
+      
+      screenshotHTML += `
+              </div>
+              <div style="display: flex; align-items: center; justify-content: center; background: white; border-radius: 8px; border: 2px solid #4361ee;">
+                <div style="text-align: center; padding: 15px;">
+                  <div style="color: #6c757d; font-size: 14px; margin-bottom: 5px;">GRAND TOTAL</div>
+                  <div style="color: #4361ee; font-size: 28px; font-weight: 700;">₹${grandTotal.toFixed(2)}</div>
+                  <div style="color: #6c757d; font-size: 11px; margin-top: 5px;">${itemCount} Items</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Footer - Compact -->
+          <div style="border-top: 2px solid #e9ecef; padding-top: 10px; font-size: 10px; color: #6c757d;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <div>Generated: ${new Date().toLocaleDateString()}</div>
+              <div>Invoice: ${currentInvoiceNumber}</div>
+              <div>E. & O.E.</div>
+            </div>
+            <div style="text-align: center; margin-top: 10px; padding: 8px; background: #f8f9fa; border-radius: 4px;">
+              <strong>Terms:</strong> Goods once sold will not be taken back | Subject to ${shopInfo.shopName} jurisdiction | All disputes subject to local jurisdiction
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Set the screenshot content
+      document.getElementById('screenshotContent').innerHTML = screenshotHTML;
+      
+      // Force a reflow to ensure the content is rendered
+      document.getElementById('screenshotContainer').offsetHeight;
+    }
+
+    async function waitForRendering(pdfProgress) {
+      const startTime = Date.now();
+      const totalDelay = 5000; // 5 seconds total delay
+      
+      // Wait in 500ms increments and update progress
+      for (let i = 0; i < 10; i++) {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, totalDelay - elapsed);
+        
+        // Update progress text
+        if (pdfProgress) {
+          pdfProgress.textContent = 
+            `Preparing... ${Math.round((elapsed / totalDelay) * 100)}% (${Math.round(remaining/1000)}s remaining)`;
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      // One final wait to ensure everything is ready
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
+    async function captureScreenshot() {
+      const element = document.getElementById('screenshotContent');
+      
+      // Configure html2canvas options for high-quality output
+      const options = {
+        scale: 2, // Double the resolution for better quality
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        imageTimeout: 15000,
+        removeContainer: false,
+        width: element.scrollWidth,
+        height: element.scrollHeight,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight
+      };
+      
+      try {
+        // Capture the element as a canvas
+        const canvas = await html2canvas(element, options);
+        
+        // Check if canvas is valid
+        if (!canvas || canvas.width === 0 || canvas.height === 0) {
+          throw new Error('Canvas capture failed');
+        }
+        
+        return canvas;
+      } catch (error) {
+        console.error('Canvas capture error:', error);
+        throw error;
+      }
+    }
+
+    async function generateSinglePagePDF(canvas) {
+      // Create PDF in A4 format
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      // Calculate dimensions to fit the canvas into PDF (with margins)
+      const margin = 5; // Small margin
+      const availableWidth = pdfWidth - (margin * 2);
+      const availableHeight = pdfHeight - (margin * 2);
+      
+      // Calculate scale to fit canvas in one page
+      const scaleX = availableWidth / canvas.width;
+      const scaleY = availableHeight / canvas.height;
+      const scale = Math.min(scaleX, scaleY) * 0.95; // 95% to ensure it fits
+      
+      // Calculate scaled dimensions
+      const imgWidth = canvas.width * scale;
+      const imgHeight = canvas.height * scale;
+      
+      // Center the image on the page
+      const xPos = (pdfWidth - imgWidth) / 2;
+      const yPos = (pdfHeight - imgHeight) / 2;
+      
+      // Convert canvas to image data
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      
+      // Add image to PDF centered on single page
+      pdf.addImage(imgData, 'JPEG', xPos, yPos, imgWidth, imgHeight);
+      
+      // Save the PDF
+      const shopInfo = parseShopTag(localStorage.getItem("ShopTag") || "Your Shop");
+      const fileName = `Invoice_${currentInvoiceNumber}_${shopInfo.shopName.replace(/\s+/g, '_')}.pdf`;
+      pdf.save(fileName);
+    }
+
+    function cleanupScreenshot() {
+      // Clear the screenshot content
+      document.getElementById('screenshotContent').innerHTML = '';
+      
+      // Reset progress text
+      const pdfProgress = document.getElementById('pdfProgress');
+      if (pdfProgress) {
+        pdfProgress.textContent = '';
+      }
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
     // Allow pressing Enter to search
     document.getElementById("invoiceNumber").addEventListener("keypress", function(event) {
       if (event.key === "Enter") {
@@ -785,6 +2206,5 @@
       }
     });
   </script>
-
 </body>
 </html>
