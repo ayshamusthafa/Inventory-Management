@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Secure Encrypted Chat</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<style>
+body{margin:0;font-family:system-ui;background:#e5ddd5}
+header{background:#075e54;color:#fff;padding:12px;text-align:center;font-weight:600}
+#roomBar{background:#128c7e;color:#fff;padding:8px;text-align:center}
+#msgs{height:calc(100vh - 150px);overflow:auto;padding:10px}
+.msg{background:#fff;margin:6px 0;padding:8px 10px;border-radius:8px;max-width:75%}
+.me{background:#dcf8c6;margin-left:auto}
+.user{font-size:11px;color:#555}
+audio{width:100%}
+#input{display:flex;padding:8px;background:#f0f0f0;gap:6px}
+#input input{flex:1;border-radius:20px;border:none;padding:10px}
+button{border:none;background:#075e54;color:#fff;border-radius:50%;width:40px}
+</style>
+</head>
+
+<body oncontextmenu="return false">
+
+<header>🔐 Secure Chat</header>
+<div id="roomBar">Loading rooms…</div>
+<div id="msgs"></div>
+
+<div id="input">
+  <input id="text" placeholder="Message…">
+  <button onclick="sendText()">➤</button>
+  <button onclick="toggleRec()">🎤</button>
+</div>
+
+<script>
+/* ================== BASEROW CONFIG ================== */
+const API_KEY = "jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw";
+const ROOMS_TABLE_ID = 778590;
+const MESSAGES_TABLE_ID = 778592;
+
+const ROOMS_API =
+  "https://api.baserow.io/api/database/rows/table/" + ROOMS_TABLE_ID + "/";
+const MSG_API =
+  "https://api.baserow.io/api/database/rows/table/" + MESSAGES_TABLE_ID + "/";
+
+/* ================== USER ================== */
+let username = localStorage.username;
+if(!username){
+  username = prompt("Enter your name");
+  localStorage.username = username;
+}
+
+/* ================== SCREENSHOT PROTECTION ================== */
+document.addEventListener("visibilitychange",()=>{
+  document.body.style.filter = document.hidden ? "blur(8px)" : "none";
+});
+document.addEventListener("copy",e=>e.preventDefault());
+document.addEventListener("keydown",e=>{
+  if(e.key==="PrintScreen"){alert("Screenshot blocked");e.preventDefault();}
+});
+
+/* ================== SERVICE WORKER (INLINE) ================== */
+const swCode = `
+self.addEventListener('sync',e=>{
+  if(e.tag==='sync-chat'){
+    e.waitUntil(self.clients.matchAll().then(cs=>{
+      cs.forEach(c=>c.postMessage('sync'));
+    }));
+  }
+});
+self.addEventListener('push',e=>{
+  const d=e.data.json();
+  self.registration.showNotification(d.title,{body:d.body});
+});
+`;
+navigator.serviceWorker.register(
+  URL.createObjectURL(new Blob([swCode],{type:"text/javascript"}))
+);
+Notification.requestPermission();
+
+/* ================== INDEXEDDB ================== */
+let db;
+const open=indexedDB.open("chatDB",1);
+open.onupgradeneeded=e=>{
+  e.target.result.createObjectStore("outbox",{autoIncrement:true});
+};
+open.onsuccess=e=>db=e.target.result;
+
+/* ================== ROOMS ================== */
+let ROOM_ID=null;
+let roomKey=null;
+
+async function loadRooms(){
+  const r=await fetch(ROOMS_API,{headers:{Authorization:"Token "+API_KEY}});
+  const j=await r.json();
+  const room=j.results[0];       // default: first room
+  ROOM_ID=room.room_id;
+  document.getElementById("roomBar").textContent=room.room_name;
+
+  const pass=prompt("Room password");
+  roomKey=await deriveKey(pass,ROOM_ID);
+  loadMessages();
+}
+loadRooms();
+
+/* ================== CRYPTO ================== */
+async function deriveKey(password,salt){
+  const enc=new TextEncoder();
+  const base=await crypto.subtle.importKey(
+    "raw",enc.encode(password),"PBKDF2",false,["deriveKey"]
+  );
+  return crypto.subtle.deriveKey({
+    name:"PBKDF2",
+    salt:enc.encode(salt),
+    iterations:100000,
+    hash:"SHA-256"
+  },base,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);
+}
+
+/* ================== SEND TEXT ================== */
+async function sendText(){
+  if(!text.value) return;
+  await sendPayload("text", new TextEncoder().encode(text.value));
+  text.value="";
+}
+
+/* ================== VOICE ================== */
+let rec, chunks=[], recording=false;
+async function toggleRec(){
+  if(!recording){
+    const s=await navigator.mediaDevices.getUserMedia({audio:true});
+    rec=new MediaRecorder(s);
+    chunks=[];
+    rec.ondataavailable=e=>chunks.push(e.data);
+    rec.onstop=async()=>{
+      const blob=new Blob(chunks,{type:"audio/webm"});
+      const buf=new Uint8Array(await blob.arrayBuffer());
+      await sendPayload("audio",buf);
+    };
+    rec.start(); recording=true;
+  } else {
+    rec.stop(); recording=false;
+  }
+}
+
+/* ================== SEND PAYLOAD ================== */
+async function sendPayload(type,data){
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const cipher=await crypto.subtle.encrypt(
+    {name:"AES-GCM",iv},roomKey,data
+  );
+
+  const row={
+    room:ROOM_ID,
+    user:username,
+    type:type,
+    iv:btoa(String.fromCharCode(...iv)),
+    cipher:btoa(String.fromCharCode(...new Uint8Array(cipher)))
+  };
+
+  try{
+    await fetch(MSG_API,{
+      method:"POST",
+      headers:{
+        Authorization:"Token "+API_KEY,
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify(row)
+    });
+  }catch{
+    db.transaction("outbox","readwrite")
+      .objectStore("outbox").add(row);
+    navigator.serviceWorker.ready.then(r=>r.sync.register("sync-chat"));
+  }
+  loadMessages();
+}
+
+/* ================== LOAD & DECRYPT ================== */
+async function loadMessages(){
+  if(!ROOM_ID||!roomKey) return;
+
+  const r=await fetch(
+    MSG_API+`?filter__room__equal=${ROOM_ID}`,
+    {headers:{Authorization:"Token "+API_KEY}}
+  );
+  const j=await r.json();
+  msgs.innerHTML="";
+
+  for(const m of j.results){
+    try{
+      const iv=Uint8Array.from(atob(m.iv),c=>c.charCodeAt(0));
+      const data=Uint8Array.from(atob(m.cipher),c=>c.charCodeAt(0));
+      const plain=await crypto.subtle.decrypt(
+        {name:"AES-GCM",iv},roomKey,data
+      );
+      const d=document.createElement("div");
+      d.className="msg"+(m.user===username?" me":"");
+      if(m.type==="text"){
+        d.innerHTML=`<div class=user>${m.user}</div>`+
+          new TextDecoder().decode(plain);
+      } else {
+        const blob=new Blob([plain],{type:"audio/webm"});
+        d.innerHTML=`<div class=user>${m.user}</div>
+          <audio controls src="${URL.createObjectURL(blob)}"></audio>`;
+      }
+      msgs.appendChild(d);
+    }catch{}
+  }
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+/* ================== AUTO REFRESH ================== */
+setInterval(loadMessages,3000);
+</script>
+
+</body>
+</html>
