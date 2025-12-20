@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Details & Location Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        @media (min-width: 992px) {
+            .main-content {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .section {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e1e1e1;
+            height: 100%;
+        }
+
+        .status {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+            border-left: 4px solid #667eea;
+        }
+
+        .location-info {
+            margin-bottom: 25px;
+        }
+
+        .info-row, .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .info-row:last-child, .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .label {
+            font-weight: 600;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .value {
+            font-weight: 500;
+            color: #667eea;
+            text-align: right;
+        }
+
+        .map-container {
+            margin: 25px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid #e1e1e1;
+        }
+
+        .map {
+            height: 300px;
+            width: 100%;
+        }
+
+        .map-placeholder {
+            height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #f8f9fa;
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .map-placeholder i {
+            font-size: 4rem;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .info-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        footer {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #e1e1e1;
+        }
+
+        .timestamp {
+            margin-top: 10px;
+            font-style: italic;
+            color: #888;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .online {
+            color: #28a745;
+        }
+
+        .offline {
+            color: #dc3545;
+        }
+
+        .copy-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #5a6268;
+        }
+
+        .copy-success {
+            background: #28a745 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-laptop"></i> Device & Location Info</h1>
+            <p class="subtitle">Real-time device information and geolocation tracking</p>
+        </header>
+
+        <div class="main-content">
+            <div class="section">
+                <h2><i class="fas fa-map-marker-alt"></i> Current Location</h2>
+                <div class="card">
+                    <div id="location-status" class="status">
+                        <i class="fas fa-sync-alt fa-spin"></i> Requesting location access...
+                    </div>
+                    
+                    <div class="location-info">
+                        <div class="info-row">
+                            <span class="label">Latitude:</span>
+                            <div>
+                                <span id="latitude" class="value">--</span>
+                                <button class="copy-btn" onclick="copyToClipboard('latitude')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Longitude:</span>
+                            <div>
+                                <span id="longitude" class="value">--</span>
+                                <button class="copy-btn" onclick="copyToClipboard('longitude')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Accuracy:</span>
+                            <span id="accuracy" class="value">-- meters</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Address:</span>
+                            <div>
+                                <span id="address" class="value">--</span>
+                                <button class="copy-btn" onclick="copyToClipboard('address')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="map-container">
+                        <div id="map-placeholder" class="map-placeholder">
+                            <i class="fas fa-map"></i>
+                            <p>Map will appear here once location is available</p>
+                        </div>
+                        <div id="map" class="map" style="display: none;"></div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 15px; margin-top: 20px;">
+                        <button id="refresh-location" class="btn">
+                            <i class="fas fa-redo"></i> Refresh Location
+                        </button>
+                        <button id="share-location" class="btn" style="background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);">
+                            <i class="fas fa-share-alt"></i> Share Location
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><i class="fas fa-desktop"></i> Device Information</h2>
+                <div class="card">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="label"><i class="fas fa-window-maximize"></i> Browser:</span>
+                            <span id="browser" class="value">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label"><i class="fas fa-code"></i> Browser Engine:</span>
+                            <span id="engine" class="value">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label"><i class="fas fa-desktop"></i> Platform:</span>
+                            <span id="platform" class="value">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label"><i class="fas fa-mobile-alt"></i> Device Type:</span>
+                            <span id="device-type" class="value">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label"><i class="fas fa-language"></i> Language:</span>
+                            <span id="language" class="value">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label"><i class="fas fa-clock"></i> Timezone:</span>
+                            <span id="timezone" class="value">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label"><i class="fas fa-expand-alt"></i> Screen Resolution:</span>
+                            <span id="resolution" class="value">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label"><i class="fas fa-paint-brush"></i> Color Depth:</span>
+                            <span id="color-depth" class="value">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label"><i class="fas fa-microchip"></i> CPU Cores:</span>
+                            <span id="cpu-cores" class="value">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label"><i class="fas fa-memory"></i> RAM:</span>
+                            <span id="device-memory" class="value">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label"><i class="fas fa-plug"></i> Online Status:</span>
+                            <span id="online-status" class="value">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label"><i class="fas fa-download"></i> Internet Speed:</span>
+                            <span id="connection-speed" class="value">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label"><i class="fas fa-battery-full"></i> Battery:</span>
+                            <span id="battery-level" class="value">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label"><i class="fas fa-wifi"></i> Connection:</span>
+                            <span id="connection-type" class="value">--</span>
+                        </div>
+                    </div>
+                    
+                    <button id="copy-all-btn" class="btn" style="margin-top: 20px; background: linear-gradient(135deg, #6c757d 0%, #495057 100%);">
+                        <i class="fas fa-copy"></i> Copy All Device Info
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>📍 <strong>Privacy Note:</strong> Location data requires your permission. All data is processed locally and not stored on any server.</p>
+            <p class="timestamp">Last updated: <span id="last-updated">--</span></p>
+        </footer>
+    </div>
+
+    <script>
+        // DOM Elements
+        const elements = {
+            latitude: document.getElementById('latitude'),
+            longitude: document.getElementById('longitude'),
+            accuracy: document.getElementById('accuracy'),
+            address: document.getElementById('address'),
+            locationStatus: document.getElementById('location-status'),
+            refreshBtn: document.getElementById('refresh-location'),
+            shareBtn: document.getElementById('share-location'),
+            mapPlaceholder: document.getElementById('map-placeholder'),
+            mapDiv: document.getElementById('map'),
+            lastUpdated: document.getElementById('last-updated'),
+            
+            // Device info elements
+            browser: document.getElementById('browser'),
+            engine: document.getElementById('engine'),
+            platform: document.getElementById('platform'),
+            deviceType: document.getElementById('device-type'),
+            language: document.getElementById('language'),
+            timezone: document.getElementById('timezone'),
+            resolution: document.getElementById('resolution'),
+            colorDepth: document.getElementById('color-depth'),
+            cpuCores: document.getElementById('cpu-cores'),
+            deviceMemory: document.getElementById('device-memory'),
+            onlineStatus: document.getElementById('online-status'),
+            connectionSpeed: document.getElementById('connection-speed'),
+            batteryLevel: document.getElementById('battery-level'),
+            connectionType: document.getElementById('connection-type'),
+            copyAllBtn: document.getElementById('copy-all-btn')
+        };
+
+        let map = null;
+        let marker = null;
+        let currentLocation = null;
+
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            getDeviceInfo();
+            getLocation();
+            updateTimestamp();
+            getBatteryInfo();
+            
+            // Update online status
+            updateOnlineStatus();
+            window.addEventListener('online', updateOnlineStatus);
+            window.addEventListener('offline', updateOnlineStatus);
+            
+            // Test connection speed
+            testConnectionSpeed();
+            getConnectionType();
+            
+            // Setup buttons
+            elements.refreshBtn.addEventListener('click', getLocation);
+            elements.shareBtn.addEventListener('click', shareLocation);
+            elements.copyAllBtn.addEventListener('click', copyAllDeviceInfo);
+            
+            // Periodically update timestamp
+            setInterval(updateTimestamp, 60000);
+        });
+
+        // Get device information
+        function getDeviceInfo() {
+            const userAgent = navigator.userAgent;
+            const platform = navigator.platform;
+            
+            // Browser detection
+            let browser = "Unknown";
+            let browserVersion = "Unknown";
+            
+            // Detect Chrome
+            if (userAgent.includes("Chrome") && !userAgent.includes("Edg") && !userAgent.includes("OPR")) {
+                browser = "Chrome";
+                const match = userAgent.match(/Chrome\/(\d+\.\d+)/);
+                browserVersion = match ? match[1] : "Unknown";
+            }
+            // Detect Firefox
+            else if (userAgent.includes("Firefox")) {
+                browser = "Firefox";
+                const match = userAgent.match(/Firefox\/(\d+\.\d+)/);
+                browserVersion = match ? match[1] : "Unknown";
+            }
+            // Detect Safari
+            else if (userAgent.includes("Safari") && !userAgent.includes("Chrome")) {
+                browser = "Safari";
+                const match = userAgent.match(/Version\/(\d+\.\d+)/);
+                browserVersion = match ? match[1] : "Unknown";
+            }
+            // Detect Edge
+            else if (userAgent.includes("Edg")) {
+                browser = "Edge";
+                const match = userAgent.match(/Edg\/(\d+\.\d+)/);
+                browserVersion = match ? match[1] : "Unknown";
+            }
+            // Detect Opera
+            else if (userAgent.includes("OPR")) {
+                browser = "Opera";
+                const match = userAgent.match(/OPR\/(\d+\.\d+)/);
+                browserVersion = match ? match[1] : "Unknown";
+            }
+            // Detect Internet Explorer
+            else if (userAgent.includes("MSIE") || userAgent.includes("Trident/")) {
+                browser = "Internet Explorer";
+                const match = userAgent.match(/(MSIE|rv:)(\d+\.\d+)/);
+                browserVersion = match ? match[2] : "Unknown";
+            }
+            
+            elements.browser.textContent = `${browser} ${browserVersion}`;
+            
+            // Browser engine
+            let engine = "Unknown";
+            if (userAgent.includes("AppleWebKit") && !userAgent.includes("Trident")) engine = "WebKit/Blink";
+            else if (userAgent.includes("Gecko")) engine = "Gecko";
+            else if (userAgent.includes("Trident")) engine = "Trident";
+            else if (userAgent.includes("Presto")) engine = "Presto";
+            
+            elements.engine.textContent = engine;
+            
+            // Platform/OS
+            let os = "Unknown";
+            if (platform.includes("Win")) os = "Windows";
+            else if (platform.includes("Mac")) os = "macOS";
+            else if (platform.includes("Linux")) os = "Linux";
+            else if (platform.includes("Android")) os = "Android";
+            else if (platform.includes("iPhone") || platform.includes("iPad") || platform.includes("iPod")) os = "iOS";
+            
+            elements.platform.textContent = `${os} (${platform})`;
+            
+            // Device type
+            const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+            const isTablet = /iPad|Tablet|PlayBook|Silk/i.test(userAgent);
+            
+            let deviceType = "Desktop";
+            if (isTablet) deviceType = "Tablet";
+            else if (isMobile) deviceType = "Mobile";
+            
+            elements.deviceType.textContent = deviceType;
+            
+            // Language and timezone
+            elements.language.textContent = navigator.language || navigator.userLanguage;
+            elements.timezone.textContent = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            
+            // Screen info
+            elements.resolution.textContent = `${window.screen.width} × ${window.screen.height}`;
+            elements.colorDepth.textContent = `${window.screen.colorDepth} bit`;
+            
+            // CPU cores
+            elements.cpuCores.textContent = navigator.hardwareConcurrency || "Unknown";
+            
+            // Device memory (if supported)
+            if (navigator.deviceMemory) {
+                elements.deviceMemory.textContent = `${navigator.deviceMemory} GB`;
+            } else {
+                elements.deviceMemory.textContent = "Not available";
+            }
+        }
+
+        // Get current location
+        function getLocation() {
+            elements.locationStatus.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Getting location...';
+            elements.locationStatus.style.color = '#ff9800';
+            
+            if (!navigator.geolocation) {
+                elements.locationStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Geolocation is not supported by your browser';
+                elements.locationStatus.style.color = '#dc3545';
+                return;
+            }
+            
+            navigator.geolocation.getCurrentPosition(
+                successCallback,
+                errorCallback,
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+
+        // Success callback for geolocation
+        async function successCallback(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const acc = position.coords.accuracy;
+            
+            // Store current location
+            currentLocation = { lat, lng, acc };
+            
+            // Update location info
+            elements.latitude.textContent = lat.toFixed(6);
+            elements.longitude.textContent = lng.toFixed(6);
+            elements.accuracy.textContent = `${Math.round(acc)} meters`;
+            
+            // Update status
+            elements.locationStatus.innerHTML = '<i class="fas fa-check-circle"></i> Location obtained successfully';
+            elements.locationStatus.style.color = '#28a745';
+            
+            // Get address from coordinates
+            await getAddressFromCoords(lat, lng);
+            
+            // Update map
+            updateMap(lat, lng);
+            
+            // Update timestamp
+            updateTimestamp();
+        }
+
+        // Error callback for geolocation
+        function errorCallback(error) {
+            let message = '';
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    message = 'Location access denied. Please allow location access in your browser settings.';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    message = 'Location information is unavailable.';
+                    break;
+                case error.TIMEOUT:
+                    message = 'Location request timed out. Please try again.';
+                    break;
+                case error.UNKNOWN_ERROR:
+                    message = 'An unknown error occurred.';
+                    break;
+            }
+            
+            elements.locationStatus.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+            elements.locationStatus.style.color = '#dc3545';
+            
+            elements.latitude.textContent = '--';
+            elements.longitude.textContent = '--';
+            elements.accuracy.textContent = '--';
+            elements.address.textContent = '--';
+        }
+
+        // Get address from coordinates using Reverse Geocoding
+        async function getAddressFromCoords(lat, lng) {
+            try {
+                elements.address.textContent = 'Fetching address...';
+                
+                const response = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+                );
+                const data = await response.json();
+                
+                if (data && data.address) {
+                    const address = data.address;
+                    let displayAddress = '';
+                    
+                    // Build address string
+                    if (address.road) displayAddress += address.road + ', ';
+                    if (address.neighbourhood) displayAddress += address.neighbourhood + ', ';
+                    if (address.suburb) displayAddress += address.suburb + ', ';
+                    if (address.city || address.town || address.village) {
+                        displayAddress += (address.city || address.town || address.village) + ', ';
+                    }
+                    if (address.state) displayAddress += address.state + ', ';
+                    if (address.country) displayAddress += address.country;
+                    
+                    elements.address.textContent = displayAddress || 'Address not available';
+                } else {
+                    elements.address.textContent = 'Address not available';
+                }
+            } catch (error) {
+                console.error('Error getting address:', error);
+                elements.address.textContent = 'Error fetching address';
+            }
+        }
+
+        // Update map with location
+        function updateMap(lat, lng) {
+            // Hide placeholder and show map
+            elements.mapPlaceholder.style.display = 'none';
+            elements.mapDiv.style.display = 'block';
+            
+            if (!map) {
+                // Initialize map
+                map = L.map('map').setView([lat, lng], 15);
+                
+                // Add OpenStreetMap tiles
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    maxZoom: 19
+                }).addTo(map);
+                
+                // Add marker
+                marker = L.marker([lat, lng]).addTo(map)
+                    .bindPopup('You are here!')
+                    .openPopup();
+                
+                // Add circle for accuracy
+                if (currentLocation && currentLocation.acc) {
+                    L.circle([lat, lng], {
+                        color: '#667eea',
+                        fillColor: '#667eea',
+                        fillOpacity: 0.1,
+                        radius: currentLocation.acc
+                    }).addTo(map);
+                }
+            } else {
+                // Update existing map
+                map.setView([lat, lng], 15);
+                marker.setLatLng([lat, lng]);
+                
+                // Clear old accuracy circle and add new one
+                map.eachLayer(function(layer) {
+                    if (layer instanceof L.Circle) {
+                        map.removeLayer(layer);
+                    }
+                });
+                
+                if (currentLocation && currentLocation.acc) {
+                    L.circle([lat, lng], {
+                        color: '#667eea',
+                        fillColor: '#667eea',
+                        fillOpacity: 0.1,
+                        radius: currentLocation.acc
+                    }).addTo(map);
+                }
+            }
+        }
+
+        // Share location
+        function shareLocation() {
+            if (!currentLocation) {
+                alert('Please get your location first!');
+                return;
+            }
+            
+            const lat = currentLocation.lat;
+            const lng = currentLocation.lng;
+            const googleMapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+            const openStreetMapUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=15/${lat}/${lng}`;
+            
+            const shareText = `📍 My Current Location:\nLatitude: ${lat}\nLongitude: ${lng}\n\n🗺️ View on:\nGoogle Maps: ${googleMapsUrl}\nOpenStreetMap: ${openStreetMapUrl}`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'My Current Location',
+                    text: `My current location is ${lat}, ${lng}`,
+                    url: googleMapsUrl
+                }).catch(console.error);
+            } else {
+                // Copy to clipboard as fallback
+                navigator.clipboard.writeText(shareText).then(() => {
+                    const originalText = elements.shareBtn.innerHTML;
+                    elements.shareBtn.innerHTML = '<i class="fas fa-check"></i> Copied to Clipboard!';
+                    elements.shareBtn.classList.add('copy-success');
+                    
+                    setTimeout(() => {
+                        elements.shareBtn.innerHTML = originalText;
+                        elements.shareBtn.classList.remove('copy-success');
+                    }, 2000);
+                });
+            }
+        }
+
+        // Copy to clipboard function
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.textContent;
+            
+            if (text === '--') return;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const button = element.nextElementSibling;
+                const originalHTML = button.innerHTML;
+                
+                button.innerHTML = '<i class="fas fa-check"></i>';
+                button.classList.add('copy-success');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.classList.remove('copy-success');
+                }, 2000);
+            });
+        }
+
+        // Copy all device info
+        function copyAllDeviceInfo() {
+            let deviceInfo = "📱 DEVICE INFORMATION REPORT 📱\n\n";
+            deviceInfo += "=== Location Information ===\n";
+            deviceInfo += `Latitude: ${elements.latitude.textContent}\n`;
+            deviceInfo += `Longitude: ${elements.longitude.textContent}\n`;
+            deviceInfo += `Accuracy: ${elements.accuracy.textContent}\n`;
+            deviceInfo += `Address: ${elements.address.textContent}\n\n`;
+            
+            deviceInfo += "=== Device Details ===\n";
+            deviceInfo += `Browser: ${elements.browser.textContent}\n`;
+            deviceInfo += `Browser Engine: ${elements.engine.textContent}\n`;
+            deviceInfo += `Platform: ${elements.platform.textContent}\n`;
+            deviceInfo += `Device Type: ${elements.deviceType.textContent}\n`;
+            deviceInfo += `Language: ${elements.language.textContent}\n`;
+            deviceInfo += `Timezone: ${elements.timezone.textContent}\n`;
+            deviceInfo += `Screen Resolution: ${elements.resolution.textContent}\n`;
+            deviceInfo += `Color Depth: ${elements.colorDepth.textContent}\n`;
+            deviceInfo += `CPU Cores: ${elements.cpuCores.textContent}\n`;
+            deviceInfo += `RAM: ${elements.deviceMemory.textContent}\n`;
+            deviceInfo += `Online Status: ${elements.onlineStatus.textContent}\n`;
+            deviceInfo += `Internet Speed: ${elements.connectionSpeed.textContent}\n`;
+            deviceInfo += `Battery: ${elements.batteryLevel.textContent}\n`;
+            deviceInfo += `Connection Type: ${elements.connectionType.textContent}\n\n`;
+            
+            deviceInfo += `Report generated: ${new Date().toLocaleString()}\n`;
+            deviceInfo += "Generated by Device & Location Info Tool";
+            
+            navigator.clipboard.writeText(deviceInfo).then(() => {
+                const originalText = elements.copyAllBtn.innerHTML;
+                elements.copyAllBtn.innerHTML = '<i class="fas fa-check"></i> All Info Copied!';
+                elements.copyAllBtn.classList.add('copy-success');
+                
+                setTimeout(() => {
+                    elements.copyAllBtn.innerHTML = originalText;
+                    elements.copyAllBtn.classList.remove('copy-success');
+                }, 2000);
+            });
+        }
+
+        // Get battery information
+        async function getBatteryInfo() {
+            if ('getBattery' in navigator) {
+                try {
+                    const battery = await navigator.getBattery();
+                    updateBatteryInfo(battery);
+                    
+                    battery.addEventListener('levelchange', () => updateBatteryInfo(battery));
+                    battery.addEventListener('chargingchange', () => updateBatteryInfo(battery));
+                } catch (error) {
+                    elements.batteryLevel.textContent = 'Not available';
+                }
+            } else {
+                elements.batteryLevel.textContent = 'API not supported';
+            }
+        }
+
+        function updateBatteryInfo(battery) {
+            const level = Math.round(battery.level * 100);
+            const charging = battery.charging ? ' (Charging)' : ' (Not charging)';
+            elements.batteryLevel.textContent = `${level}%${charging}`;
+        }
+
+        // Get connection type
+        function getConnectionType() {
+            if (navigator.connection) {
+                const connection = navigator.connection;
+                const type = connection.effectiveType || 'Unknown';
+                const downlink = connection.downlink ? `${connection.downlink} Mbps` : '';
+                
+                elements.connectionType.textContent = `${type} ${downlink}`;
+                
+                // Listen for connection changes
+                connection.addEventListener('change', () => {
+                    const type = connection.effectiveType || 'Unknown';
+                    const downlink = connection.downlink ? `${connection.downlink} Mbps` : '';
+                    elements.connectionType.textContent = `${type} ${downlink}`;
+                });
+            } else {
+                elements.connectionType.textContent = 'Not available';
+            }
+        }
+
+        // Update online status
+        function updateOnlineStatus() {
+            const isOnline = navigator.onLine;
+            elements.onlineStatus.textContent = isOnline ? 'Online' : 'Offline';
+            elements.onlineStatus.className = isOnline ? 'value online' : 'value offline';
+        }
+
+        // Test connection speed (basic estimation)
+        async function testConnectionSpeed() {
+            const startTime = Date.now();
+            try {
+                // Load a small image to test speed
+                const testImage = new Image();
+                testImage.src = 'https://via.placeholder.com/1x1.png?text=+&t=' + startTime;
+                
+                await new Promise((resolve, reject) => {
+                    testImage.onload = resolve;
+                    testImage.onerror = reject;
+                });
+                
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+                
+                // Rough estimation
+                let speed = 'Unknown';
+                if (duration < 100) speed = 'Fast (4G/5G/WiFi)';
+                else if (duration < 500) speed = 'Moderate (3G)';
+                else speed = 'Slow (2G)';
+                
+                elements.connectionSpeed.textContent = speed;
+            } catch (error) {
+                elements.connectionSpeed.textContent = 'Test failed';
+            }
+        }
+
+        // Update timestamp
+        function updateTimestamp() {
+            const now = new Date();
+            elements.lastUpdated.textContent = now.toLocaleString();
+        }
+    </script>
+</body>
+</html>
