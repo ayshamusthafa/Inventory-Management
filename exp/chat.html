@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Encrypted Chat (Working)</title>
+<title>Secure Chat</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
-
 <style>
-body{margin:0;font-family:system-ui;background:#e5ddd5}
+body{margin:0;font-family:system-ui;background:#ece5dd}
 header{background:#075e54;color:#fff;padding:12px;text-align:center}
 #room{background:#128c7e;color:#fff;padding:8px;text-align:center}
 #msgs{height:calc(100vh - 140px);overflow:auto;padding:10px}
@@ -21,7 +20,7 @@ header{background:#075e54;color:#fff;padding:12px;text-align:center}
 
 <body>
 <header>🔐 Secure Chat</header>
-<div id="room">Loading room…</div>
+<div id="room">Initializing…</div>
 <div id="msgs"></div>
 
 <div id="input">
@@ -30,7 +29,7 @@ header{background:#075e54;color:#fff;padding:12px;text-align:center}
 </div>
 
 <script>
-/* ===== BASEROW ===== */
+/* ===== CONFIG ===== */
 const API_KEY = "jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw";
 const ROOMS_ID = 778590;
 const MSG_ID = 778592;
@@ -45,25 +44,75 @@ localStorage.user = user;
 /* ===== STATE ===== */
 let ROOM_ID, roomKey;
 
-/* ===== LOAD ROOM ===== */
+/* ===== UTIL ===== */
+const enc = new TextEncoder();
+
+async function sha256(text){
+  const b = await crypto.subtle.digest("SHA-256", enc.encode(text));
+  return btoa(String.fromCharCode(...new Uint8Array(b)));
+}
+
+function randomPassword(){
+  return Math.random().toString(36).slice(-10);
+}
+
+/* ===== INIT ===== */
 async function init(){
   const r = await fetch(ROOMS_API,{
     headers:{Authorization:"Token "+API_KEY}
   });
   const j = await r.json();
-  const room = j.results[0];        // first room
-  ROOM_ID = room.room_id;
-  document.getElementById("room").textContent = room.room_name;
 
-  const pass = prompt("Room password");
-  roomKey = await deriveKey(pass, ROOM_ID);
+  if(j.results.length === 0){
+    /* FIRST USER */
+    const password = randomPassword();
+    const hash = await sha256(password);
+    const room_id = crypto.randomUUID();
+
+    await fetch(ROOMS_API,{
+      method:"POST",
+      headers:{
+        Authorization:"Token "+API_KEY,
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify({
+        room_name: "Main Room",
+        room_id,
+        password_hash: hash
+      })
+    });
+
+    alert("ROOM CREATED!\n\nPASSWORD:\n" + password +
+          "\n\nSave this password. It will NOT be shown again.");
+
+    ROOM_ID = room_id;
+    roomKey = await deriveKey(password, ROOM_ID);
+
+  } else {
+    /* EXISTING ROOM */
+    const room = j.results[0];
+    ROOM_ID = room.room_id;
+
+    const pass = prompt("Enter room password");
+    const hash = await sha256(pass);
+
+    if(hash !== room.password_hash){
+      alert("Wrong password");
+      location.reload();
+      return;
+    }
+
+    roomKey = await deriveKey(pass, ROOM_ID);
+  }
+
+  document.getElementById("room").textContent = "Main Room";
   load();
 }
+
 init();
 
 /* ===== CRYPTO ===== */
 async function deriveKey(pass, salt){
-  const enc = new TextEncoder();
   const base = await crypto.subtle.importKey(
     "raw", enc.encode(pass), "PBKDF2", false, ["deriveKey"]
   );
@@ -83,7 +132,7 @@ async function send(){
   const cipher = await crypto.subtle.encrypt(
     {name:"AES-GCM", iv},
     roomKey,
-    new TextEncoder().encode(text.value)
+    enc.encode(text.value)
   );
 
   await fetch(MSG_API,{
@@ -95,9 +144,9 @@ async function send(){
     body: JSON.stringify({
       room: ROOM_ID,
       user,
-      type: "text",
-      iv: btoa(String.fromCharCode(...iv)),
-      cipher: btoa(String.fromCharCode(...new Uint8Array(cipher)))
+      type:"text",
+      iv:btoa(String.fromCharCode(...iv)),
+      cipher:btoa(String.fromCharCode(...new Uint8Array(cipher)))
     })
   });
 
@@ -125,8 +174,8 @@ async function load(){
       );
 
       const d = document.createElement("div");
-      d.className = "msg"+(m.user===user?" me":"");
-      d.innerHTML = `<div class="user">${m.user}</div>` +
+      d.className="msg"+(m.user===user?" me":"");
+      d.innerHTML=`<div class="user">${m.user}</div>`+
         new TextDecoder().decode(plain);
       msgs.appendChild(d);
     }catch{}
@@ -134,7 +183,7 @@ async function load(){
   msgs.scrollTop = msgs.scrollHeight;
 }
 
-setInterval(load, 3000);
+setInterval(load,3000);
 </script>
 </body>
 </html>
