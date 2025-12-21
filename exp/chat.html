@@ -20,6 +20,7 @@
             --warning: #ff9500;
             --focus-ring: rgba(0, 132, 255, 0.4);
             --info: #17a2b8;
+            --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
         }
         
         * {
@@ -35,6 +36,7 @@
             color: var(--text-primary);
             height: 100vh;
             overflow: hidden;
+            -webkit-overflow-scrolling: touch;
         }
         
         body:fullscreen {
@@ -65,6 +67,7 @@
             height: 100vh;
             padding: 20px;
             background: linear-gradient(135deg, var(--primary) 0%, #0066cc 100%);
+            padding-bottom: calc(20px + var(--safe-area-inset-bottom));
         }
         
         .login-screen.hidden {
@@ -154,6 +157,7 @@
             flex-direction: column;
             height: 100vh;
             background: var(--white);
+            padding-bottom: var(--safe-area-inset-bottom);
         }
         
         .chat-screen.active {
@@ -169,6 +173,10 @@
             align-items: center;
             justify-content: space-between;
             gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding-top: env(safe-area-inset-top, 12px);
         }
         
         .header-left {
@@ -256,6 +264,8 @@
             flex-direction: column;
             gap: 8px;
             outline: none;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 80px; /* Space for input area */
         }
         
         .messages-container:focus {
@@ -377,32 +387,156 @@
             font-size: 14px;
         }
         
-        /* Message Actions */
-        .message-actions {
+        /* Input Area - POSITIONED ABOVE KEYBOARD */
+        .input-area {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--white);
+            border-top: 1px solid var(--border);
+            padding: 12px 16px;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            padding-bottom: calc(12px + var(--safe-area-inset-bottom));
+        }
+        
+        .input-area.hidden {
+            transform: translateY(100%);
+        }
+        
+        .input-container {
             display: flex;
-            gap: 4px;
-            margin-top: 4px;
-            opacity: 0;
-            transition: opacity 0.2s;
+            gap: 8px;
+            align-items: flex-end;
         }
         
-        .message:hover .message-actions {
-            opacity: 1;
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 24px;
+            font-size: 15px;
+            resize: none;
+            min-height: 48px;
+            max-height: 120px;
+            line-height: 1.4;
+            background: var(--secondary);
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
         
-        .message-action-btn {
-            background: rgba(0, 0, 0, 0.1);
+        .message-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--white);
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+        
+        .send-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--primary);
             border: none;
-            border-radius: 4px;
-            padding: 4px 8px;
-            font-size: 11px;
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        
+        .send-btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+        
+        .send-btn:hover {
+            background: var(--primary-dark);
+        }
+        
+        .send-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .send-btn:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Message Type Selector */
+        .message-type-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            padding: 8px;
+            background: var(--secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        
+        .type-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
             color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        
+        .type-btn.active {
+            background: var(--white);
+            color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .type-btn:hover:not(.active) {
+            background: rgba(255,255,255,0.5);
+        }
+        
+        /* Status Bar */
+        .status-bar {
+            padding: 8px 16px;
+            background: var(--white);
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .test-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
             transition: all 0.2s;
         }
         
-        .message-action-btn:hover {
-            background: rgba(0, 0, 0, 0.2);
+        .test-btn:focus {
+            outline: none;
+            background: var(--secondary);
+            box-shadow: 0 0 0 2px var(--primary);
+        }
+        
+        .test-btn:hover {
+            text-decoration: underline;
         }
         
         /* Debug Panel */
@@ -547,109 +681,10 @@
             background: #d32f2f;
         }
         
-        /* Input Area */
-        .input-container {
-            padding: 12px 16px;
-            background: var(--white);
-            border-top: 1px solid var(--border);
-            display: flex;
-            gap: 8px;
-            align-items: flex-end;
-        }
-        
-        .message-input {
-            flex: 1;
-            padding: 12px 16px;
-            border: 2px solid var(--border);
-            border-radius: 24px;
-            font-size: 15px;
-            resize: none;
-            min-height: 48px;
-            max-height: 120px;
-            line-height: 1.4;
-            background: var(--secondary);
-            font-family: inherit;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        
-        .message-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            background: var(--white);
-            box-shadow: 0 0 0 3px var(--focus-ring);
-        }
-        
-        .send-btn {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: var(--primary);
-            border: none;
-            color: var(--white);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 18px;
-            transition: all 0.2s;
-        }
-        
-        .send-btn:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px var(--focus-ring);
-        }
-        
-        .send-btn:hover {
-            background: var(--primary-dark);
-        }
-        
-        .send-btn:active {
-            transform: scale(0.95);
-        }
-        
-        .send-btn:disabled {
-            background: var(--border);
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        /* Status Bar */
-        .status-bar {
-            padding: 8px 16px;
-            background: var(--white);
-            border-top: 1px solid var(--border);
-            font-size: 12px;
-            color: var(--text-secondary);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .test-btn {
-            background: none;
-            border: none;
-            color: var(--primary);
-            font-size: 12px;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
-            transition: all 0.2s;
-        }
-        
-        .test-btn:focus {
-            outline: none;
-            background: var(--secondary);
-            box-shadow: 0 0 0 2px var(--primary);
-        }
-        
-        .test-btn:hover {
-            text-decoration: underline;
-        }
-        
         /* Toast */
         .toast {
             position: fixed;
-            bottom: 80px;
+            bottom: 120px;
             left: 50%;
             transform: translateX(-50%);
             background: var(--text-primary);
@@ -853,27 +888,6 @@
             transform: scale(0.98);
         }
         
-        /* Settings */
-        .settings-group {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .settings-label {
-            display: block;
-            margin-bottom: 4px;
-            font-size: 11px;
-            color: #aaa;
-        }
-        
-        .settings-info {
-            font-size: 11px;
-            color: #ccc;
-            margin-top: 2px;
-            line-height: 1.4;
-        }
-        
         /* Skip to content */
         .skip-to-content {
             position: absolute;
@@ -969,44 +983,6 @@
             height: 100vh;
         }
         
-        /* Message type selector */
-        .message-type-selector {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
-            padding: 8px;
-            background: var(--secondary);
-            border-radius: 12px;
-            border: 1px solid var(--border);
-        }
-        
-        .type-btn {
-            flex: 1;
-            padding: 8px 12px;
-            border: none;
-            border-radius: 8px;
-            background: transparent;
-            color: var(--text-secondary);
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-        }
-        
-        .type-btn.active {
-            background: var(--white);
-            color: var(--primary);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .type-btn:hover:not(.active) {
-            background: rgba(255,255,255,0.5);
-        }
-        
         /* File upload indicator */
         .file-upload-indicator {
             display: flex;
@@ -1025,6 +1001,116 @@
             0% { opacity: 1; }
             50% { opacity: 0.7; }
             100% { opacity: 1; }
+        }
+        
+        /* Mobile-specific optimizations */
+        @media (max-width: 768px) {
+            .debug-controls {
+                top: 10px;
+                right: 10px;
+            }
+            
+            .debug-panel {
+                top: 60px;
+                right: 10px;
+                left: 10px;
+                width: auto;
+                max-width: none;
+            }
+            
+            .control-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 20px;
+            }
+            
+            .chat-header {
+                padding: 8px 12px;
+            }
+            
+            .header-btn {
+                width: 36px;
+                height: 36px;
+            }
+            
+            .room-info h2 {
+                font-size: 16px;
+            }
+            
+            .messages-container {
+                padding: 12px;
+                padding-bottom: 100px;
+            }
+            
+            .input-area {
+                padding: 10px 12px;
+            }
+            
+            .message {
+                max-width: 85%;
+            }
+            
+            .message-type-selector {
+                margin: 8px 12px;
+            }
+            
+            .type-btn {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+            
+            .toast {
+                bottom: 140px;
+                max-width: 90%;
+                text-align: center;
+            }
+        }
+        
+        /* iPhone notch support */
+        @supports (padding: max(0px)) {
+            .chat-header {
+                padding-top: max(12px, env(safe-area-inset-top));
+                padding-left: max(16px, env(safe-area-inset-left));
+                padding-right: max(16px, env(safe-area-inset-right));
+            }
+            
+            .input-area {
+                padding-left: max(16px, env(safe-area-inset-left));
+                padding-right: max(16px, env(safe-area-inset-right));
+            }
+            
+            .messages-container {
+                padding-left: max(16px, env(safe-area-inset-left));
+                padding-right: max(16px, env(safe-area-inset-right));
+            }
+        }
+        
+        /* Keyboard open detection styles */
+        .keyboard-open .messages-container {
+            padding-bottom: 200px;
+        }
+        
+        .keyboard-open .input-area {
+            position: absolute;
+            bottom: 0;
+        }
+        
+        /* Prevent zoom on input focus iOS */
+        @media screen and (max-width: 768px) {
+            input[type="text"],
+            input[type="search"],
+            textarea {
+                font-size: 16px !important;
+            }
+        }
+        
+        /* Hide input area when keyboard is closed on mobile */
+        @media (max-width: 768px) {
+            .input-area.hidden {
+                transform: translateY(100%);
+                opacity: 0;
+                pointer-events: none;
+            }
         }
     </style>
 </head>
@@ -1213,18 +1299,20 @@
                 <!-- Messages will be added here -->
             </div>
             
-            <!-- Input Area -->
-            <div class="input-container">
-                <textarea 
-                    class="message-input"
-                    id="messageInput" 
-                    placeholder="Type a message..."
-                    rows="1"
-                    aria-label="Type your message"
-                ></textarea>
-                <button class="send-btn" onclick="sendMessage()" id="sendBtn" aria-label="Send message" disabled>
-                    →
-                </button>
+            <!-- Input Area - POSITIONED ABOVE KEYBOARD -->
+            <div class="input-area" id="inputArea">
+                <div class="input-container">
+                    <textarea 
+                        class="message-input"
+                        id="messageInput" 
+                        placeholder="Type a message..."
+                        rows="1"
+                        aria-label="Type your message"
+                    ></textarea>
+                    <button class="send-btn" onclick="sendMessage()" id="sendBtn" aria-label="Send message" disabled>
+                        →
+                    </button>
+                </div>
             </div>
             
             <!-- Status Bar -->
@@ -1263,9 +1351,183 @@
             keyboardHintTimeout: null,
             lastFocusedElement: null,
             currentMessageType: 'text', // 'text', 'image', 'file', 'system'
-            isFullscreen: false
+            isFullscreen: false,
+            isMobile: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent),
+            keyboardVisible: false,
+            viewportHeight: window.innerHeight,
+            viewportWidth: window.innerWidth
         };
 
+        // ================= MOBILE KEYBOARD HANDLING =================
+        function setupMobileKeyboardHandling() {
+            if (!state.isMobile) return;
+            
+            const messageInput = document.getElementById('messageInput');
+            const messagesContainer = document.getElementById('messagesContainer');
+            const inputArea = document.getElementById('inputArea');
+            
+            // Store original viewport height
+            state.viewportHeight = window.innerHeight;
+            state.viewportWidth = window.innerWidth;
+            
+            // Handle viewport changes (keyboard show/hide)
+            let visualViewport = window.visualViewport;
+            
+            if (visualViewport) {
+                visualViewport.addEventListener('resize', handleViewportResize);
+                visualViewport.addEventListener('scroll', handleViewportScroll);
+            }
+            
+            // Handle focus/blur events
+            messageInput.addEventListener('focus', handleInputFocus);
+            messageInput.addEventListener('blur', handleInputBlur);
+            
+            // Handle window resize (orientation change)
+            window.addEventListener('resize', handleWindowResize);
+            
+            // Prevent default behavior on touch events
+            document.addEventListener('touchstart', function(e) {
+                if (e.target === messageInput || e.target.closest('.input-area')) {
+                    e.stopPropagation();
+                }
+            }, { passive: true });
+            
+            // Scroll to bottom when input is focused
+            messageInput.addEventListener('focus', function() {
+                setTimeout(() => {
+                    scrollMessagesToBottom();
+                }, 300);
+            });
+            
+            // Handle iOS form submission
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    if (state.isMobile) {
+                        e.preventDefault();
+                        sendMessage();
+                    }
+                }
+            });
+        }
+        
+        function handleViewportResize() {
+            if (!state.isMobile) return;
+            
+            const visualViewport = window.visualViewport;
+            if (!visualViewport) return;
+            
+            const messagesContainer = document.getElementById('messagesContainer');
+            const inputArea = document.getElementById('inputArea');
+            
+            // Calculate keyboard height
+            const keyboardHeight = state.viewportHeight - visualViewport.height;
+            const isKeyboardVisible = keyboardHeight > 100;
+            
+            if (isKeyboardVisible !== state.keyboardVisible) {
+                state.keyboardVisible = isKeyboardVisible;
+                
+                if (isKeyboardVisible) {
+                    // Keyboard opened
+                    document.body.classList.add('keyboard-open');
+                    inputArea.classList.remove('hidden');
+                    
+                    // Adjust messages container padding
+                    messagesContainer.style.paddingBottom = (keyboardHeight + 100) + 'px';
+                    
+                    // Scroll to bottom
+                    setTimeout(() => {
+                        scrollMessagesToBottom();
+                    }, 100);
+                } else {
+                    // Keyboard closed
+                    document.body.classList.remove('keyboard-open');
+                    messagesContainer.style.paddingBottom = '80px';
+                    
+                    // Only hide input area on small screens
+                    if (window.innerWidth < 768) {
+                        setTimeout(() => {
+                            if (!document.activeElement || document.activeElement !== document.getElementById('messageInput')) {
+                                inputArea.classList.add('hidden');
+                            }
+                        }, 300);
+                    }
+                }
+            }
+            
+            // Adjust input area position
+            if (isKeyboardVisible) {
+                inputArea.style.bottom = keyboardHeight + 'px';
+            } else {
+                inputArea.style.bottom = '0';
+            }
+        }
+        
+        function handleViewportScroll() {
+            if (!state.isMobile) return;
+            
+            const visualViewport = window.visualViewport;
+            if (!visualViewport) return;
+            
+            // Keep input area visible when scrolling
+            const inputArea = document.getElementById('inputArea');
+            if (state.keyboardVisible) {
+                inputArea.style.transform = `translateY(${visualViewport.offsetTop}px)`;
+            }
+        }
+        
+        function handleInputFocus() {
+            if (!state.isMobile) return;
+            
+            const inputArea = document.getElementById('inputArea');
+            inputArea.classList.remove('hidden');
+            
+            // Force show keyboard on iOS
+            setTimeout(() => {
+                document.getElementById('messageInput').focus();
+            }, 100);
+        }
+        
+        function handleInputBlur() {
+            if (!state.isMobile) return;
+            
+            // Only hide input area on small screens when keyboard is closed
+            if (window.innerWidth < 768 && !state.keyboardVisible) {
+                setTimeout(() => {
+                    const inputArea = document.getElementById('inputArea');
+                    if (!document.activeElement || document.activeElement !== document.getElementById('messageInput')) {
+                        inputArea.classList.add('hidden');
+                    }
+                }, 300);
+            }
+        }
+        
+        function handleWindowResize() {
+            // Update viewport dimensions
+            state.viewportHeight = window.innerHeight;
+            state.viewportWidth = window.innerWidth;
+            
+            // Reset keyboard state on orientation change
+            state.keyboardVisible = false;
+            document.body.classList.remove('keyboard-open');
+            
+            const messagesContainer = document.getElementById('messagesContainer');
+            const inputArea = document.getElementById('inputArea');
+            
+            messagesContainer.style.paddingBottom = '80px';
+            inputArea.style.bottom = '0';
+            inputArea.style.transform = 'none';
+            
+            // Show input area on larger screens
+            if (window.innerWidth >= 768) {
+                inputArea.classList.remove('hidden');
+            }
+        }
+        
+        function scrollMessagesToBottom() {
+            const messagesContainer = document.getElementById('messagesContainer');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
         // ================= FULLSCREEN FUNCTIONS =================
         function toggleFullscreen() {
             const fullscreenToggle = document.getElementById('fullscreenToggle');
@@ -1365,7 +1627,9 @@
             showToast(`Message type set to: ${type}`);
             
             // Focus back on input
-            messageInput.focus();
+            setTimeout(() => {
+                messageInput.focus();
+            }, 100);
         }
 
         function getMessageTypeBadge(type) {
@@ -1438,7 +1702,7 @@
                 // Don't trigger shortcuts when user is typing in inputs
                 if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') {
                     // Allow Ctrl+Enter to send message even when typing
-                    if (e.ctrlKey && e.key === 'Enter') {
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                         e.preventDefault();
                         if (document.getElementById('chatScreen').classList.contains('active')) {
                             sendMessage();
@@ -2087,7 +2351,7 @@
             
             // Scroll to bottom
             setTimeout(() => {
-                container.scrollTop = container.scrollHeight;
+                scrollMessagesToBottom();
             }, 100);
             
             logDebug(`Displayed ${state.messages.length} messages`, 'success');
@@ -2274,8 +2538,14 @@
                 showToast(`${state.currentMessageType.charAt(0).toUpperCase() + state.currentMessageType.slice(1)} message sent and saved`);
                 
                 // Scroll to bottom
-                const container = document.getElementById('messagesContainer');
-                container.scrollTop = container.scrollHeight;
+                scrollMessagesToBottom();
+                
+                // On mobile, blur input to hide keyboard after sending
+                if (state.isMobile) {
+                    setTimeout(() => {
+                        input.blur();
+                    }, 100);
+                }
                 
             } catch (error) {
                 console.error('Failed to send message:', error);
@@ -2386,7 +2656,7 @@
             const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
             if (isNearBottom) {
                 setTimeout(() => {
-                    container.scrollTop = container.scrollHeight;
+                    scrollMessagesToBottom();
                 }, 100);
             }
             
@@ -2459,6 +2729,11 @@
             });
             document.querySelector('.type-btn[data-type="text"]').classList.add('active');
             
+            // Show input area on mobile
+            if (state.isMobile) {
+                document.getElementById('inputArea').classList.remove('hidden');
+            }
+            
             // Test connection first
             updateStatus('Connecting...', true);
             await testConnection();
@@ -2472,7 +2747,7 @@
             // Focus message input
             setTimeout(() => {
                 document.getElementById('messageInput').focus();
-            }, 100);
+            }, 500);
             
             showToast(`Welcome ${username}!`);
             
@@ -2490,6 +2765,7 @@
             state.messages = [];
             state.displayedIds.clear();
             state.currentMessageType = 'text';
+            state.keyboardVisible = false;
             
             // Switch back to login
             document.getElementById('chatScreen').classList.remove('active');
@@ -2520,6 +2796,9 @@
             document.addEventListener('mozfullscreenchange', handleFullscreenChange);
             document.addEventListener('MSFullscreenChange', handleFullscreenChange);
             
+            // Setup mobile keyboard handling
+            setupMobileKeyboardHandling();
+            
             // Setup keyboard shortcuts
             setupKeyboardShortcuts();
             
@@ -2537,15 +2816,24 @@
                 this.style.height = Math.min(this.scrollHeight, 120) + 'px';
             });
             
+            // Show input area when clicking on messages container (mobile)
+            document.getElementById('messagesContainer').addEventListener('click', function() {
+                if (state.isMobile && window.innerWidth < 768) {
+                    document.getElementById('inputArea').classList.remove('hidden');
+                    setTimeout(() => {
+                        document.getElementById('messageInput').focus();
+                    }, 100);
+                }
+            });
+            
             // Focus username on load
             document.getElementById('username').focus();
             
             // Test connection on load
             document.getElementById('testStatus').textContent = 'Click "Start Chatting" to begin';
             
-            console.log('Chat app initialized with message types and fullscreen support');
-            console.log('Press 1-4 to switch message types');
-            console.log('Press F11 for fullscreen');
+            console.log('Chat app initialized with mobile keyboard support');
+            console.log('Message input positioned above keyboard on mobile devices');
         });
     </script>
 </body>
