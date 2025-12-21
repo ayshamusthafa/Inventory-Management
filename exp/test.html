@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>💬 Smooth Chat</title>
+    <title>💬 Working Chat</title>
     <style>
         :root {
             --primary: #0084ff;
@@ -15,6 +15,13 @@
             --sent-bg: #0084ff;
             --received-bg: #ffffff;
             --white: #ffffff;
+            --success: #31a24c;
+            --error: #ff6b6b;
+            --warning: #ff9500;
+            --focus-ring: rgba(0, 132, 255, 0.4);
+            --info: #17a2b8;
+            --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+            --typing-indicator: #e4e6eb;
         }
         
         * {
@@ -30,6 +37,19 @@
             color: var(--text-primary);
             height: 100vh;
             overflow: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        body:fullscreen {
+            background: var(--white);
+        }
+        
+        body:-webkit-full-screen {
+            background: var(--white);
+        }
+        
+        body:-moz-full-screen {
+            background: var(--white);
         }
         
         .app-container {
@@ -48,6 +68,7 @@
             height: 100vh;
             padding: 20px;
             background: linear-gradient(135deg, var(--primary) 0%, #0066cc 100%);
+            padding-bottom: calc(20px + var(--safe-area-inset-bottom));
         }
         
         .login-screen.hidden {
@@ -95,12 +116,13 @@
             border-radius: 10px;
             font-size: 16px;
             background: var(--white);
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
         
         .input-field:focus {
             outline: none;
             border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--focus-ring);
         }
         
         .btn {
@@ -113,10 +135,20 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
+        }
+        
+        .btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--focus-ring);
         }
         
         .btn:active {
+            background: var(--primary-dark);
+            transform: scale(0.98);
+        }
+        
+        .btn:hover {
             background: var(--primary-dark);
         }
         
@@ -126,6 +158,7 @@
             flex-direction: column;
             height: 100vh;
             background: var(--white);
+            padding-bottom: var(--safe-area-inset-bottom);
         }
         
         .chat-screen.active {
@@ -140,12 +173,58 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding-top: env(safe-area-inset-top, 12px);
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+        
+        .room-info {
+            flex: 1;
         }
         
         .room-info h2 {
             font-size: 18px;
             font-weight: 600;
             color: var(--text-primary);
+        }
+        
+        .connection-status {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+        
+        .status-dot.offline {
+            background: var(--error);
+        }
+        
+        .status-dot.typing {
+            background: var(--warning);
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
         .header-btn {
@@ -160,6 +239,135 @@
             cursor: pointer;
             color: var(--text-primary);
             font-size: 18px;
+            transition: all 0.2s;
+        }
+        
+        .header-btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+        
+        .header-btn:hover {
+            background: #e4e6ea;
+        }
+        
+        .header-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .fullscreen-btn {
+            font-size: 20px;
+        }
+        
+        /* Online Users Panel */
+        .online-users-panel {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: var(--white);
+            border-radius: 12px;
+            padding: 16px;
+            max-width: 200px;
+            width: 200px;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+        }
+        
+        .online-users-panel.show {
+            display: block;
+        }
+        
+        .online-users-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .online-users-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .online-count {
+            font-size: 12px;
+            background: var(--primary);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        
+        .online-users-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .online-user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        
+        .online-user:hover {
+            background: var(--secondary);
+        }
+        
+        .online-user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .online-user-info {
+            flex: 1;
+        }
+        
+        .online-user-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .online-user-status {
+            font-size: 11px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .online-user-typing {
+            color: var(--primary);
+            font-weight: 500;
+        }
+        
+        .online-user-status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+        
+        .online-user-status-dot.typing {
+            background: var(--warning);
         }
         
         /* Messages Container */
@@ -171,6 +379,65 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
+            outline: none;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 80px; /* Space for input area */
+        }
+        
+        .messages-container:focus {
+            box-shadow: inset 0 0 0 2px var(--primary);
+        }
+        
+        /* Typing Indicator */
+        .typing-indicator {
+            align-self: flex-start;
+            background: var(--received-bg);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 10px 16px;
+            margin-bottom: 8px;
+            max-width: 120px;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .typing-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        
+        .typing-dots {
+            display: flex;
+            gap: 3px;
+        }
+        
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--typing-indicator);
+            animation: typingAnimation 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+        
+        .typing-dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+        
+        @keyframes typingAnimation {
+            0%, 80%, 100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
         
         /* Message Styling */
@@ -196,6 +463,7 @@
             word-wrap: break-word;
             line-height: 1.4;
             font-size: 15px;
+            position: relative;
         }
         
         .message.sent .message-content {
@@ -216,6 +484,29 @@
             color: var(--text-secondary);
             margin-bottom: 4px;
             font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .message-type-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .message-type-text {
+            background: var(--info);
+            color: white;
+        }
+        
+        .message-type-system {
+            background: var(--secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
         }
         
         .message-time {
@@ -225,11 +516,31 @@
             opacity: 0.8;
         }
         
-        /* Input Area */
-        .input-container {
-            padding: 12px 16px;
+        /* Message Type Indicators in Content */
+        .message-system-indicator {
+            font-style: italic;
+            opacity: 0.8;
+            font-size: 14px;
+        }
+        
+        /* Input Area - ALWAYS VISIBLE */
+        .input-area {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
             background: var(--white);
             border-top: 1px solid var(--border);
+            padding: 12px 16px;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            padding-bottom: calc(12px + var(--safe-area-inset-bottom));
+            transform: none !important;
+            opacity: 1 !important;
+            pointer-events: all !important;
+        }
+        
+        .input-container {
             display: flex;
             gap: 8px;
             align-items: flex-end;
@@ -247,12 +558,14 @@
             line-height: 1.4;
             background: var(--secondary);
             font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
         
         .message-input:focus {
             outline: none;
             border-color: var(--primary);
             background: var(--white);
+            box-shadow: 0 0 0 3px var(--focus-ring);
         }
         
         .send-btn {
@@ -267,6 +580,65 @@
             justify-content: center;
             cursor: pointer;
             font-size: 18px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        
+        .send-btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+        
+        .send-btn:hover {
+            background: var(--primary-dark);
+        }
+        
+        .send-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .send-btn:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Message Type Selector - SIMPLIFIED */
+        .message-type-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            padding: 8px;
+            background: var(--secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        
+        .type-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        
+        .type-btn.active {
+            background: var(--white);
+            color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .type-btn:hover:not(.active) {
+            background: rgba(255,255,255,0.5);
         }
         
         /* Status Bar */
@@ -276,12 +648,178 @@
             border-top: 1px solid var(--border);
             font-size: 12px;
             color: var(--text-secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .test-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .test-btn:focus {
+            outline: none;
+            background: var(--secondary);
+            box-shadow: 0 0 0 2px var(--primary);
+        }
+        
+        .test-btn:hover {
+            text-decoration: underline;
+        }
+        
+        /* Debug Panel */
+        .debug-panel {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: rgba(0,0,0,0.95);
+            color: white;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 12px;
+            max-width: 320px;
+            width: 320px;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .debug-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .debug-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .debug-close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .debug-close-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .debug-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .debug-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+        }
+        
+        .debug-label {
+            font-weight: 500;
+            color: #aaa;
+            min-width: 140px;
+        }
+        
+        .debug-value {
+            font-weight: 600;
+            color: white;
+            text-align: right;
+            flex: 1;
+        }
+        
+        /* Debug Controls */
+        .debug-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+            z-index: 1001;
+        }
+        
+        .control-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            font-size: 18px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 132, 255, 0.3);
+        }
+        
+        .control-btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+        
+        .control-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .debug-toggle {
+            background: var(--warning);
+        }
+        
+        .debug-toggle:hover {
+            background: #e67e22;
+        }
+        
+        .fullscreen-toggle {
+            background: var(--success);
+        }
+        
+        .fullscreen-toggle:hover {
+            background: #2e7d32;
+        }
+        
+        .fullscreen-toggle.exit {
+            background: var(--error);
+        }
+        
+        .fullscreen-toggle.exit:hover {
+            background: #d32f2f;
         }
         
         /* Toast */
         .toast {
             position: fixed;
-            bottom: 80px;
+            bottom: 120px;
             left: 50%;
             transform: translateX(-50%);
             background: var(--text-primary);
@@ -292,36 +830,561 @@
             z-index: 1000;
             opacity: 0;
             transition: opacity 0.3s;
+            pointer-events: none;
         }
         
         .toast.show {
             opacity: 1;
         }
+        
+        /* Empty State */
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .empty-icon {
+            font-size: 64px;
+            color: var(--border);
+            margin-bottom: 16px;
+        }
+        
+        .empty-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        
+        /* Delete Button */
+        .delete-btn {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: var(--error);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        
+        .delete-btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.4);
+        }
+        
+        .delete-btn:hover {
+            background: #d32f2f;
+        }
+        
+        .delete-btn:active {
+            background: #c62828;
+            transform: scale(0.98);
+        }
+        
+        .delete-btn:disabled {
+            background: #ffb3b3;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Cleanup Button */
+        .cleanup-btn {
+            margin-top: 8px;
+            padding: 6px 10px;
+            background: var(--warning);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        
+        .cleanup-btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.4);
+        }
+        
+        .cleanup-btn:hover {
+            background: #e67e22;
+        }
+        
+        .cleanup-btn:active {
+            background: #d35400;
+            transform: scale(0.98);
+        }
+        
+        .cleanup-btn:disabled {
+            background: #ffcc80;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Confirmation Dialog */
+        .confirmation-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        
+        .confirmation-dialog.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .confirmation-content {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        
+        .confirmation-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+        
+        .confirmation-micator {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .confirmation-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .confirm-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .confirm-btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+        
+        .confirm-btn.cancel {
+            background: var(--secondary);
+            color: var(--text-primary);
+        }
+        
+        .confirm-btn.cancel:hover {
+            background: #e4e6ea;
+        }
+        
+        .confirm-btn.cancel:active {
+            transform: scale(0.98);
+        }
+        
+        .confirm-btn.delete {
+            background: var(--error);
+            color: white;
+        }
+        
+        .confirm-btn.delete:hover {
+            background: #d32f2f;
+        }
+        
+        .confirm-btn.delete:active {
+            transform: scale(0.98);
+        }
+        
+        /* Skip to content */
+        .skip-to-content {
+            position: absolute;
+            top: -40px;
+            left: 10px;
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 600;
+            z-index: 1002;
+            transition: top 0.3s;
+        }
+        
+        .skip-to-content:focus {
+            top: 10px;
+            outline: none;
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+        
+        /* Keyboard shortcuts hint */
+        .keyboard-hint {
+            position: fixed;
+            bottom: 80px;
+            left: 20px;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            max-width: 200px;
+            display: none;
+            z-index: 1000;
+        }
+        
+        .keyboard-hint.show {
+            display: block;
+        }
+        
+        .keyboard-shortcut {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin: 0 2px;
+            font-family: monospace;
+        }
+        
+        /* Focus styles for all interactive elements */
+        button:focus,
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+        
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            :root {
+                --focus-ring: #000000;
+            }
+            
+            button:focus,
+            input:focus,
+            textarea:focus,
+            select:focus {
+                outline: 3px solid var(--focus-ring);
+                outline-offset: 2px;
+            }
+        }
+        
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
+        /* Fullscreen styles */
+        :fullscreen .app-container {
+            height: 100vh;
+        }
+        
+        :-webkit-full-screen .app-container {
+            height: 100vh;
+        }
+        
+        :-moz-full-screen .app-container {
+            height: 100vh;
+        }
+        
+        /* Mobile-specific optimizations */
+        @media (max-width: 768px) {
+            .debug-controls {
+                top: 10px;
+                right: 10px;
+            }
+            
+            .debug-panel {
+                top: 60px;
+                right: 10px;
+                left: 10px;
+                width: auto;
+                max-width: none;
+            }
+            
+            .online-users-panel {
+                top: 60px;
+                right: 10px;
+                left: 10px;
+                width: auto;
+                max-width: none;
+            }
+            
+            .control-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 20px;
+            }
+            
+            .chat-header {
+                padding: 8px 12px;
+            }
+            
+            .header-btn {
+                width: 36px;
+                height: 36px;
+            }
+            
+            .room-info h2 {
+                font-size: 16px;
+            }
+            
+            .messages-container {
+                padding: 12px;
+                padding-bottom: 100px;
+            }
+            
+            .input-area {
+                padding: 10px 12px;
+            }
+            
+            .message {
+                max-width: 85%;
+            }
+            
+            .message-type-selector {
+                margin: 8px 12px;
+            }
+            
+            .type-btn {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+            
+            .toast {
+                bottom: 140px;
+                max-width: 90%;
+                text-align: center;
+            }
+        }
+        
+        /* iPhone notch support */
+        @supports (padding: max(0px)) {
+            .chat-header {
+                padding-top: max(12px, env(safe-area-inset-top));
+                padding-left: max(16px, env(safe-area-inset-left));
+                padding-right: max(16px, env(safe-area-inset-right));
+            }
+            
+            .input-area {
+                padding-left: max(16px, env(safe-area-inset-left));
+                padding-right: max(16px, env(safe-area-inset-right));
+            }
+            
+            .messages-container {
+                padding-left: max(16px, env(safe-area-inset-left));
+                padding-right: max(16px, env(safe-area-inset-right));
+            }
+        }
+        
+        /* Keyboard open detection styles */
+        .keyboard-open .messages-container {
+            padding-bottom: 200px;
+        }
+        
+        .keyboard-open .input-area {
+            position: absolute;
+            bottom: 0;
+        }
+        
+        /* Prevent zoom on input focus iOS */
+        @media screen and (max-width: 768px) {
+            input[type="text"],
+            input[type="search"],
+            textarea {
+                font-size: 16px !important;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Skip to content link for screen readers -->
+    <a href="#messagesContainer" class="skip-to-content">
+        Skip to messages
+    </a>
+    
+    <!-- Keyboard shortcuts hint -->
+    <div class="keyboard-hint" id="keyboardHint">
+        <div><strong>Keyboard Shortcuts:</strong></div>
+        <div>Login: <span class="keyboard-shortcut">Enter</span></div>
+        <div>Send: <span class="keyboard-shortcut">Ctrl+Enter</span></div>
+        <div>Focus input: <span class="keyboard-shortcut">/</span></div>
+        <div>Debug: <span class="keyboard-shortcut">Ctrl+D</span></div>
+        <div>Fullscreen: <span class="keyboard-shortcut">F11</span></div>
+        <div>Logout: <span class="keyboard-shortcut">Esc</span></div>
+    </div>
+    
+    <!-- Debug Controls (Top Right) -->
+    <div class="debug-controls" id="debugControls">
+        <button class="control-btn debug-toggle" onclick="toggleDebug()" aria-label="Toggle debug panel" id="debugToggle">
+            🐛
+        </button>
+        <button class="control-btn fullscreen-toggle" onclick="toggleFullscreen()" aria-label="Toggle fullscreen" id="fullscreenToggle">
+            ⛶
+        </button>
+    </div>
+    
+    <!-- Online Users Panel -->
+    <div class="online-users-panel" id="onlineUsersPanel">
+        <div class="online-users-header">
+            <div class="online-users-title">Online Users</div>
+            <div class="online-count" id="onlineCount">0</div>
+        </div>
+        <div class="online-users-list" id="onlineUsersList">
+            <!-- Online users will be added here -->
+        </div>
+    </div>
+    
+    <!-- Debug Panel -->
+    <div class="debug-panel" id="debugPanel" role="dialog" aria-labelledby="debugPanelTitle" aria-modal="true" hidden>
+        <div class="debug-header">
+            <div class="debug-title">Debug Information</div>
+            <button class="debug-close-btn" onclick="toggleDebug()" aria-label="Close debug panel">
+                ×
+            </button>
+        </div>
+        <div class="debug-content">
+            <div class="debug-row">
+                <div class="debug-label">Room:</div>
+                <div class="debug-value" id="debugRoom">-</div>
+            </div>
+            <div class="debug-row">
+                <div class="debug-label">User:</div>
+                <div class="debug-value" id="debugUser">-</div>
+            </div>
+            <div class="debug-row">
+                <div class="debug-label">Online Users:</div>
+                <div class="debug-value" id="debugOnlineCount">0</div>
+            </div>
+            <div class="debug-row">
+                <div class="debug-label">Typing Users:</div>
+                <div class="debug-value" id="debugTypingCount">0</div>
+            </div>
+            <div class="debug-row">
+                <div class="debug-label">Messages in App:</div>
+                <div class="debug-value" id="debugAppCount">0</div>
+            </div>
+            <div class="debug-row">
+                <div class="debug-label">Messages in Room:</div>
+                <div class="debug-value" id="debugRoomCount">0/20</div>
+            </div>
+            <div class="debug-row">
+                <div class="debug-label">Auto-cleanup:</div>
+                <div class="debug-value" id="debugCleanupStatus">20 per room</div>
+            </div>
+            <div class="debug-row">
+                <div class="debug-label">Connection:</div>
+                <div class="debug-value" id="debugConnection">Checking...</span></div>
+            </div>
+            <div class="debug-row">
+                <div class="debug-label">Last Error:</div>
+                <div class="debug-value" id="debugError">None</div>
+            </div>
+            <div class="debug-row">
+                <div class="debug-label">Message Type:</div>
+                <div class="debug-value" id="debugMessageType">Text</div>
+            </div>
+            <div class="debug-row">
+                <div class="debug-label">Fullscreen:</div>
+                <div class="debug-value" id="debugFullscreen">No</div>
+            </div>
+            
+            <div class="settings-group">
+                <div class="settings-info">
+                    <strong>Room-based limit:</strong><br>
+                    • 20 messages per room max<br>
+                    • At 21st message, oldest deleted<br>
+                    • Uses timestamp for ordering<br>
+                    • Each room independently managed
+                </div>
+            </div>
+            
+            <button class="cleanup-btn" onclick="showCleanupConfirmation()" id="cleanupBtn" aria-label="Cleanup old messages in current room">
+                🧹 Cleanup This Room
+            </button>
+            
+            <button class="delete-btn" onclick="showDeleteConfirmation()" id="deleteAllBtn" aria-label="Delete all messages from database">
+                🗑️ DELETE ALL DATA
+            </button>
+        </div>
+    </div>
+    
+    <!-- Confirmation Dialog -->
+    <div class="confirmation-dialog" id="confirmationDialog" role="dialog" aria-labelledby="confirmationTitle" aria-modal="true" hidden>
+        <div class="confirmation-content">
+            <h2 class="confirmation-title" id="confirmationTitle">⚠️ Delete All Data</h2>
+            <div class="confirmation-micator" id="confirmationMessage">
+                This will permanently delete ALL messages from the Baserow table.<br><br>
+                This action cannot be undone. Are you sure you want to proceed?
+            </div>
+            <div class="confirmation-buttons">
+                <button class="confirm-btn cancel" onclick="hideConfirmation()" id="cancelBtn" autofocus>
+                    Cancel
+                </button>
+                <button class="confirm-btn delete" onclick="confirmAction()" id="confirmActionBtn">
+                    Delete All
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <div class="app-container">
         <!-- Login Screen -->
         <div class="login-screen" id="loginScreen">
-            <div class="app-logo">
+            <div class="app-logo" role="img" aria-label="Chat App Logo">
                 💬
             </div>
             <div class="login-card">
-                <h1 class="login-title">Clean Chat</h1>
+                <h1 class="login-title">Working Chat</h1>
                 
                 <div class="input-group">
-                    <label class="input-label">Your Name</label>
-                    <input type="text" class="input-field" id="username" placeholder="Enter your name" value="Alex">
+                    <label class="input-label" for="username">Your Name</label>
+                    <input type="text" class="input-field" id="username" placeholder="Enter your name" value="Alex" aria-required="true">
                 </div>
                 
                 <div class="input-group">
-                    <label class="input-label">Room Name</label>
-                    <input type="text" class="input-field" id="room" placeholder="Enter room name" value="general">
+                    <label class="input-label" for="room">Room Name</label>
+                    <input type="text" class="input-field" id="room" placeholder="Enter room name" value="general" aria-required="true">
                 </div>
                 
-                <button class="btn" onclick="startChat()">
+                <button class="btn" onclick="startChat()" id="startChatBtn" aria-label="Start chatting">
                     Start Chatting
                 </button>
+                
+                <div style="margin-top: 16px; font-size: 12px; color: var(--text-secondary); text-align: center;">
+                    <div id="testStatus">Click "Start Chatting" to begin</div>
+                </div>
             </div>
         </div>
         
@@ -329,40 +1392,70 @@
         <div class="chat-screen" id="chatScreen">
             <!-- Header -->
             <div class="chat-header">
-                <div class="room-info">
-                    <h2>#<span id="currentRoom">general</span></h2>
+                <div class="header-left">
+                    <button class="header-btn" onclick="logout()" id="logoutBtn" aria-label="Leave chat and return to login">
+                        ←
+                    </button>
+                    <div class="room-info">
+                        <h2 id="roomTitle">#<span id="currentRoom">general</span></h2>
+                        <div class="connection-status">
+                            <span class="status-dot" id="statusDot" role="status" aria-label="Connection status"></span>
+                            <span id="connectionText">Connecting...</span>
+                        </div>
+                    </div>
                 </div>
-                <button class="header-btn" onclick="logout()">
-                    ←
+                <div class="header-right">
+                    <button class="header-btn" onclick="toggleOnlineUsers()" id="onlineUsersBtn" aria-label="Show online users">
+                        👥
+                    </button>
+                    <button class="header-btn fullscreen-btn" onclick="toggleFullscreen()" id="headerFullscreenBtn" aria-label="Toggle fullscreen">
+                        ⛶
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Message Type Selector - SIMPLIFIED -->
+            <div class="message-type-selector" id="messageTypeSelector">
+                <button class="type-btn active" data-type="text" onclick="setMessageType('text')">
+                    📝 Text
+                </button>
+                <button class="type-btn" data-type="system" onclick="setMessageType('system')">
+                    ⚙️ System
                 </button>
             </div>
             
             <!-- Messages Container -->
-            <div class="messages-container" id="messagesContainer">
+            <div class="messages-container" id="messagesContainer" tabindex="0" role="log" aria-live="polite" aria-label="Chat messages">
                 <!-- Messages will be added here -->
             </div>
             
-            <!-- Input Area -->
-            <div class="input-container">
-                <textarea 
-                    class="message-input"
-                    id="messageInput" 
-                    placeholder="Type a message..."
-                    rows="1"
-                ></textarea>
-                <button class="send-btn" onclick="sendMessage()">
-                    →
-                </button>
+            <!-- Input Area - ALWAYS VISIBLE -->
+            <div class="input-area" id="inputArea">
+                <div class="input-container">
+                    <textarea 
+                        class="message-input"
+                        id="messageInput" 
+                        placeholder="Type a message..."
+                        rows="1"
+                        aria-label="Type your message"
+                    ></textarea>
+                    <button class="send-btn" onclick="sendMessage()" id="sendBtn" aria-label="Send message" disabled>
+                        →
+                    </button>
+                </div>
             </div>
             
             <!-- Status Bar -->
             <div class="status-bar">
-                <div id="statusText">Ready</div>
+                <div id="statusText" role="status" aria-live="polite">Ready</div>
+                <button class="test-btn" onclick="testConnection()" id="testConnectionBtn" aria-label="Test connection to server">
+                    Test Connection
+                </button>
             </div>
         </div>
         
         <!-- Toast -->
-        <div class="toast" id="toast"></div>
+        <div class="toast" id="toast" role="alert" aria-live="assertive"></div>
     </div>
 
     <script>
@@ -376,11 +1469,1234 @@
         let state = {
             username: '',
             room: 'general',
-            messages: [], // All messages in the room
+            messages: [], // Messages displayed in the app
             displayedIds: new Set(), // IDs of messages already shown
-            pendingMessages: new Map(), // Temp messages waiting for server response
-            autoRefresh: null
+            isConnected: false,
+            autoRefresh: null,
+            debugMode: false,
+            isDeleting: false,
+            isCleaning: false,
+            maxMessagesPerRoom: 20, // Maximum 20 messages per room
+            pendingConfirmation: null, // {type: 'deleteAll' | 'cleanup', callback: function}
+            keyboardHintTimeout: null,
+            lastFocusedElement: null,
+            currentMessageType: 'text', // 'text' or 'system'
+            isFullscreen: false,
+            isMobile: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent),
+            keyboardVisible: false,
+            viewportHeight: window.innerHeight,
+            viewportWidth: window.innerWidth,
+            onlineUsers: [], // Array of online users
+            typingUsers: [], // Array of users currently typing
+            lastTypingUpdate: 0, // Timestamp of last typing update
+            typingTimeout: null, // Timeout for typing indicator
+            userLastActivity: Date.now(), // When user was last active
+            presenceInterval: null, // Interval for updating presence
+            showOnlineUsers: false // Whether to show online users panel
         };
+
+        // ================= ONLINE USERS & TYPING STATUS =================
+        function toggleOnlineUsers() {
+            state.showOnlineUsers = !state.showOnlineUsers;
+            const panel = document.getElementById('onlineUsersPanel');
+            
+            if (state.showOnlineUsers) {
+                panel.classList.add('show');
+                updateOnlineUsersPanel();
+            } else {
+                panel.classList.remove('show');
+            }
+        }
+
+        function updateOnlineUsersPanel() {
+            const onlineUsersList = document.getElementById('onlineUsersList');
+            const onlineCount = document.getElementById('onlineCount');
+            
+            if (!onlineUsersList) return;
+            
+            // Clear current list
+            onlineUsersList.innerHTML = '';
+            
+            // Add current user first
+            const currentUserItem = createOnlineUserElement(state.username, true, false);
+            onlineUsersList.appendChild(currentUserItem);
+            
+            // Add other online users
+            state.onlineUsers.forEach(user => {
+                if (user.username !== state.username) {
+                    const isTyping = state.typingUsers.includes(user.username);
+                    const userItem = createOnlineUserElement(user.username, false, isTyping);
+                    onlineUsersList.appendChild(userItem);
+                }
+            });
+            
+            // Update count (include current user)
+            const totalOnline = state.onlineUsers.length + 1; // +1 for current user
+            onlineCount.textContent = totalOnline;
+            
+            // Update debug info
+            if (state.debugMode) {
+                document.getElementById('debugOnlineCount').textContent = totalOnline;
+                document.getElementById('debugTypingCount').textContent = state.typingUsers.length;
+            }
+        }
+
+        function createOnlineUserElement(username, isCurrentUser = false, isTyping = false) {
+            const div = document.createElement('div');
+            div.className = 'online-user';
+            
+            // Get first letter for avatar
+            const avatarLetter = username.charAt(0).toUpperCase();
+            
+            // Create avatar color based on username
+            const colors = ['#0084ff', '#31a24c', '#ff9500', '#ff6b6b', '#9c27b0', '#009688'];
+            const colorIndex = username.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
+            const avatarColor = colors[colorIndex];
+            
+            div.innerHTML = `
+                <div class="online-user-avatar" style="background: ${avatarColor}">
+                    ${avatarLetter}
+                </div>
+                <div class="online-user-info">
+                    <div class="online-user-name">
+                        ${escapeHtml(username)} ${isCurrentUser ? '(You)' : ''}
+                    </div>
+                    <div class="online-user-status">
+                        <span class="online-user-status-dot ${isTyping ? 'typing' : ''}"></span>
+                        <span class="${isTyping ? 'online-user-typing' : ''}">
+                            ${isTyping ? 'typing...' : 'online'}
+                        </span>
+                    </div>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        function updateTypingIndicator() {
+            const container = document.getElementById('messagesContainer');
+            
+            // Remove existing typing indicators
+            const existingIndicators = container.querySelectorAll('.typing-indicator');
+            existingIndicators.forEach(indicator => indicator.remove());
+            
+            // Add typing indicators for users who are typing (excluding current user)
+            state.typingUsers.forEach(username => {
+                if (username !== state.username) {
+                    const typingDiv = document.createElement('div');
+                    typingDiv.className = 'typing-indicator';
+                    typingDiv.innerHTML = `
+                        <div class="typing-content">
+                            <span>${escapeHtml(username)} is typing</span>
+                            <div class="typing-dots">
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(typingDiv);
+                }
+            });
+            
+            // Scroll to show typing indicator
+            if (state.typingUsers.length > 0) {
+                setTimeout(() => {
+                    scrollMessagesToBottom();
+                }, 100);
+            }
+            
+            // Update connection status dot
+            const statusDot = document.getElementById('statusDot');
+            if (state.typingUsers.length > 0) {
+                statusDot.classList.add('typing');
+                statusDot.classList.remove('offline');
+            } else if (state.isConnected) {
+                statusDot.classList.remove('typing');
+                statusDot.classList.remove('offline');
+            } else {
+                statusDot.classList.remove('typing');
+                statusDot.classList.add('offline');
+            }
+            
+            // Update online users panel if visible
+            if (state.showOnlineUsers) {
+                updateOnlineUsersPanel();
+            }
+        }
+
+        function startTyping() {
+            const now = Date.now();
+            
+            // Only send typing update every 1 second to avoid spamming
+            if (now - state.lastTypingUpdate > 1000) {
+                state.lastTypingUpdate = now;
+                
+                // Store typing state in Baserow
+                updateUserPresence(true);
+                
+                // Clear previous timeout
+                if (state.typingTimeout) {
+                    clearTimeout(state.typingTimeout);
+                }
+                
+                // Stop typing after 3 seconds of inactivity
+                state.typingTimeout = setTimeout(() => {
+                    stopTyping();
+                }, 3000);
+            }
+        }
+
+        function stopTyping() {
+            updateUserPresence(false);
+            
+            if (state.typingTimeout) {
+                clearTimeout(state.typingTimeout);
+                state.typingTimeout = null;
+            }
+        }
+
+        async function updateUserPresence(isTyping = false) {
+            try {
+                state.userLastActivity = Date.now();
+                
+                // We'll use a separate Baserow table for presence tracking
+                // For now, we'll simulate it with local storage and polling
+                const presenceData = {
+                    username: state.username,
+                    room: state.room,
+                    isTyping: isTyping,
+                    lastSeen: new Date().toISOString()
+                };
+                
+                // Store in localStorage (temporary solution)
+                localStorage.setItem(`chat_presence_${state.room}_${state.username}`, JSON.stringify(presenceData));
+                
+                // Update local state
+                const userIndex = state.onlineUsers.findIndex(u => u.username === state.username);
+                
+                if (userIndex === -1) {
+                    state.onlineUsers.push({
+                        username: state.username,
+                        lastSeen: Date.now()
+                    });
+                } else {
+                    state.onlineUsers[userIndex].lastSeen = Date.now();
+                }
+                
+                // Update typing status
+                if (isTyping) {
+                    if (!state.typingUsers.includes(state.username)) {
+                        state.typingUsers.push(state.username);
+                    }
+                } else {
+                    const typingIndex = state.typingUsers.indexOf(state.username);
+                    if (typingIndex !== -1) {
+                        state.typingUsers.splice(typingIndex, 1);
+                    }
+                }
+                
+                // Update UI
+                updateTypingIndicator();
+                updateDebugInfo();
+                
+            } catch (error) {
+                console.debug('Failed to update presence:', error);
+            }
+        }
+
+        async function checkOtherUsersPresence() {
+            try {
+                // Simulate checking other users' presence
+                // In a real app, this would query a presence database
+                
+                // For demo purposes, we'll create some mock users
+                if (state.onlineUsers.length < 3) {
+                    const mockUsers = ['Emma', 'John', 'Sarah', 'Mike'];
+                    
+                    mockUsers.forEach(mockUser => {
+                        if (mockUser !== state.username && 
+                            !state.onlineUsers.some(u => u.username === mockUser)) {
+                            
+                            // Randomly set some users as typing
+                            const isTyping = Math.random() > 0.7;
+                            const lastSeen = Date.now() - Math.floor(Math.random() * 30000);
+                            
+                            state.onlineUsers.push({
+                                username: mockUser,
+                                lastSeen: lastSeen
+                            });
+                            
+                            if (isTyping) {
+                                state.typingUsers.push(mockUser);
+                            }
+                        }
+                    });
+                }
+                
+                // Remove users who haven't been active for 60 seconds
+                const now = Date.now();
+                state.onlineUsers = state.onlineUsers.filter(user => {
+                    if (user.username === state.username) return true;
+                    return (now - user.lastSeen) < 60000;
+                });
+                
+                // Remove typing users who are no longer online
+                state.typingUsers = state.typingUsers.filter(username => {
+                    return state.onlineUsers.some(u => u.username === username) || username === state.username;
+                });
+                
+                // Update current user's presence
+                if ((now - state.userLastActivity) < 30000) { // User active in last 30 seconds
+                    const userIndex = state.onlineUsers.findIndex(u => u.username === state.username);
+                    if (userIndex === -1) {
+                        state.onlineUsers.push({
+                            username: state.username,
+                            lastSeen: now
+                        });
+                    } else {
+                        state.onlineUsers[userIndex].lastSeen = now;
+                    }
+                }
+                
+                // Update UI
+                updateTypingIndicator();
+                updateDebugInfo();
+                
+                // Update online users panel if visible
+                if (state.showOnlineUsers) {
+                    updateOnlineUsersPanel();
+                }
+                
+            } catch (error) {
+                console.debug('Failed to check other users presence:', error);
+            }
+        }
+
+        function cleanupOldPresenceData() {
+            const now = Date.now();
+            const fiveMinutesAgo = now - (5 * 60 * 1000);
+            
+            // Clean localStorage (remove entries older than 5 minutes)
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('chat_presence_')) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        if (new Date(data.lastSeen).getTime() < fiveMinutesAgo) {
+                            localStorage.removeItem(key);
+                        }
+                    } catch (e) {
+                        localStorage.removeItem(key);
+                    }
+                }
+            });
+        }
+
+        // ================= MOBILE KEYBOARD HANDLING =================
+        function setupMobileKeyboardHandling() {
+            if (!state.isMobile) return;
+            
+            const messageInput = document.getElementById('messageInput');
+            const messagesContainer = document.getElementById('messagesContainer');
+            const inputArea = document.getElementById('inputArea');
+            
+            // Store original viewport height
+            state.viewportHeight = window.innerHeight;
+            state.viewportWidth = window.innerWidth;
+            
+            // Handle viewport changes (keyboard show/hide)
+            let visualViewport = window.visualViewport;
+            
+            if (visualViewport) {
+                visualViewport.addEventListener('resize', handleViewportResize);
+                visualViewport.addEventListener('scroll', handleViewportScroll);
+            }
+            
+            // Handle focus/blur events
+            messageInput.addEventListener('focus', handleInputFocus);
+            messageInput.addEventListener('blur', handleInputBlur);
+            
+            // Handle window resize (orientation change)
+            window.addEventListener('resize', handleWindowResize);
+            
+            // Prevent default behavior on touch events
+            document.addEventListener('touchstart', function(e) {
+                if (e.target === messageInput || e.target.closest('.input-area')) {
+                    e.stopPropagation();
+                }
+            }, { passive: true });
+            
+            // Scroll to bottom when input is focused
+            messageInput.addEventListener('focus', function() {
+                setTimeout(() => {
+                    scrollMessagesToBottom();
+                }, 300);
+            });
+            
+            // Handle iOS form submission
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    if (state.isMobile) {
+                        e.preventDefault();
+                        sendMessage();
+                    }
+                }
+            });
+        }
+        
+        function handleViewportResize() {
+            if (!state.isMobile) return;
+            
+            const visualViewport = window.visualViewport;
+            if (!visualViewport) return;
+            
+            const messagesContainer = document.getElementById('messagesContainer');
+            const inputArea = document.getElementById('inputArea');
+            
+            // Calculate keyboard height
+            const keyboardHeight = state.viewportHeight - visualViewport.height;
+            const isKeyboardVisible = keyboardHeight > 100;
+            
+            if (isKeyboardVisible !== state.keyboardVisible) {
+                state.keyboardVisible = isKeyboardVisible;
+                
+                if (isKeyboardVisible) {
+                    // Keyboard opened
+                    document.body.classList.add('keyboard-open');
+                    
+                    // Adjust messages container padding
+                    messagesContainer.style.paddingBottom = (keyboardHeight + 100) + 'px';
+                    
+                    // Scroll to bottom
+                    setTimeout(() => {
+                        scrollMessagesToBottom();
+                    }, 100);
+                } else {
+                    // Keyboard closed
+                    document.body.classList.remove('keyboard-open');
+                    messagesContainer.style.paddingBottom = '80px';
+                }
+            }
+            
+            // Adjust input area position (always visible at bottom)
+            inputArea.style.bottom = '0';
+        }
+        
+        function handleViewportScroll() {
+            if (!state.isMobile) return;
+            
+            const visualViewport = window.visualViewport;
+            if (!visualViewport) return;
+            
+            // Keep input area visible when scrolling
+            const inputArea = document.getElementById('inputArea');
+            inputArea.style.transform = 'none';
+        }
+        
+        function handleInputFocus() {
+            if (!state.isMobile) return;
+            
+            // Force show keyboard on iOS
+            setTimeout(() => {
+                document.getElementById('messageInput').focus();
+            }, 100);
+        }
+        
+        function handleInputBlur() {
+            // Input stays visible, no need to hide it
+            // Just ensure it's at the bottom
+            const inputArea = document.getElementById('inputArea');
+            inputArea.style.bottom = '0';
+            inputArea.style.transform = 'none';
+        }
+        
+        function handleWindowResize() {
+            // Update viewport dimensions
+            state.viewportHeight = window.innerHeight;
+            state.viewportWidth = window.innerWidth;
+            
+            // Reset keyboard state on orientation change
+            state.keyboardVisible = false;
+            document.body.classList.remove('keyboard-open');
+            
+            const messagesContainer = document.getElementById('messagesContainer');
+            const inputArea = document.getElementById('inputArea');
+            
+            messagesContainer.style.paddingBottom = '80px';
+            inputArea.style.bottom = '0';
+            inputArea.style.transform = 'none';
+        }
+        
+        function scrollMessagesToBottom() {
+            const messagesContainer = document.getElementById('messagesContainer');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        // ================= FULLSCREEN FUNCTIONS =================
+        function toggleFullscreen() {
+            const fullscreenToggle = document.getElementById('fullscreenToggle');
+            const headerFullscreenBtn = document.getElementById('headerFullscreenBtn');
+            
+            if (!document.fullscreenElement) {
+                // Enter fullscreen
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen();
+                } else if (document.documentElement.webkitRequestFullscreen) {
+                    document.documentElement.webkitRequestFullscreen();
+                } else if (document.documentElement.mozRequestFullScreen) {
+                    document.documentElement.mozRequestFullScreen();
+                } else if (document.documentElement.msRequestFullscreen) {
+                    document.documentElement.msRequestFullscreen();
+                }
+                state.isFullscreen = true;
+            } else {
+                // Exit fullscreen
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                state.isFullscreen = false;
+            }
+            
+            updateFullscreenButton();
+            updateDebugInfo();
+        }
+
+        function updateFullscreenButton() {
+            const fullscreenToggle = document.getElementById('fullscreenToggle');
+            const headerFullscreenBtn = document.getElementById('headerFullscreenBtn');
+            
+            if (state.isFullscreen) {
+                fullscreenToggle.textContent = '⛶';
+                fullscreenToggle.classList.add('exit');
+                headerFullscreenBtn.textContent = '⛶';
+                headerFullscreenBtn.classList.add('exit');
+                document.getElementById('debugFullscreen').textContent = 'Yes';
+            } else {
+                fullscreenToggle.textContent = '⛶';
+                fullscreenToggle.classList.remove('exit');
+                headerFullscreenBtn.textContent = '⛶';
+                headerFullscreenBtn.classList.remove('exit');
+                document.getElementById('debugFullscreen').textContent = 'No';
+            }
+        }
+
+        function handleFullscreenChange() {
+            state.isFullscreen = !!document.fullscreenElement;
+            updateFullscreenButton();
+            updateDebugInfo();
+            
+            if (state.isFullscreen) {
+                showToast('Entered fullscreen mode');
+            } else {
+                showToast('Exited fullscreen mode');
+            }
+        }
+
+        // ================= MESSAGE TYPE FUNCTIONS =================
+        function setMessageType(type) {
+            state.currentMessageType = type;
+            
+            // Update UI
+            document.querySelectorAll('.type-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`.type-btn[data-type="${type}"]`).classList.add('active');
+            
+            // Update placeholder based on type
+            const messageInput = document.getElementById('messageInput');
+            switch(type) {
+                case 'text':
+                    messageInput.placeholder = 'Type a message...';
+                    break;
+                case 'system':
+                    messageInput.placeholder = 'System message...';
+                    break;
+            }
+            
+            // Update debug info
+            document.getElementById('debugMessageType').textContent = type.charAt(0).toUpperCase() + type.slice(1);
+            
+            showToast(`Message type set to: ${type}`);
+            
+            // Focus back on input
+            setTimeout(() => {
+                messageInput.focus();
+            }, 100);
+        }
+
+        function getMessageTypeBadge(type) {
+            switch(type) {
+                case 'text': return 'Text';
+                case 'system': return 'System';
+                default: return 'Text';
+            }
+        }
+
+        function getMessageTypeClass(type) {
+            switch(type) {
+                case 'text': return 'message-type-text';
+                case 'system': return 'message-type-system';
+                default: return 'message-type-text';
+            }
+        }
+
+        function formatMessageContent(content, type) {
+            switch(type) {
+                case 'system':
+                    return `
+                        <div class="message-system-indicator">
+                            ⚙️ ${escapeHtml(content)}
+                        </div>
+                    `;
+                default:
+                    return escapeHtml(content);
+            }
+        }
+
+        // ================= KEYBOARD ACCESSIBILITY =================
+        function showKeyboardHint() {
+            const hint = document.getElementById('keyboardHint');
+            hint.classList.add('show');
+            
+            if (state.keyboardHintTimeout) {
+                clearTimeout(state.keyboardHintTimeout);
+            }
+            
+            state.keyboardHintTimeout = setTimeout(() => {
+                hint.classList.remove('show');
+            }, 5000);
+        }
+
+        function hideKeyboardHint() {
+            const hint = document.getElementById('keyboardHint');
+            hint.classList.remove('show');
+        }
+
+        function setupKeyboardShortcuts() {
+            // Global keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Don't trigger shortcuts when user is typing in inputs
+                if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') {
+                    // Allow Ctrl+Enter to send message even when typing
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                        e.preventDefault();
+                        if (document.getElementById('chatScreen').classList.contains('active')) {
+                            sendMessage();
+                        }
+                    }
+                    return;
+                }
+                
+                // Debug panel toggle: Ctrl+D
+                if (e.ctrlKey && e.key === 'd') {
+                    e.preventDefault();
+                    toggleDebug();
+                }
+                
+                // Focus message input: /
+                if (e.key === '/' && document.getElementById('chatScreen').classList.contains('active')) {
+                    e.preventDefault();
+                    document.getElementById('messageInput').focus();
+                    showToast('Message input focused');
+                }
+                
+                // Logout: Escape
+                if (e.key === 'Escape' && document.getElementById('chatScreen').classList.contains('active')) {
+                    e.preventDefault();
+                    logout();
+                }
+                
+                // Fullscreen: F11
+                if (e.key === 'F11') {
+                    e.preventDefault();
+                    toggleFullscreen();
+                }
+                
+                // Show keyboard hints: Ctrl+Shift+/
+                if (e.ctrlKey && e.shiftKey && e.key === '/') {
+                    e.preventDefault();
+                    showKeyboardHint();
+                }
+                
+                // Hide keyboard hints: Escape
+                if (e.key === 'Escape' && document.getElementById('keyboardHint').classList.contains('show')) {
+                    hideKeyboardHint();
+                }
+                
+                // Message type shortcuts: 1-2
+                if (e.key >= '1' && e.key <= '2' && document.getElementById('chatScreen').classList.contains('active')) {
+                    const types = ['text', 'system'];
+                    const index = parseInt(e.key) - 1;
+                    if (types[index]) {
+                        e.preventDefault();
+                        setMessageType(types[index]);
+                    }
+                }
+            });
+            
+            // Login screen shortcuts
+            document.getElementById('username').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('room').focus();
+                }
+            });
+            
+            document.getElementById('room').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    startChat();
+                }
+            });
+            
+            // Chat screen shortcuts
+            const messageInput = document.getElementById('messageInput');
+            messageInput.addEventListener('keydown', function(e) {
+                // Send message: Ctrl+Enter or Cmd+Enter
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    sendMessage();
+                }
+                
+                // Clear message: Escape
+                if (e.key === 'Escape' && this.value.trim()) {
+                    e.preventDefault();
+                    this.value = '';
+                    this.style.height = 'auto';
+                    showToast('Message cleared');
+                }
+            });
+            
+            // Messages container navigation
+            const messagesContainer = document.getElementById('messagesContainer');
+            messagesContainer.addEventListener('keydown', function(e) {
+                // Navigate messages with arrow keys
+                if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    const messages = Array.from(this.querySelectorAll('.message'));
+                    if (messages.length === 0) return;
+                    
+                    const currentIndex = document.activeElement === this ? -1 : 
+                        messages.findIndex(msg => msg.contains(document.activeElement));
+                    
+                    let nextIndex;
+                    if (e.key === 'ArrowUp') {
+                        nextIndex = currentIndex <= 0 ? messages.length - 1 : currentIndex - 1;
+                    } else {
+                        nextIndex = currentIndex >= messages.length - 1 ? 0 : currentIndex + 1;
+                    }
+                    
+                    if (currentIndex === -1) {
+                        this.focus();
+                    } else {
+                        messages[nextIndex].focus();
+                    }
+                }
+                
+                // Jump to input: Tab when at last message
+                if (e.key === 'Tab' && !e.shiftKey) {
+                    const messages = Array.from(this.querySelectorAll('.message'));
+                    const lastMessage = messages[messages.length - 1];
+                    
+                    if (lastMessage && document.activeElement === lastMessage) {
+                        e.preventDefault();
+                        document.getElementById('messageInput').focus();
+                    }
+                }
+            });
+            
+            // Trap focus in modals
+            document.addEventListener('focus', function(e) {
+                const debugPanel = document.getElementById('debugPanel');
+                const confirmationDialog = document.getElementById('confirmationDialog');
+                const onlineUsersPanel = document.getElementById('onlineUsersPanel');
+                
+                if (debugPanel.style.display === 'block') {
+                    if (!debugPanel.contains(e.target) && e.target !== document.getElementById('debugToggle')) {
+                        e.preventDefault();
+                        document.getElementById('cleanupBtn').focus();
+                    }
+                }
+                
+                if (confirmationDialog.classList.contains('show')) {
+                    if (!confirmationDialog.contains(e.target)) {
+                        e.preventDefault();
+                        document.getElementById('cancelBtn').focus();
+                    }
+                }
+                
+                if (onlineUsersPanel.classList.contains('show')) {
+                    if (!onlineUsersPanel.contains(e.target) && e.target !== document.getElementById('onlineUsersBtn')) {
+                        e.preventDefault();
+                        onlineUsersPanel.querySelector('.online-user')?.focus();
+                    }
+                }
+            }, true);
+        }
+
+        function manageFocusInModals() {
+            const debugPanel = document.getElementById('debugPanel');
+            const confirmationDialog = document.getElementById('confirmationDialog');
+            const onlineUsersPanel = document.getElementById('onlineUsersPanel');
+            
+            if (debugPanel.style.display === 'block') {
+                state.lastFocusedElement = document.activeElement;
+                document.getElementById('cleanupBtn').focus();
+            }
+            
+            if (confirmationDialog.classList.contains('show')) {
+                state.lastFocusedElement = document.activeElement;
+                document.getElementById('cancelBtn').focus();
+            }
+            
+            if (onlineUsersPanel.classList.contains('show')) {
+                state.lastFocusedElement = document.activeElement;
+                onlineUsersPanel.querySelector('.online-user')?.focus();
+            }
+        }
+
+        function restoreFocus() {
+            if (state.lastFocusedElement && state.lastFocusedElement.focus) {
+                state.lastFocusedElement.focus();
+                state.lastFocusedElement = null;
+            }
+        }
+
+        // ================= DEBUG FUNCTIONS =================
+        function toggleDebug() {
+            state.debugMode = !state.debugMode;
+            const debugPanel = document.getElementById('debugPanel');
+            
+            if (state.debugMode) {
+                debugPanel.style.display = 'block';
+                debugPanel.removeAttribute('hidden');
+                manageFocusInModals();
+            } else {
+                debugPanel.style.display = 'none';
+                debugPanel.setAttribute('hidden', 'true');
+                restoreFocus();
+            }
+            
+            updateDebugInfo();
+        }
+
+        function updateDebugInfo() {
+            if (!state.debugMode) return;
+            
+            document.getElementById('debugRoom').textContent = state.room;
+            document.getElementById('debugUser').textContent = state.username;
+            document.getElementById('debugOnlineCount').textContent = state.onlineUsers.length + 1; // +1 for current user
+            document.getElementById('debugTypingCount').textContent = state.typingUsers.length;
+            document.getElementById('debugAppCount').textContent = state.messages.length;
+            document.getElementById('debugConnection').textContent = state.isConnected ? '✅ Connected' : '❌ Disconnected';
+            document.getElementById('debugCleanupStatus').textContent = `${state.maxMessagesPerRoom} per room`;
+            document.getElementById('debugMessageType').textContent = state.currentMessageType.charAt(0).toUpperCase() + state.currentMessageType.slice(1);
+            document.getElementById('debugFullscreen').textContent = state.isFullscreen ? 'Yes' : 'No';
+            
+            // Calculate room message count
+            const roomMessageCount = state.messages.filter(m => 
+                m.room_id && m.room_id.toLowerCase() === state.room.toLowerCase()
+            ).length;
+            document.getElementById('debugRoomCount').textContent = `${roomMessageCount}/${state.maxMessagesPerRoom}`;
+            
+            // Update button states
+            const deleteBtn = document.getElementById('deleteAllBtn');
+            const cleanupBtn = document.getElementById('cleanupBtn');
+            
+            if (deleteBtn) {
+                deleteBtn.disabled = state.isDeleting || state.isCleaning;
+                deleteBtn.textContent = state.isDeleting ? '🗑️ DELETING...' : '🗑️ DELETE ALL DATA';
+                deleteBtn.style.opacity = (state.isDeleting || state.isCleaning) ? '0.7' : '1';
+                deleteBtn.style.cursor = (state.isDeleting || state.isCleaning) ? 'not-allowed' : 'pointer';
+                deleteBtn.setAttribute('aria-disabled', state.isDeleting || state.isCleaning);
+            }
+            
+            if (cleanupBtn) {
+                cleanupBtn.disabled = state.isDeleting || state.isCleaning;
+                cleanupBtn.textContent = state.isCleaning ? '🧹 CLEANING...' : '🧹 Cleanup This Room';
+                cleanupBtn.style.opacity = (state.isDeleting || state.isCleaning) ? '0.7' : '1';
+                cleanupBtn.style.cursor = (state.isDeleting || state.isCleaning) ? 'not-allowed' : 'pointer';
+                cleanupBtn.setAttribute('aria-disabled', state.isDeleting || state.isCleaning);
+            }
+        }
+
+        function logDebug(message, type = 'info') {
+            if (!state.debugMode) return;
+            
+            const colors = {
+                info: '#0084ff',
+                success: '#31a24c',
+                error: '#ff6b6b',
+                warning: '#ff9500'
+            };
+            
+            console.log(`%c${message}`, `color: ${colors[type]}; font-weight: bold;`);
+            updateDebugInfo();
+        }
+
+        // ================= DELETE FUNCTIONS =================
+        function showDeleteConfirmation() {
+            state.pendingConfirmation = {
+                type: 'deleteAll',
+                callback: deleteAllData
+            };
+            
+            document.getElementById('confirmationTitle').textContent = '⚠️ Delete All Data';
+            document.getElementById('confirmationMessage').innerHTML = 
+                'This will permanently delete ALL messages from the Baserow table.<br><br>' +
+                'This action cannot be undone. Are you sure you want to proceed?';
+            
+            const deleteBtn = document.getElementById('confirmActionBtn');
+            deleteBtn.textContent = 'Delete All';
+            
+            const dialog = document.getElementById('confirmationDialog');
+            dialog.classList.add('show');
+            dialog.removeAttribute('hidden');
+            manageFocusInModals();
+        }
+
+        function showCleanupConfirmation() {
+            state.pendingConfirmation = {
+                type: 'cleanup',
+                callback: cleanupCurrentRoom
+            };
+            
+            document.getElementById('confirmationTitle').textContent = '🧹 Cleanup This Room';
+            document.getElementById('confirmationMessage').innerHTML = 
+                `This will delete older messages in room "<strong>${state.room}</strong>",<br>` +
+                `keeping only the <strong>20 most recent</strong> messages.<br><br>` +
+                'This action cannot be undone. Proceed with cleanup?';
+            
+            const deleteBtn = document.getElementById('confirmActionBtn');
+            deleteBtn.textContent = 'Cleanup Now';
+            
+            const dialog = document.getElementById('confirmationDialog');
+            dialog.classList.add('show');
+            dialog.removeAttribute('hidden');
+            manageFocusInModals();
+        }
+
+        function hideConfirmation() {
+            state.pendingConfirmation = null;
+            const dialog = document.getElementById('confirmationDialog');
+            dialog.classList.remove('show');
+            dialog.setAttribute('hidden', 'true');
+            restoreFocus();
+        }
+
+        function confirmAction() {
+            if (state.pendingConfirmation && state.pendingConfirmation.callback) {
+                state.pendingConfirmation.callback();
+            }
+            hideConfirmation();
+        }
+
+        async function deleteAllData() {
+            state.isDeleting = true;
+            updateDebugInfo();
+            
+            logDebug('Starting to delete all data...', 'warning');
+            updateStatus('Deleting all data...', true);
+            
+            try {
+                // First, get all message IDs from the table
+                logDebug('Fetching all messages to delete...', 'info');
+                const response = await fetch(
+                    `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true`,
+                    {
+                        headers: {
+                            'Authorization': `Token ${BASEROW_CONFIG.TOKEN}`
+                        }
+                    }
+                );
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch messages: HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const allMessages = data.results || [];
+                
+                logDebug(`Found ${allMessages.length} messages to delete`, 'warning');
+                
+                if (allMessages.length === 0) {
+                    showToast('No data to delete', 2000);
+                    state.isDeleting = false;
+                    updateDebugInfo();
+                    updateStatus('No data to delete', true);
+                    return;
+                }
+                
+                // Delete messages one by one
+                let deletedCount = 0;
+                let failedCount = 0;
+                
+                for (const message of allMessages) {
+                    try {
+                        const deleteResponse = await fetch(
+                            `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/${message.id}/`,
+                            {
+                                method: 'DELETE',
+                                headers: {
+                                    'Authorization': `Token ${BASEROW_CONFIG.TOKEN}`
+                                }
+                            }
+                        );
+                        
+                        if (deleteResponse.ok) {
+                            deletedCount++;
+                            logDebug(`Deleted message ${message.id}`, 'success');
+                        } else {
+                            failedCount++;
+                            logDebug(`Failed to delete message ${message.id}: ${deleteResponse.status}`, 'error');
+                        }
+                        
+                        // Update status during deletion
+                        updateStatus(`Deleting... ${deletedCount}/${allMessages.length}`, true);
+                        
+                    } catch (error) {
+                        failedCount++;
+                        logDebug(`Error deleting message ${message.id}: ${error.message}`, 'error');
+                    }
+                }
+                
+                // Clear local messages
+                state.messages = [];
+                state.displayedIds.clear();
+                displayAllMessages();
+                
+                // Show result
+                if (failedCount === 0) {
+                    showToast(`✅ Successfully deleted ${deletedCount} messages`, 3000);
+                    logDebug(`Successfully deleted ${deletedCount} messages`, 'success');
+                } else {
+                    showToast(`⚠️ Deleted ${deletedCount} messages, ${failedCount} failed`, 3000);
+                    logDebug(`Deleted ${deletedCount} messages, ${failedCount} failed`, 'warning');
+                }
+                
+                updateStatus(`Deleted ${deletedCount} messages`, true);
+                
+            } catch (error) {
+                console.error('Failed to delete data:', error);
+                showToast(`❌ Delete failed: ${error.message}`, 3000);
+                logDebug(`Delete failed: ${error.message}`, 'error');
+                updateStatus('Delete failed', false);
+            } finally {
+                state.isDeleting = false;
+                updateDebugInfo();
+                
+                // Reload messages to refresh the view
+                await loadMessages();
+            }
+        }
+
+        async function cleanupCurrentRoom() {
+            state.isCleaning = true;
+            updateDebugInfo();
+            
+            logDebug(`Starting cleanup for room "${state.room}": keeping only 20 latest messages...`, 'warning');
+            updateStatus(`Cleaning up room "${state.room}"...`, true);
+            
+            try {
+                // Get all messages from the table, ordered by newest first
+                const response = await fetch(
+                    `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true`,
+                    {
+                        headers: {
+                            'Authorization': `Token ${BASEROW_CONFIG.TOKEN}`
+                        }
+                    }
+                );
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch messages: HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const allMessages = data.results || [];
+                
+                // Filter messages for current room
+                const roomMessages = allMessages.filter(msg => {
+                    const msgRoom = String(msg.room_id || '').toLowerCase();
+                    return msgRoom === state.room.toLowerCase();
+                });
+                
+                logDebug(`Found ${roomMessages.length} messages in room "${state.room}"`, 'info');
+                
+                // Sort by timestamp (oldest first) to delete oldest
+                const sortedRoomMessages = [...roomMessages].sort((a, b) => {
+                    const timeA = new Date(a.created_on || a.timestamp || 0).getTime();
+                    const timeB = new Date(b.created_on || b.timestamp || 0).getTime();
+                    return timeA - timeB;
+                });
+                
+                // Keep only the 20 most recent messages
+                const messagesToKeep = sortedRoomMessages.slice(-20); // Last 20 messages
+                const messagesToDelete = sortedRoomMessages.slice(0, -20); // All except last 20
+                
+                logDebug(`Will delete ${messagesToDelete.length} oldest messages in room`, 'warning');
+                
+                if (messagesToDelete.length === 0) {
+                    showToast(`Room already at 20 messages`, 2000);
+                    state.isCleaning = false;
+                    updateDebugInfo();
+                    updateStatus(`Room at 20 messages`, true);
+                    return;
+                }
+                
+                // Delete old messages
+                let deletedCount = 0;
+                let failedCount = 0;
+                
+                for (const message of messagesToDelete) {
+                    try {
+                        const deleteResponse = await fetch(
+                            `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/${message.id}/`,
+                            {
+                                method: 'DELETE',
+                                headers: {
+                                    'Authorization': `Token ${BASEROW_CONFIG.TOKEN}`
+                                }
+                            }
+                        );
+                        
+                        if (deleteResponse.ok) {
+                            deletedCount++;
+                        } else {
+                            failedCount++;
+                            logDebug(`Failed to delete message ${message.id}: ${deleteResponse.status}`, 'error');
+                        }
+                        
+                        // Update status during cleanup
+                        updateStatus(`Cleaning... ${deletedCount}/${messagesToDelete.length}`, true);
+                        
+                    } catch (error) {
+                        failedCount++;
+                        logDebug(`Error deleting message ${message.id}: ${error.message}`, 'error');
+                    }
+                }
+                
+                // Show result
+                if (failedCount === 0) {
+                    showToast(`✅ Cleanup complete! Room now at 20 messages`, 3000);
+                    logDebug(`Cleanup complete! Deleted ${deletedCount} old messages`, 'success');
+                } else {
+                    showToast(`⚠️ Cleanup partial: ${deletedCount} deleted, ${failedCount} failed`, 3000);
+                    logDebug(`Cleanup partial: ${deletedCount} deleted, ${failedCount} failed`, 'warning');
+                }
+                
+                updateStatus(`Cleaned room to 20 messages`, true);
+                
+            } catch (error) {
+                console.error('Failed to cleanup room:', error);
+                showToast(`❌ Cleanup failed: ${error.message}`, 3000);
+                logDebug(`Cleanup failed: ${error.message}`, 'error');
+                updateStatus('Cleanup failed', false);
+            } finally {
+                state.isCleaning = false;
+                updateDebugInfo();
+                
+                // Reload messages to refresh the view
+                await loadMessages();
+            }
+        }
+
+        async function autoCleanupRoomIfNeeded() {
+            try {
+                // Get all messages for the current room
+                const response = await fetch(
+                    `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true`,
+                    {
+                        headers: {
+                            'Authorization': `Token ${BASEROW_CONFIG.TOKEN}`
+                        }
+                    }
+                );
+                
+                if (!response.ok) return;
+                
+                const data = await response.json();
+                const allMessages = data.results || [];
+                
+                // Filter messages for current room
+                const roomMessages = allMessages.filter(msg => {
+                    const msgRoom = String(msg.room_id || '').toLowerCase();
+                    return msgRoom === state.room.toLowerCase();
+                });
+                
+                // Check if we need to cleanup (more than 20 messages in this room)
+                if (roomMessages.length > state.maxMessagesPerRoom) {
+                    const excess = roomMessages.length - state.maxMessagesPerRoom;
+                    
+                    logDebug(`Auto-cleanup triggered for room "${state.room}": ${roomMessages.length} > ${state.maxMessagesPerRoom} (delete ${excess})`, 'warning');
+                    
+                    // Sort by timestamp (oldest first) to find oldest messages
+                    const sortedRoomMessages = [...roomMessages].sort((a, b) => {
+                        const timeA = new Date(a.created_on || a.timestamp || 0).getTime();
+                        const timeB = new Date(b.created_on || b.timestamp || 0).getTime();
+                        return timeA - timeB;
+                    });
+                    
+                    // Get oldest messages to delete
+                    const messagesToDelete = sortedRoomMessages.slice(0, excess);
+                    
+                    // Delete the oldest messages
+                    let deletedCount = 0;
+                    for (const message of messagesToDelete) {
+                        try {
+                            const deleteResponse = await fetch(
+                                `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/${message.id}/`,
+                                {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Authorization': `Token ${BASEROW_CONFIG.TOKEN}`
+                                    }
+                                }
+                            );
+                            
+                            if (deleteResponse.ok) {
+                                deletedCount++;
+                                logDebug(`Auto-deleted old message from room ${state.room}: ${message.id}`, 'success');
+                            } else {
+                                logDebug(`Failed to auto-delete message ${message.id}: ${deleteResponse.status}`, 'error');
+                            }
+                        } catch (error) {
+                            logDebug(`Auto-cleanup error: ${error.message}`, 'error');
+                        }
+                    }
+                    
+                    if (deletedCount > 0) {
+                        logDebug(`Auto-cleanup: deleted ${deletedCount} old messages from room ${state.room}`, 'success');
+                        
+                        // Remove from local state if they exist
+                        state.messages = state.messages.filter(msg => 
+                            !messagesToDelete.some(oldMsg => oldMsg.id === msg.id)
+                        );
+                        
+                        // Remove from DOM
+                        messagesToDelete.forEach(oldMsg => {
+                            const element = document.querySelector(`[data-id="${oldMsg.id}"]`);
+                            if (element) {
+                                element.remove();
+                            }
+                        });
+                        
+                        // Update room count in debug
+                        updateDebugInfo();
+                    }
+                }
+                
+            } catch (error) {
+                // Silent fail for auto-cleanup
+                console.debug('Auto-cleanup check failed:', error);
+            }
+        }
 
         // ================= UTILITY FUNCTIONS =================
         function showToast(message, duration = 2000) {
@@ -393,30 +2709,56 @@
             }, duration);
         }
 
-        function updateStatus(text) {
+        function updateStatus(text, isConnected = true) {
             document.getElementById('statusText').textContent = text;
+            document.getElementById('connectionText').textContent = isConnected ? 'Connected' : 'Disconnected';
+            document.getElementById('statusDot').className = `status-dot ${isConnected ? '' : 'offline'}`;
+            state.isConnected = isConnected;
         }
 
         // ================= MESSAGE DISPLAY =================
         function displayAllMessages() {
             const container = document.getElementById('messagesContainer');
             
-            // Clear only if there are messages to display
-            if (state.messages.length > 0) {
-                container.innerHTML = '';
-                state.displayedIds.clear();
-                
-                // Sort messages by ID (oldest first)
-                const sortedMessages = [...state.messages].sort((a, b) => a.id - b.id);
-                
-                // Display all messages
-                sortedMessages.forEach(msg => {
-                    addMessageToDOM(msg, false);
-                });
+            if (state.messages.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">💬</div>
+                        <div class="empty-title">No messages yet</div>
+                        <div>Send a message to start the conversation!</div>
+                    </div>
+                `;
+                return;
             }
+            
+            // Clear container
+            container.innerHTML = '';
+            state.displayedIds.clear();
+            
+            // Sort messages by timestamp (oldest first)
+            const sortedMessages = [...state.messages].sort((a, b) => {
+                const timeA = new Date(a.timestamp || a.created_on).getTime();
+                const timeB = new Date(b.timestamp || b.created_on).getTime();
+                return timeA - timeB;
+            });
+            
+            // Display all messages
+            sortedMessages.forEach(msg => {
+                addMessageToDOM(msg);
+            });
+            
+            // Add typing indicators
+            updateTypingIndicator();
+            
+            // Scroll to bottom
+            setTimeout(() => {
+                scrollMessagesToBottom();
+            }, 100);
+            
+            logDebug(`Displayed ${state.messages.length} messages`, 'success');
         }
 
-        function addMessageToDOM(message, animate = true) {
+        function addMessageToDOM(message) {
             // Skip if already displayed
             if (state.displayedIds.has(message.id)) {
                 return;
@@ -428,6 +2770,13 @@
             const isSent = message.username === state.username;
             messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
             messageDiv.dataset.id = message.id;
+            messageDiv.tabIndex = 0; // Make messages focusable
+            messageDiv.setAttribute('role', 'article');
+            
+            // Get message type
+            const messageType = message.message_type || 'text';
+            const typeBadge = getMessageTypeBadge(messageType);
+            const typeClass = getMessageTypeClass(messageType);
             
             // Get timestamp
             let timeStr = 'Just now';
@@ -439,30 +2788,52 @@
             // Decode message
             let content = '';
             try {
-                const decoded = atob(message.encrypted_data || '');
-                content = decodeURIComponent(escape(decoded));
+                if (message.encrypted_data) {
+                    const decoded = atob(message.encrypted_data);
+                    content = decodeURIComponent(escape(decoded));
+                } else {
+                    content = '[No content]';
+                }
             } catch (e) {
-                content = message.encrypted_data || '[Message]';
+                content = message.encrypted_data || '[Cannot decode]';
+                console.warn('Failed to decode message:', e);
             }
+            
+            // Format content based on type
+            const formattedContent = formatMessageContent(content, messageType);
             
             // Build message HTML
             messageDiv.innerHTML = `
-                ${!isSent ? `<div class="message-sender">${escapeHtml(message.username || 'User')}</div>` : ''}
-                <div class="message-content">${escapeHtml(content)}</div>
+                ${!isSent ? `
+                    <div class="message-sender">
+                        ${escapeHtml(message.username || 'User')}
+                        <span class="message-type-badge ${typeClass}">${typeBadge}</span>
+                    </div>
+                ` : ''}
+                <div class="message-content">
+                    ${isSent ? `
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                            <span class="message-type-badge ${typeClass}" style="margin: 0;">${typeBadge}</span>
+                        </div>
+                    ` : ''}
+                    ${formattedContent}
+                </div>
                 <div class="message-time">${timeStr}</div>
             `;
+            
+            // Add keyboard navigation
+            messageDiv.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.focus();
+                }
+            });
             
             // Add to container
             container.appendChild(messageDiv);
             state.displayedIds.add(message.id);
             
-            // Scroll to bottom
-            setTimeout(() => {
-                const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
-                if (isNearBottom) {
-                    container.scrollTop = container.scrollHeight;
-                }
-            }, 50);
+            logDebug(`Added ${messageType} message: ${content.substring(0, 50)}...`, 'info');
         }
 
         // ================= MESSAGE FUNCTIONS =================
@@ -472,9 +2843,13 @@
             
             if (!messageText) return;
             
+            // Stop typing indicator
+            stopTyping();
+            
             // Clear input
             input.value = '';
             input.style.height = 'auto';
+            document.getElementById('sendBtn').disabled = true;
             
             // Create temporary message
             const tempId = 'temp-' + Date.now();
@@ -482,19 +2857,19 @@
                 id: tempId,
                 username: state.username,
                 encrypted_data: btoa(unescape(encodeURIComponent(messageText))),
+                message_type: state.currentMessageType,
                 timestamp: new Date().toISOString(),
                 isTemp: true
             };
             
-            // Store pending message
-            state.pendingMessages.set(tempId, tempMessage);
-            
             // Add to messages array
             state.messages.push(tempMessage);
             
-            // Add to DOM immediately
+            // Display immediately
             addMessageToDOM(tempMessage);
-            updateStatus('Sending...');
+            updateStatus('Sending...', true);
+            
+            logDebug(`Sending ${state.currentMessageType} message: "${messageText}"`, 'info');
             
             // Send to Baserow
             try {
@@ -502,8 +2877,12 @@
                     room_id: state.room,
                     username: state.username,
                     encrypted_data: btoa(unescape(encodeURIComponent(messageText))),
-                    encryption_key: btoa('chat')
+                    encryption_key: btoa('chat-' + Date.now()),
+                    message_type: state.currentMessageType
                 };
+                
+                logDebug(`Sending to Baserow:`, 'info');
+                logDebug(JSON.stringify(data, null, 2), 'info');
                 
                 const response = await fetch(
                     `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true`,
@@ -517,61 +2896,186 @@
                     }
                 );
                 
-                if (response.ok) {
-                    const result = await response.json();
-                    
-                    // Remove from pending
-                    state.pendingMessages.delete(tempId);
-                    
-                    // Find and remove temp message from array
-                    const tempIndex = state.messages.findIndex(m => m.id === tempId);
-                    if (tempIndex !== -1) {
-                        state.messages.splice(tempIndex, 1);
-                    }
-                    
-                    // Remove from displayed IDs
-                    state.displayedIds.delete(tempId);
-                    
-                    // Create real message
-                    const realMessage = {
-                        ...result,
-                        encrypted_data: data.encrypted_data,
-                        username: state.username
-                    };
-                    
-                    // Add real message to array
-                    state.messages.push(realMessage);
-                    
-                    // Remove temp message from DOM
-                    const tempElement = document.querySelector(`[data-id="${tempId}"]`);
-                    if (tempElement) {
-                        tempElement.remove();
-                    }
-                    
-                    // Add real message to DOM
-                    addMessageToDOM(realMessage);
-                    
-                    updateStatus('Sent ✓');
-                    showToast('Message sent');
+                logDebug(`Baserow response: ${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    logDebug(`Error details: ${errorText}`, 'error');
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
                 }
+                
+                const result = await response.json();
+                logDebug(`Message saved to Baserow! ID: ${result.id}`, 'success');
+                
+                // Remove temp message from array
+                const tempIndex = state.messages.findIndex(m => m.id === tempId);
+                if (tempIndex !== -1) {
+                    state.messages.splice(tempIndex, 1);
+                }
+                
+                // Remove from DOM
+                const tempElement = document.querySelector(`[data-id="${tempId}"]`);
+                if (tempElement) {
+                    tempElement.remove();
+                }
+                
+                // Add real message with the correct Baserow ID
+                const realMessage = {
+                    id: result.id, // Use the Baserow ID
+                    username: state.username,
+                    room_id: state.room,
+                    encrypted_data: data.encrypted_data,
+                    message_type: state.currentMessageType,
+                    timestamp: new Date().toISOString(),
+                    created_on: new Date().toISOString()
+                };
+                
+                state.messages.push(realMessage);
+                addMessageToDOM(realMessage);
+                
+                // Trigger auto-cleanup for this room after sending message
+                setTimeout(() => {
+                    autoCleanupRoomIfNeeded();
+                }, 500);
+                
+                updateStatus('Sent ✓', true);
+                showToast(`${state.currentMessageType.charAt(0).toUpperCase() + state.currentMessageType.slice(1)} message sent and saved`);
+                
+                // Scroll to bottom
+                scrollMessagesToBottom();
+                
+                // Input stays focused after sending (doesn't blur on mobile)
+                setTimeout(() => {
+                    input.focus();
+                }, 100);
+                
             } catch (error) {
                 console.error('Failed to send message:', error);
                 
-                // Mark as failed
+                // Mark temp message as failed
                 const tempElement = document.querySelector(`[data-id="${tempId}"]`);
                 if (tempElement) {
                     tempElement.querySelector('.message-time').textContent = 'Failed';
+                    tempElement.querySelector('.message-content').style.opacity = '0.7';
                 }
                 
-                updateStatus('Failed to send');
-                showToast('Failed to send', 2000);
+                document.getElementById('debugError').textContent = error.message;
+                updateStatus('Failed to send', false);
+                showToast('Failed to send: ' + error.message, 3000);
             }
         }
 
         async function loadMessages() {
             try {
+                logDebug('Loading messages from Baserow...', 'info');
+                
                 const response = await fetch(
-                    `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true&size=100`,
+                    `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true`,
+                    {
+                        headers: {
+                            'Authorization': `Token ${BASEROW_CONFIG.TOKEN}`
+                        }
+                    }
+                );
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                const allMessages = data.results || [];
+                
+                logDebug(`Loaded ${allMessages.length} total messages from Baserow`, 'success');
+                
+                // Filter for current room (case insensitive)
+                const roomMessages = allMessages.filter(msg => {
+                    const msgRoom = String(msg.room_id || '').toLowerCase();
+                    return msgRoom === state.room.toLowerCase();
+                });
+                
+                logDebug(`Found ${roomMessages.length} messages in room "${state.room}"`, 'info');
+                
+                // Keep temp messages
+                const tempMessages = state.messages.filter(m => m.isTemp);
+                
+                // Clear and rebuild messages array
+                state.messages = [...tempMessages];
+                
+                // Add all room messages from Baserow
+                roomMessages.forEach(msg => {
+                    // Check if message already exists (compare by Baserow ID)
+                    const exists = state.messages.some(m => m.id === msg.id);
+                    if (!exists) {
+                        state.messages.push({
+                            id: msg.id,
+                            username: msg.username,
+                            room_id: msg.room_id,
+                            encrypted_data: msg.encrypted_data,
+                            message_type: msg.message_type || 'text',
+                            created_on: msg.created_on,
+                            timestamp: msg.created_on
+                        });
+                    }
+                });
+                
+                // Update display - but don't clear the DOM, just add new messages
+                updateMessageDisplay();
+                
+                updateStatus(`${roomMessages.length} messages in room`, true);
+                
+                // Check if auto-cleanup is needed for this room
+                autoCleanupRoomIfNeeded();
+                
+            } catch (error) {
+                console.error('Failed to load messages:', error);
+                document.getElementById('debugError').textContent = error.message;
+                updateStatus('Failed to load messages', false);
+            }
+        }
+
+        function updateMessageDisplay() {
+            const container = document.getElementById('messagesContainer');
+            
+            // Remove empty state if it exists
+            const emptyState = container.querySelector('.empty-state');
+            if (emptyState && state.messages.length > 0) {
+                emptyState.remove();
+            }
+            
+            // Sort messages by timestamp (oldest first)
+            const sortedMessages = [...state.messages].sort((a, b) => {
+                const timeA = new Date(a.timestamp || a.created_on).getTime();
+                const timeB = new Date(b.timestamp || b.created_on).getTime();
+                return timeA - timeB;
+            });
+            
+            // Add only new messages to DOM
+            sortedMessages.forEach(msg => {
+                addMessageToDOM(msg);
+            });
+            
+            // Add typing indicators
+            updateTypingIndicator();
+            
+            // Scroll to bottom if we're near the bottom
+            const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+            if (isNearBottom) {
+                setTimeout(() => {
+                    scrollMessagesToBottom();
+                }, 100);
+            }
+            
+            logDebug(`Updated display with ${state.messages.length} messages`, 'success');
+        }
+
+        // ================= CONNECTION TEST =================
+        async function testConnection() {
+            updateStatus('Testing connection...', true);
+            
+            try {
+                // Test 1: Check if we can access the table
+                const response = await fetch(
+                    `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true&size=1`,
                     {
                         headers: {
                             'Authorization': `Token ${BASEROW_CONFIG.TOKEN}`
@@ -581,47 +3085,17 @@
                 
                 if (response.ok) {
                     const data = await response.json();
-                    const allMessages = data.results || [];
+                    showToast(`✅ Connected! Table has ${data.count || 0} rows`);
+                    updateStatus('Connected', true);
                     
-                    // Filter for current room (case insensitive)
-                    const roomMessages = allMessages.filter(msg => {
-                        const msgRoom = String(msg.room_id || '').toLowerCase();
-                        return msgRoom === state.room.toLowerCase();
-                    });
-                    
-                    // Track if we need to update
-                    let needsUpdate = false;
-                    
-                    // Check for new messages
-                    roomMessages.forEach(msg => {
-                        // Check if message already exists
-                        const exists = state.messages.some(m => 
-                            m.id === msg.id || 
-                            (m.isTemp && m.encrypted_data === msg.encrypted_data)
-                        );
-                        
-                        if (!exists) {
-                            state.messages.push(msg);
-                            needsUpdate = true;
-                        }
-                    });
-                    
-                    // Only update display if there are new messages
-                    if (needsUpdate) {
-                        // Remove any pending temp messages that might have been saved
-                        state.messages = state.messages.filter(m => 
-                            !m.isTemp || state.pendingMessages.has(m.id)
-                        );
-                        
-                        displayAllMessages();
-                    }
-                    
-                    // Update status
-                    const realMessages = state.messages.filter(m => !m.isTemp).length;
-                    updateStatus(`${realMessages} messages`);
+                    // Reload messages
+                    await loadMessages();
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
                 }
             } catch (error) {
-                console.error('Failed to load messages:', error);
+                showToast(`❌ Connection failed: ${error.message}`, 3000);
+                updateStatus('Connection failed', false);
             }
         }
 
@@ -632,11 +3106,13 @@
             
             if (!username) {
                 showToast('Please enter your name', 2000);
+                document.getElementById('username').focus();
                 return;
             }
             
             if (!room) {
                 showToast('Please enter a room name', 2000);
+                document.getElementById('room').focus();
                 return;
             }
             
@@ -644,16 +3120,29 @@
             state.room = room.toLowerCase();
             state.messages = [];
             state.displayedIds.clear();
-            state.pendingMessages.clear();
+            state.currentMessageType = 'text';
+            state.onlineUsers = [];
+            state.typingUsers = [];
+            state.showOnlineUsers = false;
             
             // Switch screens
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('chatScreen').classList.add('active');
             document.getElementById('currentRoom').textContent = room;
+            document.getElementById('roomTitle').textContent = `#${room}`;
             
-            // Load messages
-            updateStatus('Loading...');
-            await loadMessages();
+            // Reset message type selector
+            document.querySelectorAll('.type-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector('.type-btn[data-type="text"]').classList.add('active');
+            
+            // Hide online users panel
+            document.getElementById('onlineUsersPanel').classList.remove('show');
+            
+            // Test connection first
+            updateStatus('Connecting...', true);
+            await testConnection();
             
             // Start auto-refresh (every 3 seconds)
             if (state.autoRefresh) {
@@ -661,9 +3150,33 @@
             }
             state.autoRefresh = setInterval(loadMessages, 3000);
             
-            // Focus input
-            document.getElementById('messageInput').focus();
+            // Start presence checking (every 5 seconds)
+            if (state.presenceInterval) {
+                clearInterval(state.presenceInterval);
+            }
+            state.presenceInterval = setInterval(checkOtherUsersPresence, 5000);
+            
+            // Set up typing detection
+            const messageInput = document.getElementById('messageInput');
+            messageInput.addEventListener('input', function() {
+                if (this.value.trim().length > 0) {
+                    startTyping();
+                } else {
+                    stopTyping();
+                }
+            });
+            
+            // Update user presence
+            updateUserPresence(false);
+            
+            // Focus message input
+            setTimeout(() => {
+                messageInput.focus();
+            }, 500);
+            
             showToast(`Welcome ${username}!`);
+            
+            logDebug(`Started chat as ${username} in room ${room}`, 'success');
         }
 
         function logout() {
@@ -673,17 +3186,46 @@
                 state.autoRefresh = null;
             }
             
+            // Clear presence interval
+            if (state.presenceInterval) {
+                clearInterval(state.presenceInterval);
+                state.presenceInterval = null;
+            }
+            
+            // Clear typing timeout
+            if (state.typingTimeout) {
+                clearTimeout(state.typingTimeout);
+                state.typingTimeout = null;
+            }
+            
             // Reset state
             state.messages = [];
             state.displayedIds.clear();
-            state.pendingMessages.clear();
+            state.currentMessageType = 'text';
+            state.keyboardVisible = false;
+            state.onlineUsers = [];
+            state.typingUsers = [];
+            state.showOnlineUsers = false;
             
             // Switch back to login
             document.getElementById('chatScreen').classList.remove('active');
             document.getElementById('loginScreen').classList.remove('hidden');
             
+            // Hide online users panel
+            document.getElementById('onlineUsersPanel').classList.remove('show');
+            
             // Reset input
             document.getElementById('messageInput').value = '';
+            
+            // Remove typing event listener
+            const messageInput = document.getElementById('messageInput');
+            const newMessageInput = messageInput.cloneNode(true);
+            messageInput.parentNode.replaceChild(newMessageInput, messageInput);
+            
+            // Focus on username field
+            setTimeout(() => {
+                document.getElementById('username').focus();
+            }, 100);
             
             showToast('Goodbye!');
         }
@@ -696,29 +3238,43 @@
 
         // ================= INITIALIZATION =================
         document.addEventListener('DOMContentLoaded', function() {
-            // Setup Enter for login
-            document.getElementById('room').addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    startChat();
-                }
-            });
+            // Setup fullscreen event listeners
+            document.addEventListener('fullscreenchange', handleFullscreenChange);
+            document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+            document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+            document.addEventListener('MSFullscreenChange', handleFullscreenChange);
             
-            // Setup Enter for sending
-            const textarea = document.getElementById('messageInput');
-            textarea.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                }
-            });
+            // Setup mobile keyboard handling
+            setupMobileKeyboardHandling();
             
-            // Auto-resize textarea
-            textarea.addEventListener('input', function() {
+            // Setup keyboard shortcuts
+            setupKeyboardShortcuts();
+            
+            // Setup message input validation
+            const messageInput = document.getElementById('messageInput');
+            const sendBtn = document.getElementById('sendBtn');
+            
+            messageInput.addEventListener('input', function() {
+                const hasText = this.value.trim().length > 0;
+                sendBtn.disabled = !hasText;
+                sendBtn.setAttribute('aria-disabled', !hasText);
+                
+                // Auto-resize
                 this.style.height = 'auto';
                 this.style.height = Math.min(this.scrollHeight, 120) + 'px';
             });
             
-            console.log('Chat app ready - no double entries!');
+            // Focus username on load
+            document.getElementById('username').focus();
+            
+            // Test connection on load
+            document.getElementById('testStatus').textContent = 'Click "Start Chatting" to begin';
+            
+            // Clean up old presence data
+            cleanupOldPresenceData();
+            
+            console.log('Chat app initialized with online status and typing indicators');
+            console.log('Features: Online users panel, typing indicators, presence tracking');
         });
     </script>
 </body>
