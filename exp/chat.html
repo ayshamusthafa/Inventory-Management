@@ -17,6 +17,7 @@
             --white: #ffffff;
             --success: #31a24c;
             --error: #ff6b6b;
+            --warning: #ff9500;
         }
         
         * {
@@ -379,6 +380,101 @@
             color: var(--text-primary);
             margin-bottom: 8px;
         }
+        
+        /* Delete Button */
+        .delete-btn {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: var(--error);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        
+        .delete-btn:active {
+            background: #d32f2f;
+            transform: scale(0.98);
+        }
+        
+        /* Confirmation Dialog */
+        .confirmation-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        
+        .confirmation-dialog.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .confirmation-content {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        
+        .confirmation-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+        
+        .confirmation-message {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .confirmation-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .confirm-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .confirm-btn.cancel {
+            background: var(--secondary);
+            color: var(--text-primary);
+        }
+        
+        .confirm-btn.delete {
+            background: var(--error);
+            color: white;
+        }
+        
+        .confirm-btn:active {
+            transform: scale(0.98);
+        }
     </style>
 </head>
 <body>
@@ -391,8 +487,30 @@
         <div><strong>User:</strong> <span id="debugUser">-</span></div>
         <div><strong>Messages in App:</strong> <span id="debugAppCount">0</span></div>
         <div><strong>Messages in Baserow:</strong> <span id="debugBaserowCount">0</span></div>
-        <div><strong>Last Error:</strong> <span id="debugError">None</span></div>
         <div><strong>Connection:</strong> <span id="debugConnection">Checking...</span></div>
+        <div><strong>Last Error:</strong> <span id="debugError">None</span></div>
+        <button class="delete-btn" onclick="showDeleteConfirmation()">
+            🗑️ DELETE ALL DATA
+        </button>
+    </div>
+    
+    <!-- Confirmation Dialog -->
+    <div class="confirmation-dialog" id="confirmationDialog">
+        <div class="confirmation-content">
+            <div class="confirmation-title">⚠️ Delete All Data</div>
+            <div class="confirmation-message">
+                This will permanently delete ALL messages from the Baserow table.<br><br>
+                This action cannot be undone. Are you sure you want to proceed?
+            </div>
+            <div class="confirmation-buttons">
+                <button class="confirm-btn cancel" onclick="hideDeleteConfirmation()">
+                    Cancel
+                </button>
+                <button class="confirm-btn delete" onclick="deleteAllData()">
+                    Delete All
+                </button>
+            </div>
+        </div>
     </div>
     
     <div class="app-container">
@@ -486,7 +604,8 @@
             displayedIds: new Set(), // IDs of messages already shown
             isConnected: false,
             autoRefresh: null,
-            debugMode: false
+            debugMode: false,
+            isDeleting: false
         };
 
         // ================= DEBUG FUNCTIONS =================
@@ -503,6 +622,15 @@
             document.getElementById('debugUser').textContent = state.username;
             document.getElementById('debugAppCount').textContent = state.messages.length;
             document.getElementById('debugConnection').textContent = state.isConnected ? '✅ Connected' : '❌ Disconnected';
+            
+            // Update delete button state
+            const deleteBtn = document.querySelector('.delete-btn');
+            if (deleteBtn) {
+                deleteBtn.disabled = state.isDeleting;
+                deleteBtn.textContent = state.isDeleting ? '🗑️ DELETING...' : '🗑️ DELETE ALL DATA';
+                deleteBtn.style.opacity = state.isDeleting ? '0.7' : '1';
+                deleteBtn.style.cursor = state.isDeleting ? 'not-allowed' : 'pointer';
+            }
         }
 
         function logDebug(message, type = 'info') {
@@ -517,6 +645,120 @@
             
             console.log(`%c${message}`, `color: ${colors[type]}; font-weight: bold;`);
             updateDebugInfo();
+        }
+
+        // ================= DELETE FUNCTIONS =================
+        function showDeleteConfirmation() {
+            document.getElementById('confirmationDialog').classList.add('show');
+        }
+
+        function hideDeleteConfirmation() {
+            document.getElementById('confirmationDialog').classList.remove('show');
+        }
+
+        async function deleteAllData() {
+            hideDeleteConfirmation();
+            state.isDeleting = true;
+            updateDebugInfo();
+            
+            logDebug('Starting to delete all data...', 'warning');
+            updateStatus('Deleting all data...', true);
+            
+            try {
+                // First, get all message IDs from the table
+                logDebug('Fetching all messages to delete...', 'info');
+                const response = await fetch(
+                    `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true`,
+                    {
+                        headers: {
+                            'Authorization': `Token ${BASEROW_CONFIG.TOKEN}`
+                        }
+                    }
+                );
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch messages: HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const allMessages = data.results || [];
+                
+                logDebug(`Found ${allMessages.length} messages to delete`, 'warning');
+                
+                if (allMessages.length === 0) {
+                    showToast('No data to delete', 2000);
+                    state.isDeleting = false;
+                    updateDebugInfo();
+                    updateStatus('No data to delete', true);
+                    return;
+                }
+                
+                // Delete messages one by one
+                let deletedCount = 0;
+                let failedCount = 0;
+                
+                for (const message of allMessages) {
+                    try {
+                        const deleteResponse = await fetch(
+                            `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/${message.id}/`,
+                            {
+                                method: 'DELETE',
+                                headers: {
+                                    'Authorization': `Token ${BASEROW_CONFIG.TOKEN}`
+                                }
+                            }
+                        );
+                        
+                        if (deleteResponse.ok) {
+                            deletedCount++;
+                            logDebug(`Deleted message ${message.id}`, 'success');
+                        } else {
+                            failedCount++;
+                            logDebug(`Failed to delete message ${message.id}: ${deleteResponse.status}`, 'error');
+                        }
+                        
+                        // Update status during deletion
+                        updateStatus(`Deleting... ${deletedCount}/${allMessages.length}`, true);
+                        
+                    } catch (error) {
+                        failedCount++;
+                        logDebug(`Error deleting message ${message.id}: ${error.message}`, 'error');
+                    }
+                }
+                
+                // Clear local messages
+                state.messages = [];
+                state.displayedIds.clear();
+                displayAllMessages();
+                
+                // Update debug info
+                if (state.debugMode) {
+                    document.getElementById('debugBaserowCount').textContent = '0';
+                }
+                
+                // Show result
+                if (failedCount === 0) {
+                    showToast(`✅ Successfully deleted ${deletedCount} messages`, 3000);
+                    logDebug(`Successfully deleted ${deletedCount} messages`, 'success');
+                } else {
+                    showToast(`⚠️ Deleted ${deletedCount} messages, ${failedCount} failed`, 3000);
+                    logDebug(`Deleted ${deletedCount} messages, ${failedCount} failed`, 'warning');
+                }
+                
+                updateStatus(`Deleted ${deletedCount} messages`, true);
+                
+            } catch (error) {
+                console.error('Failed to delete data:', error);
+                showToast(`❌ Delete failed: ${error.message}`, 3000);
+                logDebug(`Delete failed: ${error.message}`, 'error');
+                updateStatus('Delete failed', false);
+            } finally {
+                state.isDeleting = false;
+                updateDebugInfo();
+                
+                // Reload messages to refresh the view
+                await loadMessages();
+            }
         }
 
         // ================= UTILITY FUNCTIONS =================
@@ -763,6 +1005,11 @@
                 
                 logDebug(`Found ${roomMessages.length} messages in room "${state.room}"`, 'info');
                 
+                // Update debug info with total count
+                if (state.debugMode) {
+                    document.getElementById('debugBaserowCount').textContent = allMessages.length;
+                }
+                
                 // Keep temp messages
                 const tempMessages = state.messages.filter(m => m.isTemp);
                 
@@ -788,12 +1035,7 @@
                 // Update display - but don't clear the DOM, just add new messages
                 updateMessageDisplay();
                 
-                // Update debug info
-                if (state.debugMode) {
-                    document.getElementById('debugBaserowCount').textContent = roomMessages.length;
-                }
-                
-                updateStatus(`${roomMessages.length} messages loaded`, true);
+                updateStatus(`${roomMessages.length} messages in room`, true);
                 
             } catch (error) {
                 console.error('Failed to load messages:', error);
@@ -963,6 +1205,7 @@
             
             console.log('Chat app initialized with debugging');
             console.log('Click the 🐛 button for debug info');
+            console.log('⚠️ Delete All Data button available in debug panel');
         });
     </script>
 </body>
