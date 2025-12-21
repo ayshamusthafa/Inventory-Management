@@ -18,6 +18,7 @@
             --success: #31a24c;
             --error: #ff6b6b;
             --warning: #ff9500;
+            --focus-ring: rgba(0, 132, 255, 0.4);
         }
         
         * {
@@ -98,12 +99,13 @@
             border-radius: 10px;
             font-size: 16px;
             background: var(--white);
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
         
         .input-field:focus {
             outline: none;
             border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--focus-ring);
         }
         
         .btn {
@@ -119,9 +121,18 @@
             transition: all 0.2s;
         }
         
+        .btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+        
         .btn:active {
             background: var(--primary-dark);
             transform: scale(0.98);
+        }
+        
+        .btn:hover {
+            background: var(--primary-dark);
         }
         
         /* Chat Screen */
@@ -184,6 +195,20 @@
             cursor: pointer;
             color: var(--text-primary);
             font-size: 18px;
+            transition: all 0.2s;
+        }
+        
+        .header-btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+        
+        .header-btn:hover {
+            background: #e4e6ea;
+        }
+        
+        .header-btn:active {
+            transform: scale(0.95);
         }
         
         /* Messages Container */
@@ -195,6 +220,11 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
+            outline: none;
+        }
+        
+        .messages-container:focus {
+            box-shadow: inset 0 0 0 2px var(--primary);
         }
         
         /* Message Styling */
@@ -279,6 +309,21 @@
             justify-content: center;
             cursor: pointer;
             z-index: 1001;
+            transition: all 0.2s;
+        }
+        
+        .debug-toggle:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+        
+        .debug-toggle:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
+        }
+        
+        .debug-toggle:active {
+            transform: scale(0.95);
         }
         
         /* Input Area */
@@ -303,12 +348,14 @@
             line-height: 1.4;
             background: var(--secondary);
             font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
         
         .message-input:focus {
             outline: none;
             border-color: var(--primary);
             background: var(--white);
+            box-shadow: 0 0 0 3px var(--focus-ring);
         }
         
         .send-btn {
@@ -323,6 +370,26 @@
             justify-content: center;
             cursor: pointer;
             font-size: 18px;
+            transition: all 0.2s;
+        }
+        
+        .send-btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+        
+        .send-btn:hover {
+            background: var(--primary-dark);
+        }
+        
+        .send-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .send-btn:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+            transform: none;
         }
         
         /* Status Bar */
@@ -335,6 +402,27 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+        
+        .test-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .test-btn:focus {
+            outline: none;
+            background: var(--secondary);
+            box-shadow: 0 0 0 2px var(--primary);
+        }
+        
+        .test-btn:hover {
+            text-decoration: underline;
         }
         
         /* Toast */
@@ -351,6 +439,7 @@
             z-index: 1000;
             opacity: 0;
             transition: opacity 0.3s;
+            pointer-events: none;
         }
         
         .toast.show {
@@ -396,9 +485,24 @@
             transition: all 0.2s;
         }
         
-        .delete-btn:active {
+        .delete-btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.4);
+        }
+        
+        .delete-btn:hover {
             background: #d32f2f;
+        }
+        
+        .delete-btn:active {
+            background: #c62828;
             transform: scale(0.98);
+        }
+        
+        .delete-btn:disabled {
+            background: #ffb3b3;
+            cursor: not-allowed;
+            transform: none;
         }
         
         /* Cleanup Button */
@@ -416,9 +520,24 @@
             transition: all 0.2s;
         }
         
-        .cleanup-btn:active {
+        .cleanup-btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.4);
+        }
+        
+        .cleanup-btn:hover {
             background: #e67e22;
+        }
+        
+        .cleanup-btn:active {
+            background: #d35400;
             transform: scale(0.98);
+        }
+        
+        .cleanup-btn:disabled {
+            background: #ffcc80;
+            cursor: not-allowed;
+            transform: none;
         }
         
         /* Confirmation Dialog */
@@ -482,9 +601,22 @@
             transition: all 0.2s;
         }
         
+        .confirm-btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+        
         .confirm-btn.cancel {
             background: var(--secondary);
             color: var(--text-primary);
+        }
+        
+        .confirm-btn.cancel:hover {
+            background: #e4e6ea;
+        }
+        
+        .confirm-btn.cancel:active {
+            transform: scale(0.98);
         }
         
         .confirm-btn.delete {
@@ -492,7 +624,11 @@
             color: white;
         }
         
-        .confirm-btn:active {
+        .confirm-btn.delete:hover {
+            background: #d32f2f;
+        }
+        
+        .confirm-btn.delete:active {
             transform: scale(0.98);
         }
         
@@ -516,14 +652,114 @@
             margin-top: 2px;
             line-height: 1.4;
         }
+        
+        /* Skip to content */
+        .skip-to-content {
+            position: absolute;
+            top: -40px;
+            left: 10px;
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 600;
+            z-index: 1002;
+            transition: top 0.3s;
+        }
+        
+        .skip-to-content:focus {
+            top: 10px;
+            outline: none;
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+        
+        /* Keyboard shortcuts hint */
+        .keyboard-hint {
+            position: fixed;
+            bottom: 80px;
+            left: 20px;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            max-width: 200px;
+            display: none;
+            z-index: 1000;
+        }
+        
+        .keyboard-hint.show {
+            display: block;
+        }
+        
+        .keyboard-shortcut {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin: 0 2px;
+            font-family: monospace;
+        }
+        
+        /* Focus styles for all interactive elements */
+        button:focus,
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+        
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            :root {
+                --focus-ring: #000000;
+            }
+            
+            button:focus,
+            input:focus,
+            textarea:focus,
+            select:focus {
+                outline: 3px solid var(--focus-ring);
+                outline-offset: 2px;
+            }
+        }
+        
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Skip to content link for screen readers -->
+    <a href="#messagesContainer" class="skip-to-content">
+        Skip to messages
+    </a>
+    
+    <!-- Keyboard shortcuts hint -->
+    <div class="keyboard-hint" id="keyboardHint">
+        <div><strong>Keyboard Shortcuts:</strong></div>
+        <div>Login: <span class="keyboard-shortcut">Enter</span></div>
+        <div>Send: <span class="keyboard-shortcut">Ctrl+Enter</span></div>
+        <div>Focus input: <span class="keyboard-shortcut">/</span></div>
+        <div>Debug: <span class="keyboard-shortcut">Ctrl+D</span></div>
+        <div>Logout: <span class="keyboard-shortcut">Esc</span></div>
+    </div>
+    
     <!-- Debug Toggle -->
-    <button class="debug-toggle" onclick="toggleDebug()">🐛</button>
+    <button class="debug-toggle" onclick="toggleDebug()" aria-label="Toggle debug panel" id="debugToggle">
+        🐛
+    </button>
     
     <!-- Debug Panel -->
-    <div class="debug-panel" id="debugPanel">
+    <div class="debug-panel" id="debugPanel" role="dialog" aria-labelledby="debugPanelTitle" aria-modal="true" hidden>
+        <div id="debugPanelTitle" hidden>Debug Information Panel</div>
         <div><strong>Room:</strong> <span id="debugRoom">-</span></div>
         <div><strong>User:</strong> <span id="debugUser">-</span></div>
         <div><strong>Messages in App:</strong> <span id="debugAppCount">0</span></div>
@@ -542,28 +778,28 @@
             </div>
         </div>
         
-        <button class="cleanup-btn" onclick="showCleanupConfirmation()">
+        <button class="cleanup-btn" onclick="showCleanupConfirmation()" id="cleanupBtn" aria-label="Cleanup old messages in current room">
             🧹 Cleanup This Room
         </button>
         
-        <button class="delete-btn" onclick="showDeleteConfirmation()">
+        <button class="delete-btn" onclick="showDeleteConfirmation()" id="deleteAllBtn" aria-label="Delete all messages from database">
             🗑️ DELETE ALL DATA
         </button>
     </div>
     
     <!-- Confirmation Dialog -->
-    <div class="confirmation-dialog" id="confirmationDialog">
+    <div class="confirmation-dialog" id="confirmationDialog" role="dialog" aria-labelledby="confirmationTitle" aria-modal="true" hidden>
         <div class="confirmation-content">
-            <div class="confirmation-title" id="confirmationTitle">⚠️ Delete All Data</div>
+            <h2 class="confirmation-title" id="confirmationTitle">⚠️ Delete All Data</h2>
             <div class="confirmation-message" id="confirmationMessage">
                 This will permanently delete ALL messages from the Baserow table.<br><br>
                 This action cannot be undone. Are you sure you want to proceed?
             </div>
             <div class="confirmation-buttons">
-                <button class="confirm-btn cancel" onclick="hideConfirmation()">
+                <button class="confirm-btn cancel" onclick="hideConfirmation()" id="cancelBtn" autofocus>
                     Cancel
                 </button>
-                <button class="confirm-btn delete" onclick="confirmAction()">
+                <button class="confirm-btn delete" onclick="confirmAction()" id="confirmActionBtn">
                     Delete All
                 </button>
             </div>
@@ -573,23 +809,23 @@
     <div class="app-container">
         <!-- Login Screen -->
         <div class="login-screen" id="loginScreen">
-            <div class="app-logo">
+            <div class="app-logo" role="img" aria-label="Chat App Logo">
                 💬
             </div>
             <div class="login-card">
                 <h1 class="login-title">Working Chat</h1>
                 
                 <div class="input-group">
-                    <label class="input-label">Your Name</label>
-                    <input type="text" class="input-field" id="username" placeholder="Enter your name" value="Alex">
+                    <label class="input-label" for="username">Your Name</label>
+                    <input type="text" class="input-field" id="username" placeholder="Enter your name" value="Alex" aria-required="true">
                 </div>
                 
                 <div class="input-group">
-                    <label class="input-label">Room Name</label>
-                    <input type="text" class="input-field" id="room" placeholder="Enter room name" value="general">
+                    <label class="input-label" for="room">Room Name</label>
+                    <input type="text" class="input-field" id="room" placeholder="Enter room name" value="general" aria-required="true">
                 </div>
                 
-                <button class="btn" onclick="startChat()">
+                <button class="btn" onclick="startChat()" id="startChatBtn" aria-label="Start chatting">
                     Start Chatting
                 </button>
                 
@@ -604,19 +840,19 @@
             <!-- Header -->
             <div class="chat-header">
                 <div class="room-info">
-                    <h2>#<span id="currentRoom">general</span></h2>
+                    <h2 id="roomTitle">#<span id="currentRoom">general</span></h2>
                     <div class="connection-status">
-                        <span class="status-dot" id="statusDot"></span>
+                        <span class="status-dot" id="statusDot" role="status" aria-label="Connection status"></span>
                         <span id="connectionText">Connecting...</span>
                     </div>
                 </div>
-                <button class="header-btn" onclick="logout()">
+                <button class="header-btn" onclick="logout()" id="logoutBtn" aria-label="Leave chat and return to login">
                     ←
                 </button>
             </div>
             
             <!-- Messages Container -->
-            <div class="messages-container" id="messagesContainer">
+            <div class="messages-container" id="messagesContainer" tabindex="0" role="log" aria-live="polite" aria-label="Chat messages">
                 <!-- Messages will be added here -->
             </div>
             
@@ -627,23 +863,24 @@
                     id="messageInput" 
                     placeholder="Type a message..."
                     rows="1"
+                    aria-label="Type your message"
                 ></textarea>
-                <button class="send-btn" onclick="sendMessage()">
+                <button class="send-btn" onclick="sendMessage()" id="sendBtn" aria-label="Send message" disabled>
                     →
                 </button>
             </div>
             
             <!-- Status Bar -->
             <div class="status-bar">
-                <div id="statusText">Ready</div>
-                <button onclick="testConnection()" style="background: none; border: none; color: var(--primary); font-size: 12px; cursor: pointer;">
+                <div id="statusText" role="status" aria-live="polite">Ready</div>
+                <button class="test-btn" onclick="testConnection()" id="testConnectionBtn" aria-label="Test connection to server">
                     Test Connection
                 </button>
             </div>
         </div>
         
         <!-- Toast -->
-        <div class="toast" id="toast"></div>
+        <div class="toast" id="toast" role="alert" aria-live="assertive"></div>
     </div>
 
     <script>
@@ -665,13 +902,205 @@
             isDeleting: false,
             isCleaning: false,
             maxMessagesPerRoom: 20, // Maximum 20 messages per room
-            pendingConfirmation: null // {type: 'deleteAll' | 'cleanup', callback: function}
+            pendingConfirmation: null, // {type: 'deleteAll' | 'cleanup', callback: function}
+            keyboardHintTimeout: null,
+            lastFocusedElement: null
         };
+
+        // ================= KEYBOARD ACCESSIBILITY =================
+        function showKeyboardHint() {
+            const hint = document.getElementById('keyboardHint');
+            hint.classList.add('show');
+            
+            if (state.keyboardHintTimeout) {
+                clearTimeout(state.keyboardHintTimeout);
+            }
+            
+            state.keyboardHintTimeout = setTimeout(() => {
+                hint.classList.remove('show');
+            }, 5000);
+        }
+
+        function hideKeyboardHint() {
+            const hint = document.getElementById('keyboardHint');
+            hint.classList.remove('show');
+        }
+
+        function setupKeyboardShortcuts() {
+            // Global keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Don't trigger shortcuts when user is typing in inputs
+                if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') {
+                    // Allow Ctrl+Enter to send message even when typing
+                    if (e.ctrlKey && e.key === 'Enter') {
+                        e.preventDefault();
+                        if (document.getElementById('chatScreen').classList.contains('active')) {
+                            sendMessage();
+                        }
+                    }
+                    return;
+                }
+                
+                // Debug panel toggle: Ctrl+D
+                if (e.ctrlKey && e.key === 'd') {
+                    e.preventDefault();
+                    toggleDebug();
+                }
+                
+                // Focus message input: /
+                if (e.key === '/' && document.getElementById('chatScreen').classList.contains('active')) {
+                    e.preventDefault();
+                    document.getElementById('messageInput').focus();
+                    showToast('Message input focused');
+                }
+                
+                // Logout: Escape
+                if (e.key === 'Escape' && document.getElementById('chatScreen').classList.contains('active')) {
+                    e.preventDefault();
+                    logout();
+                }
+                
+                // Show keyboard hints: Ctrl+Shift+/
+                if (e.ctrlKey && e.shiftKey && e.key === '/') {
+                    e.preventDefault();
+                    showKeyboardHint();
+                }
+                
+                // Hide keyboard hints: Escape
+                if (e.key === 'Escape' && document.getElementById('keyboardHint').classList.contains('show')) {
+                    hideKeyboardHint();
+                }
+            });
+            
+            // Login screen shortcuts
+            document.getElementById('username').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('room').focus();
+                }
+            });
+            
+            document.getElementById('room').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    startChat();
+                }
+            });
+            
+            // Chat screen shortcuts
+            const messageInput = document.getElementById('messageInput');
+            messageInput.addEventListener('keydown', function(e) {
+                // Send message: Ctrl+Enter or Cmd+Enter
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    sendMessage();
+                }
+                
+                // Clear message: Escape
+                if (e.key === 'Escape' && this.value.trim()) {
+                    e.preventDefault();
+                    this.value = '';
+                    this.style.height = 'auto';
+                    showToast('Message cleared');
+                }
+            });
+            
+            // Messages container navigation
+            const messagesContainer = document.getElementById('messagesContainer');
+            messagesContainer.addEventListener('keydown', function(e) {
+                // Navigate messages with arrow keys
+                if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    const messages = Array.from(this.querySelectorAll('.message'));
+                    if (messages.length === 0) return;
+                    
+                    const currentIndex = document.activeElement === this ? -1 : 
+                        messages.findIndex(msg => msg.contains(document.activeElement));
+                    
+                    let nextIndex;
+                    if (e.key === 'ArrowUp') {
+                        nextIndex = currentIndex <= 0 ? messages.length - 1 : currentIndex - 1;
+                    } else {
+                        nextIndex = currentIndex >= messages.length - 1 ? 0 : currentIndex + 1;
+                    }
+                    
+                    if (currentIndex === -1) {
+                        this.focus();
+                    } else {
+                        messages[nextIndex].focus();
+                    }
+                }
+                
+                // Jump to input: Tab when at last message
+                if (e.key === 'Tab' && !e.shiftKey) {
+                    const messages = Array.from(this.querySelectorAll('.message'));
+                    const lastMessage = messages[messages.length - 1];
+                    
+                    if (lastMessage && document.activeElement === lastMessage) {
+                        e.preventDefault();
+                        document.getElementById('messageInput').focus();
+                    }
+                }
+            });
+            
+            // Trap focus in modals
+            document.addEventListener('focus', function(e) {
+                const debugPanel = document.getElementById('debugPanel');
+                const confirmationDialog = document.getElementById('confirmationDialog');
+                
+                if (debugPanel.style.display === 'block') {
+                    if (!debugPanel.contains(e.target) && e.target !== document.getElementById('debugToggle')) {
+                        e.preventDefault();
+                        document.getElementById('cleanupBtn').focus();
+                    }
+                }
+                
+                if (confirmationDialog.classList.contains('show')) {
+                    if (!confirmationDialog.contains(e.target)) {
+                        e.preventDefault();
+                        document.getElementById('cancelBtn').focus();
+                    }
+                }
+            }, true);
+        }
+
+        function manageFocusInModals() {
+            const debugPanel = document.getElementById('debugPanel');
+            const confirmationDialog = document.getElementById('confirmationDialog');
+            
+            if (debugPanel.style.display === 'block') {
+                state.lastFocusedElement = document.activeElement;
+                document.getElementById('cleanupBtn').focus();
+            }
+            
+            if (confirmationDialog.classList.contains('show')) {
+                state.lastFocusedElement = document.activeElement;
+                document.getElementById('cancelBtn').focus();
+            }
+        }
+
+        function restoreFocus() {
+            if (state.lastFocusedElement && state.lastFocusedElement.focus) {
+                state.lastFocusedElement.focus();
+                state.lastFocusedElement = null;
+            }
+        }
 
         // ================= DEBUG FUNCTIONS =================
         function toggleDebug() {
             state.debugMode = !state.debugMode;
-            document.getElementById('debugPanel').style.display = state.debugMode ? 'block' : 'none';
+            const debugPanel = document.getElementById('debugPanel');
+            
+            if (state.debugMode) {
+                debugPanel.style.display = 'block';
+                debugPanel.removeAttribute('hidden');
+                manageFocusInModals();
+            } else {
+                debugPanel.style.display = 'none';
+                debugPanel.setAttribute('hidden', 'true');
+                restoreFocus();
+            }
+            
             updateDebugInfo();
         }
 
@@ -691,14 +1120,15 @@
             document.getElementById('debugRoomCount').textContent = `${roomMessageCount}/${state.maxMessagesPerRoom}`;
             
             // Update button states
-            const deleteBtn = document.querySelector('.delete-btn');
-            const cleanupBtn = document.querySelector('.cleanup-btn');
+            const deleteBtn = document.getElementById('deleteAllBtn');
+            const cleanupBtn = document.getElementById('cleanupBtn');
             
             if (deleteBtn) {
                 deleteBtn.disabled = state.isDeleting || state.isCleaning;
                 deleteBtn.textContent = state.isDeleting ? '🗑️ DELETING...' : '🗑️ DELETE ALL DATA';
                 deleteBtn.style.opacity = (state.isDeleting || state.isCleaning) ? '0.7' : '1';
                 deleteBtn.style.cursor = (state.isDeleting || state.isCleaning) ? 'not-allowed' : 'pointer';
+                deleteBtn.setAttribute('aria-disabled', state.isDeleting || state.isCleaning);
             }
             
             if (cleanupBtn) {
@@ -706,6 +1136,7 @@
                 cleanupBtn.textContent = state.isCleaning ? '🧹 CLEANING...' : '🧹 Cleanup This Room';
                 cleanupBtn.style.opacity = (state.isDeleting || state.isCleaning) ? '0.7' : '1';
                 cleanupBtn.style.cursor = (state.isDeleting || state.isCleaning) ? 'not-allowed' : 'pointer';
+                cleanupBtn.setAttribute('aria-disabled', state.isDeleting || state.isCleaning);
             }
         }
 
@@ -735,10 +1166,13 @@
                 'This will permanently delete ALL messages from the Baserow table.<br><br>' +
                 'This action cannot be undone. Are you sure you want to proceed?';
             
-            const deleteBtn = document.querySelector('.confirm-btn.delete');
+            const deleteBtn = document.getElementById('confirmActionBtn');
             deleteBtn.textContent = 'Delete All';
             
-            document.getElementById('confirmationDialog').classList.add('show');
+            const dialog = document.getElementById('confirmationDialog');
+            dialog.classList.add('show');
+            dialog.removeAttribute('hidden');
+            manageFocusInModals();
         }
 
         function showCleanupConfirmation() {
@@ -753,15 +1187,21 @@
                 `keeping only the <strong>20 most recent</strong> messages.<br><br>` +
                 'This action cannot be undone. Proceed with cleanup?';
             
-            const deleteBtn = document.querySelector('.confirm-btn.delete');
+            const deleteBtn = document.getElementById('confirmActionBtn');
             deleteBtn.textContent = 'Cleanup Now';
             
-            document.getElementById('confirmationDialog').classList.add('show');
+            const dialog = document.getElementById('confirmationDialog');
+            dialog.classList.add('show');
+            dialog.removeAttribute('hidden');
+            manageFocusInModals();
         }
 
         function hideConfirmation() {
             state.pendingConfirmation = null;
-            document.getElementById('confirmationDialog').classList.remove('show');
+            const dialog = document.getElementById('confirmationDialog');
+            dialog.classList.remove('show');
+            dialog.setAttribute('hidden', 'true');
+            restoreFocus();
         }
 
         function confirmAction() {
@@ -1141,6 +1581,9 @@
             const isSent = message.username === state.username;
             messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
             messageDiv.dataset.id = message.id;
+            messageDiv.tabIndex = 0; // Make messages focusable
+            messageDiv.setAttribute('role', 'article');
+            messageDiv.setAttribute('aria-label', `${isSent ? 'You' : message.username} said: ${message.encrypted_data ? 'Message content' : 'No content'}`);
             
             // Get timestamp
             let timeStr = 'Just now';
@@ -1170,6 +1613,14 @@
                 <div class="message-time">${timeStr}</div>
             `;
             
+            // Add keyboard navigation
+            messageDiv.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.focus();
+                }
+            });
+            
             // Add to container
             container.appendChild(messageDiv);
             state.displayedIds.add(message.id);
@@ -1187,6 +1638,7 @@
             // Clear input
             input.value = '';
             input.style.height = 'auto';
+            document.getElementById('sendBtn').disabled = true;
             
             // Create temporary message
             const tempId = 'temp-' + Date.now();
@@ -1274,6 +1726,10 @@
                 
                 updateStatus('Sent ✓', true);
                 showToast('Message sent and saved');
+                
+                // Scroll to bottom
+                const container = document.getElementById('messagesContainer');
+                container.scrollTop = container.scrollHeight;
                 
             } catch (error) {
                 console.error('Failed to send message:', error);
@@ -1428,11 +1884,13 @@
             
             if (!username) {
                 showToast('Please enter your name', 2000);
+                document.getElementById('username').focus();
                 return;
             }
             
             if (!room) {
                 showToast('Please enter a room name', 2000);
+                document.getElementById('room').focus();
                 return;
             }
             
@@ -1445,6 +1903,7 @@
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('chatScreen').classList.add('active');
             document.getElementById('currentRoom').textContent = room;
+            document.getElementById('roomTitle').textContent = `#${room}`;
             
             // Test connection first
             updateStatus('Connecting...', true);
@@ -1456,8 +1915,11 @@
             }
             state.autoRefresh = setInterval(loadMessages, 3000);
             
-            // Focus input
-            document.getElementById('messageInput').focus();
+            // Focus message input
+            setTimeout(() => {
+                document.getElementById('messageInput').focus();
+            }, 100);
+            
             showToast(`Welcome ${username}!`);
             
             logDebug(`Started chat as ${username} in room ${room}`, 'success');
@@ -1481,6 +1943,11 @@
             // Reset input
             document.getElementById('messageInput').value = '';
             
+            // Focus on username field
+            setTimeout(() => {
+                document.getElementById('username').focus();
+            }, 100);
+            
             showToast('Goodbye!');
         }
 
@@ -1492,36 +1959,32 @@
 
         // ================= INITIALIZATION =================
         document.addEventListener('DOMContentLoaded', function() {
-            // Setup Enter for login
-            document.getElementById('room').addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    startChat();
-                }
-            });
+            // Setup keyboard shortcuts
+            setupKeyboardShortcuts();
             
-            // Setup Enter for sending
-            const textarea = document.getElementById('messageInput');
-            textarea.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                }
-            });
+            // Setup message input validation
+            const messageInput = document.getElementById('messageInput');
+            const sendBtn = document.getElementById('sendBtn');
             
-            // Auto-resize textarea
-            textarea.addEventListener('input', function() {
+            messageInput.addEventListener('input', function() {
+                const hasText = this.value.trim().length > 0;
+                sendBtn.disabled = !hasText;
+                sendBtn.setAttribute('aria-disabled', !hasText);
+                
+                // Auto-resize
                 this.style.height = 'auto';
                 this.style.height = Math.min(this.scrollHeight, 120) + 'px';
             });
             
-            // Test connection on load
-            document.getElementById('testStatus').textContent = 'Click "Start Chatting" to test connection';
+            // Focus username on load
+            document.getElementById('username').focus();
             
-            console.log('Chat app initialized with debugging');
-            console.log('Click the 🐛 button for debug info');
-            console.log('Room-based limit: 20 messages per room maximum');
-            console.log('When 21st message is sent, oldest message in that room is deleted');
-            console.log('Uses timestamp column for ordering messages');
+            // Test connection on load
+            document.getElementById('testStatus').textContent = 'Click "Start Chatting" to begin';
+            
+            console.log('Chat app initialized with keyboard accessibility');
+            console.log('Keyboard shortcuts enabled');
+            console.log('Press Ctrl+Shift+/ to show keyboard shortcuts');
         });
     </script>
 </body>
