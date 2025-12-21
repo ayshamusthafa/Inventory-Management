@@ -19,6 +19,8 @@
             --error: #ff6b6b;
             --warning: #ff9500;
             --focus-ring: rgba(0, 132, 255, 0.4);
+            --system-bg: #f8f9fa;
+            --system-color: #666;
         }
         
         * {
@@ -34,6 +36,18 @@
             color: var(--text-primary);
             height: 100vh;
             overflow: hidden;
+        }
+        
+        body:fullscreen {
+            background: var(--white);
+        }
+        
+        body:-webkit-full-screen {
+            background: var(--white);
+        }
+        
+        body:-moz-full-screen {
+            background: var(--white);
         }
         
         .app-container {
@@ -183,6 +197,12 @@
             background: var(--error);
         }
         
+        .header-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
         .header-btn {
             width: 40px;
             height: 40px;
@@ -211,6 +231,19 @@
             transform: scale(0.95);
         }
         
+        /* Fullscreen button states */
+        .fullscreen-btn .enter-fullscreen { display: block; }
+        .fullscreen-btn .exit-fullscreen { display: none; }
+        
+        :fullscreen .fullscreen-btn .enter-fullscreen { display: none; }
+        :fullscreen .fullscreen-btn .exit-fullscreen { display: block; }
+        
+        :-webkit-full-screen .fullscreen-btn .enter-fullscreen { display: none; }
+        :-webkit-full-screen .fullscreen-btn .exit-fullscreen { display: block; }
+        
+        :-moz-full-screen .fullscreen-btn .enter-fullscreen { display: none; }
+        :-moz-full-screen .fullscreen-btn .exit-fullscreen { display: block; }
+        
         /* Messages Container */
         .messages-container {
             flex: 1;
@@ -232,6 +265,7 @@
             max-width: 80%;
             display: flex;
             flex-direction: column;
+            position: relative;
         }
         
         .message.sent {
@@ -242,6 +276,13 @@
         .message.received {
             align-self: flex-start;
             align-items: flex-start;
+        }
+        
+        .message.system {
+            align-self: center;
+            align-items: center;
+            max-width: 90%;
+            width: 100%;
         }
         
         .message-content {
@@ -265,6 +306,17 @@
             border-bottom-left-radius: 4px;
         }
         
+        .message.system .message-content {
+            background: var(--system-bg);
+            color: var(--system-color);
+            font-style: italic;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
         .message-sender {
             font-size: 13px;
             color: var(--text-secondary);
@@ -277,6 +329,37 @@
             color: var(--text-secondary);
             margin-top: 4px;
             opacity: 0.8;
+        }
+        
+        /* Message type indicator */
+        .message-type-indicator {
+            position: absolute;
+            top: 0;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 1;
+        }
+        
+        .message.sent .message-type-indicator {
+            right: -8px;
+            top: -8px;
+            background: var(--primary);
+            color: white;
+        }
+        
+        .message.received .message-type-indicator {
+            left: -8px;
+            top: -8px;
+            background: var(--success);
+            color: white;
+        }
+        
+        .message.system .message-type-indicator {
+            display: none;
         }
         
         /* Debug Panel */
@@ -702,6 +785,61 @@
             font-family: monospace;
         }
         
+        /* Message type selector */
+        .message-type-selector {
+            position: relative;
+            display: flex;
+            gap: 4px;
+        }
+        
+        .type-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            background: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .type-btn.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+        
+        .type-btn:hover {
+            border-color: var(--primary);
+        }
+        
+        .type-btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+        
+        .type-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+            display: none;
+            margin-bottom: 4px;
+        }
+        
+        .type-btn:hover .type-tooltip {
+            display: block;
+        }
+        
         /* Focus styles for all interactive elements */
         button:focus,
         input:focus,
@@ -715,6 +853,8 @@
         @media (prefers-contrast: high) {
             :root {
                 --focus-ring: #000000;
+                --system-bg: #f0f0f0;
+                --system-color: #000000;
             }
             
             button:focus,
@@ -734,6 +874,46 @@
                 transition-duration: 0.01ms !important;
             }
         }
+        
+        /* Fullscreen styles */
+        :fullscreen .chat-screen {
+            height: 100vh;
+        }
+        
+        :-webkit-full-screen .chat-screen {
+            height: 100vh;
+        }
+        
+        :-moz-full-screen .chat-screen {
+            height: 100vh;
+        }
+        
+        /* Fullscreen message */
+        .fullscreen-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 1000;
+            display: none;
+            backdrop-filter: blur(10px);
+        }
+        
+        :fullscreen .fullscreen-message {
+            display: block;
+        }
+        
+        :-webkit-full-screen .fullscreen-message {
+            display: block;
+        }
+        
+        :-moz-full-screen .fullscreen-message {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -742,6 +922,11 @@
         Skip to messages
     </a>
     
+    <!-- Fullscreen message indicator -->
+    <div class="fullscreen-message" id="fullscreenMessage">
+        Press <span class="keyboard-shortcut">Esc</span> to exit fullscreen
+    </div>
+    
     <!-- Keyboard shortcuts hint -->
     <div class="keyboard-hint" id="keyboardHint">
         <div><strong>Keyboard Shortcuts:</strong></div>
@@ -749,6 +934,7 @@
         <div>Send: <span class="keyboard-shortcut">Ctrl+Enter</span></div>
         <div>Focus input: <span class="keyboard-shortcut">/</span></div>
         <div>Debug: <span class="keyboard-shortcut">Ctrl+D</span></div>
+        <div>Fullscreen: <span class="keyboard-shortcut">F11</span> or <span class="keyboard-shortcut">Ctrl+F</span></div>
         <div>Logout: <span class="keyboard-shortcut">Esc</span></div>
     </div>
     
@@ -766,6 +952,8 @@
         <div><strong>Messages in Room:</strong> <span id="debugRoomCount">0/20</span></div>
         <div><strong>Auto-cleanup:</strong> <span id="debugCleanupStatus">20 per room</span></div>
         <div><strong>Connection:</strong> <span id="debugConnection">Checking...</span></div>
+        <div><strong>Message Type:</strong> <span id="debugMessageType">Normal</span></div>
+        <div><strong>Fullscreen:</strong> <span id="debugFullscreen">No</span></div>
         <div><strong>Last Error:</strong> <span id="debugError">None</span></div>
         
         <div class="settings-group">
@@ -846,9 +1034,30 @@
                         <span id="connectionText">Connecting...</span>
                     </div>
                 </div>
-                <button class="header-btn" onclick="logout()" id="logoutBtn" aria-label="Leave chat and return to login">
-                    ←
-                </button>
+                <div class="header-controls">
+                    <!-- Message type selector -->
+                    <div class="message-type-selector" id="messageTypeSelector">
+                        <button class="type-btn" data-type="normal" onclick="setMessageType('normal')" aria-label="Send normal message" id="normalTypeBtn">
+                            💬
+                            <span class="type-tooltip">Normal Message</span>
+                        </button>
+                        <button class="type-btn" data-type="system" onclick="setMessageType('system')" aria-label="Send system message" id="systemTypeBtn">
+                            ⚙️
+                            <span class="type-tooltip">System Message</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Fullscreen toggle -->
+                    <button class="header-btn fullscreen-btn" onclick="toggleFullscreen()" id="fullscreenBtn" aria-label="Toggle fullscreen mode">
+                        <span class="enter-fullscreen">⛶</span>
+                        <span class="exit-fullscreen">🗗</span>
+                    </button>
+                    
+                    <!-- Logout button -->
+                    <button class="header-btn" onclick="logout()" id="logoutBtn" aria-label="Leave chat and return to login">
+                        ←
+                    </button>
+                </div>
             </div>
             
             <!-- Messages Container -->
@@ -904,8 +1113,110 @@
             maxMessagesPerRoom: 20, // Maximum 20 messages per room
             pendingConfirmation: null, // {type: 'deleteAll' | 'cleanup', callback: function}
             keyboardHintTimeout: null,
-            lastFocusedElement: null
+            lastFocusedElement: null,
+            currentMessageType: 'normal', // 'normal' or 'system'
+            isFullscreen: false
         };
+
+        // ================= MESSAGE TYPE HANDLING =================
+        function setMessageType(type) {
+            state.currentMessageType = type;
+            
+            // Update UI
+            document.querySelectorAll('.type-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const activeBtn = document.querySelector(`.type-btn[data-type="${type}"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+            }
+            
+            // Update debug info
+            if (state.debugMode) {
+                document.getElementById('debugMessageType').textContent = 
+                    type === 'normal' ? 'Normal' : 'System';
+            }
+            
+            // Update message input placeholder
+            const messageInput = document.getElementById('messageInput');
+            if (type === 'system') {
+                messageInput.placeholder = 'Type a system message...';
+                showToast('System message mode: Message will appear as system notification');
+            } else {
+                messageInput.placeholder = 'Type a message...';
+                showToast('Normal message mode');
+            }
+            
+            // Focus back on input
+            messageInput.focus();
+        }
+
+        function getMessageTypeDisplay(type) {
+            return type === 'system' ? 'System' : (type === 'sent' ? 'Sent' : 'Received');
+        }
+
+        // ================= FULLSCREEN HANDLING =================
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                enterFullscreen();
+            } else {
+                exitFullscreen();
+            }
+        }
+
+        function enterFullscreen() {
+            const elem = document.documentElement;
+            
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.webkitRequestFullscreen) { /* Safari */
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) { /* IE11 */
+                elem.msRequestFullscreen();
+            }
+            
+            state.isFullscreen = true;
+            updateFullscreenState();
+            showToast('Entered fullscreen mode');
+        }
+
+        function exitFullscreen() {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) { /* Safari */
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) { /* IE11 */
+                document.msExitFullscreen();
+            }
+            
+            state.isFullscreen = false;
+            updateFullscreenState();
+            showToast('Exited fullscreen mode');
+        }
+
+        function updateFullscreenState() {
+            state.isFullscreen = !!document.fullscreenElement;
+            
+            if (state.debugMode) {
+                document.getElementById('debugFullscreen').textContent = 
+                    state.isFullscreen ? 'Yes' : 'No';
+            }
+            
+            // Update fullscreen button state
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            if (fullscreenBtn) {
+                fullscreenBtn.setAttribute('aria-label', 
+                    state.isFullscreen ? 'Exit fullscreen mode' : 'Enter fullscreen mode'
+                );
+            }
+        }
+
+        // Listen for fullscreen changes
+        document.addEventListener('fullscreenchange', updateFullscreenState);
+        document.addEventListener('webkitfullscreenchange', updateFullscreenState);
+        document.addEventListener('mozfullscreenchange', updateFullscreenState);
+        document.addEventListener('MSFullscreenChange', updateFullscreenState);
 
         // ================= KEYBOARD ACCESSIBILITY =================
         function showKeyboardHint() {
@@ -938,6 +1249,17 @@
                             sendMessage();
                         }
                     }
+                    
+                    // Toggle message type with Ctrl+1 and Ctrl+2
+                    if (e.ctrlKey && e.key === '1') {
+                        e.preventDefault();
+                        setMessageType('normal');
+                    }
+                    if (e.ctrlKey && e.key === '2') {
+                        e.preventDefault();
+                        setMessageType('system');
+                    }
+                    
                     return;
                 }
                 
@@ -954,10 +1276,16 @@
                     showToast('Message input focused');
                 }
                 
-                // Logout: Escape
-                if (e.key === 'Escape' && document.getElementById('chatScreen').classList.contains('active')) {
+                // Logout: Escape (but not in fullscreen)
+                if (e.key === 'Escape' && document.getElementById('chatScreen').classList.contains('active') && !state.isFullscreen) {
                     e.preventDefault();
                     logout();
+                }
+                
+                // Fullscreen: F11 or Ctrl+F
+                if ((e.key === 'F11' || (e.ctrlKey && e.key === 'f')) && document.getElementById('chatScreen').classList.contains('active')) {
+                    e.preventDefault();
+                    toggleFullscreen();
                 }
                 
                 // Show keyboard hints: Ctrl+Shift+/
@@ -969,6 +1297,12 @@
                 // Hide keyboard hints: Escape
                 if (e.key === 'Escape' && document.getElementById('keyboardHint').classList.contains('show')) {
                     hideKeyboardHint();
+                }
+                
+                // Toggle message type: Ctrl+1 (normal), Ctrl+2 (system)
+                if (e.ctrlKey && (e.key === '1' || e.key === '2') && document.getElementById('chatScreen').classList.contains('active')) {
+                    e.preventDefault();
+                    setMessageType(e.key === '1' ? 'normal' : 'system');
                 }
             });
             
@@ -1112,6 +1446,9 @@
             document.getElementById('debugAppCount').textContent = state.messages.length;
             document.getElementById('debugConnection').textContent = state.isConnected ? '✅ Connected' : '❌ Disconnected';
             document.getElementById('debugCleanupStatus').textContent = `${state.maxMessagesPerRoom} per room`;
+            document.getElementById('debugMessageType').textContent = 
+                state.currentMessageType === 'normal' ? 'Normal' : 'System';
+            document.getElementById('debugFullscreen').textContent = state.isFullscreen ? 'Yes' : 'No';
             
             // Calculate room message count
             const roomMessageCount = state.messages.filter(m => 
@@ -1578,12 +1915,22 @@
             const container = document.getElementById('messagesContainer');
             const messageDiv = document.createElement('div');
             
-            const isSent = message.username === state.username;
-            messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+            // Determine message type
+            const isSystem = message.message_type === 'system' || message.isSystem;
+            const isSent = !isSystem && message.username === state.username;
+            
+            // Set message class based on type
+            if (isSystem) {
+                messageDiv.className = 'message system';
+            } else {
+                messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+            }
+            
             messageDiv.dataset.id = message.id;
             messageDiv.tabIndex = 0; // Make messages focusable
             messageDiv.setAttribute('role', 'article');
-            messageDiv.setAttribute('aria-label', `${isSent ? 'You' : message.username} said: ${message.encrypted_data ? 'Message content' : 'No content'}`);
+            messageDiv.setAttribute('aria-label', isSystem ? `System message: ${message.encrypted_data ? 'System notification' : 'No content'}` : 
+                `${isSent ? 'You' : message.username} said: ${message.encrypted_data ? 'Message content' : 'No content'}`);
             
             // Get timestamp
             let timeStr = 'Just now';
@@ -1607,8 +1954,14 @@
             }
             
             // Build message HTML
+            let messageTypeIndicator = '';
+            if (!isSystem) {
+                messageTypeIndicator = `<div class="message-type-indicator">${getMessageTypeDisplay(isSent ? 'sent' : 'received')}</div>`;
+            }
+            
             messageDiv.innerHTML = `
-                ${!isSent ? `<div class="message-sender">${escapeHtml(message.username || 'User')}</div>` : ''}
+                ${messageTypeIndicator}
+                ${!isSent && !isSystem ? `<div class="message-sender">${escapeHtml(message.username || 'User')}</div>` : ''}
                 <div class="message-content">${escapeHtml(content)}</div>
                 <div class="message-time">${timeStr}</div>
             `;
@@ -1625,7 +1978,7 @@
             container.appendChild(messageDiv);
             state.displayedIds.add(message.id);
             
-            logDebug(`Added message: ${content.substring(0, 50)}...`, 'info');
+            logDebug(`Added ${isSystem ? 'system' : isSent ? 'sent' : 'received'} message: ${content.substring(0, 50)}...`, 'info');
         }
 
         // ================= MESSAGE FUNCTIONS =================
@@ -1647,7 +2000,9 @@
                 username: state.username,
                 encrypted_data: btoa(unescape(encodeURIComponent(messageText))),
                 timestamp: new Date().toISOString(),
-                isTemp: true
+                isTemp: true,
+                message_type: state.currentMessageType,
+                isSystem: state.currentMessageType === 'system'
             };
             
             // Add to messages array
@@ -1657,15 +2012,16 @@
             addMessageToDOM(tempMessage);
             updateStatus('Sending...', true);
             
-            logDebug(`Sending message: "${messageText}"`, 'info');
+            logDebug(`Sending ${state.currentMessageType} message: "${messageText}"`, 'info');
             
             // Send to Baserow
             try {
                 const data = {
                     room_id: state.room,
-                    username: state.username,
+                    username: state.currentMessageType === 'system' ? 'System' : state.username,
                     encrypted_data: btoa(unescape(encodeURIComponent(messageText))),
-                    encryption_key: btoa('chat-' + Date.now())
+                    encryption_key: btoa('chat-' + Date.now()),
+                    message_type: state.currentMessageType
                 };
                 
                 logDebug(`Sending to Baserow:`, 'info');
@@ -1709,11 +2065,13 @@
                 // Add real message with the correct Baserow ID
                 const realMessage = {
                     id: result.id, // Use the Baserow ID
-                    username: state.username,
+                    username: data.username,
                     room_id: state.room,
                     encrypted_data: data.encrypted_data,
                     timestamp: new Date().toISOString(),
-                    created_on: new Date().toISOString()
+                    created_on: new Date().toISOString(),
+                    message_type: state.currentMessageType,
+                    isSystem: state.currentMessageType === 'system'
                 };
                 
                 state.messages.push(realMessage);
@@ -1725,7 +2083,7 @@
                 }, 500);
                 
                 updateStatus('Sent ✓', true);
-                showToast('Message sent and saved');
+                showToast(`${state.currentMessageType === 'system' ? 'System message' : 'Message'} sent and saved`);
                 
                 // Scroll to bottom
                 const container = document.getElementById('messagesContainer');
@@ -1794,7 +2152,9 @@
                             room_id: msg.room_id,
                             encrypted_data: msg.encrypted_data,
                             created_on: msg.created_on,
-                            timestamp: msg.created_on
+                            timestamp: msg.created_on,
+                            message_type: msg.message_type || 'normal',
+                            isSystem: msg.message_type === 'system'
                         });
                     }
                 });
@@ -1898,12 +2258,16 @@
             state.room = room.toLowerCase();
             state.messages = [];
             state.displayedIds.clear();
+            state.currentMessageType = 'normal'; // Reset to normal messages
             
             // Switch screens
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('chatScreen').classList.add('active');
             document.getElementById('currentRoom').textContent = room;
             document.getElementById('roomTitle').textContent = `#${room}`;
+            
+            // Reset message type UI
+            setMessageType('normal');
             
             // Test connection first
             updateStatus('Connecting...', true);
@@ -1935,6 +2299,7 @@
             // Reset state
             state.messages = [];
             state.displayedIds.clear();
+            state.currentMessageType = 'normal';
             
             // Switch back to login
             document.getElementById('chatScreen').classList.remove('active');
@@ -1979,12 +2344,18 @@
             // Focus username on load
             document.getElementById('username').focus();
             
+            // Initialize message type selector
+            setMessageType('normal');
+            
             // Test connection on load
             document.getElementById('testStatus').textContent = 'Click "Start Chatting" to begin';
             
-            console.log('Chat app initialized with keyboard accessibility');
-            console.log('Keyboard shortcuts enabled');
-            console.log('Press Ctrl+Shift+/ to show keyboard shortcuts');
+            console.log('Chat app initialized');
+            console.log('Features:');
+            console.log('• Message type selection (normal/system)');
+            console.log('• Fullscreen mode toggle');
+            console.log('• Keyboard shortcuts enabled');
+            console.log('• Room-based 20 message limit');
         });
     </script>
 </body>
