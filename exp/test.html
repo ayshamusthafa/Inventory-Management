@@ -3,23 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>💬 Working Chat</title>
+    <title>💬 WhatsApp-like Chat</title>
     <style>
         :root {
-            --primary: #0084ff;
-            --primary-dark: #0073e6;
-            --secondary: #f0f2f5;
-            --text-primary: #050505;
-            --text-secondary: #65676b;
-            --border: #e4e6eb;
-            --sent-bg: #0084ff;
-            --received-bg: #ffffff;
+            --whatsapp-green: #00a884;
+            --whatsapp-green-dark: #008069;
+            --whatsapp-chat-bg: #0c1317;
+            --whatsapp-messages-bg: #0c1317;
+            --whatsapp-sent-bg: #005c4b;
+            --whatsapp-received-bg: #202c33;
+            --whatsapp-input-bg: #2a3942;
+            --whatsapp-header-bg: #202c33;
+            --whatsapp-text-primary: #e9edef;
+            --whatsapp-text-secondary: #8696a0;
+            --whatsapp-text-time: #667781;
+            --whatsapp-border: #303d45;
             --white: #ffffff;
-            --success: #31a24c;
             --error: #ff6b6b;
             --warning: #ff9500;
-            --focus-ring: rgba(0, 132, 255, 0.4);
-            --info: #17a2b8;
+            --focus-ring: rgba(0, 168, 132, 0.4);
             --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
         }
         
@@ -31,31 +33,19 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--white);
-            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--whatsapp-chat-bg);
+            color: var(--whatsapp-text-primary);
             height: 100vh;
             overflow: hidden;
             -webkit-overflow-scrolling: touch;
-        }
-        
-        body:fullscreen {
-            background: var(--white);
-        }
-        
-        body:-webkit-full-screen {
-            background: var(--white);
-        }
-        
-        body:-moz-full-screen {
-            background: var(--white);
         }
         
         .app-container {
             height: 100vh;
             display: flex;
             flex-direction: column;
-            background: var(--white);
+            background: var(--whatsapp-messages-bg);
             position: fixed;
             top: 0;
             left: 0;
@@ -63,7 +53,7 @@
             bottom: 0;
         }
         
-        /* Login Screen */
+        /* Login Screen - WhatsApp Theme */
         .login-screen {
             display: flex;
             flex-direction: column;
@@ -71,7 +61,7 @@
             align-items: center;
             height: 100vh;
             padding: 20px;
-            background: linear-gradient(135deg, var(--primary) 0%, #0066cc 100%);
+            background: var(--whatsapp-chat-bg);
             padding-bottom: calc(20px + var(--safe-area-inset-bottom));
             position: absolute;
             top: 0;
@@ -86,29 +76,38 @@
         }
         
         .app-logo {
-            font-size: 48px;
-            color: var(--white);
-            margin-bottom: 20px;
+            font-size: 64px;
+            color: var(--whatsapp-green);
+            margin-bottom: 24px;
         }
         
         .login-card {
-            background: var(--white);
-            border-radius: 16px;
-            padding: 24px;
+            background: var(--whatsapp-header-bg);
+            border-radius: 12px;
+            padding: 28px;
             width: 100%;
             max-width: 400px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid var(--whatsapp-border);
         }
         
         .login-title {
-            font-size: 24px;
-            font-weight: 600;
+            font-size: 28px;
+            font-weight: 300;
             margin-bottom: 8px;
-            color: var(--text-primary);
+            color: var(--whatsapp-text-primary);
+            letter-spacing: 0.5px;
+        }
+        
+        .login-subtitle {
+            font-size: 14px;
+            color: var(--whatsapp-text-secondary);
+            margin-bottom: 32px;
+            line-height: 1.5;
         }
         
         .input-group {
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
         
         .input-label {
@@ -116,36 +115,42 @@
             margin-bottom: 8px;
             font-size: 14px;
             font-weight: 500;
-            color: var(--text-primary);
+            color: var(--whatsapp-text-primary);
         }
         
         .input-field {
             width: 100%;
-            padding: 14px;
-            border: 2px solid var(--border);
-            border-radius: 10px;
+            padding: 16px;
+            border: 1px solid var(--whatsapp-border);
+            border-radius: 8px;
             font-size: 16px;
-            background: var(--white);
-            transition: border-color 0.2s, box-shadow 0.2s;
+            background: var(--whatsapp-input-bg);
+            color: var(--whatsapp-text-primary);
+            transition: all 0.2s;
         }
         
         .input-field:focus {
             outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--focus-ring);
+            border-color: var(--whatsapp-green);
+            box-shadow: 0 0 0 2px var(--focus-ring);
+        }
+        
+        .input-field::placeholder {
+            color: var(--whatsapp-text-secondary);
         }
         
         .btn {
             width: 100%;
-            padding: 14px;
-            background: var(--primary);
+            padding: 16px;
+            background: var(--whatsapp-green);
             color: var(--white);
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
+            margin-top: 8px;
         }
         
         .btn:focus {
@@ -154,12 +159,12 @@
         }
         
         .btn:active {
-            background: var(--primary-dark);
+            background: var(--whatsapp-green-dark);
             transform: scale(0.98);
         }
         
         .btn:hover {
-            background: var(--primary-dark);
+            background: var(--whatsapp-green-dark);
         }
         
         /* Chat Screen */
@@ -167,7 +172,7 @@
             display: none;
             flex-direction: column;
             height: 100vh;
-            background: var(--white);
+            background: var(--whatsapp-messages-bg);
             position: absolute;
             top: 0;
             left: 0;
@@ -180,11 +185,10 @@
             display: flex;
         }
         
-        /* Header */
+        /* Header - WhatsApp Style */
         .chat-header {
-            background: var(--white);
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border);
+            background: var(--whatsapp-header-bg);
+            padding: 10px 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -192,45 +196,71 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            padding-top: env(safe-area-inset-top, 12px);
+            padding-top: env(safe-area-inset-top, 10px);
             flex-shrink: 0;
+            border-bottom: 1px solid var(--whatsapp-border);
+            min-height: 64px;
         }
         
         .header-left {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 16px;
             flex: 1;
+        }
+        
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: transparent;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--whatsapp-text-primary);
+            font-size: 20px;
+            transition: all 0.2s;
+        }
+        
+        .back-btn:focus {
+            outline: none;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .back-btn:active {
+            transform: scale(0.95);
         }
         
         .room-info {
             flex: 1;
         }
         
-        .room-info h2 {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-primary);
+        .room-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--whatsapp-text-primary);
+            margin-bottom: 2px;
         }
         
         .connection-status {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-top: 4px;
+            font-size: 13px;
+            color: var(--whatsapp-text-secondary);
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
         }
         
         .status-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: var(--success);
+            background: var(--whatsapp-green);
         }
         
         .status-dot.offline {
-            background: var(--error);
+            background: var(--whatsapp-text-secondary);
         }
         
         .header-right {
@@ -243,32 +273,58 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: var(--secondary);
+            background: transparent;
             border: none;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            color: var(--text-primary);
-            font-size: 18px;
+            color: var(--whatsapp-text-primary);
+            font-size: 20px;
             transition: all 0.2s;
         }
         
         .header-btn:focus {
             outline: none;
-            box-shadow: 0 0 0 3px var(--focus-ring);
-        }
-        
-        .header-btn:hover {
-            background: #e4e6ea;
+            background: rgba(255,255,255,0.1);
         }
         
         .header-btn:active {
             transform: scale(0.95);
         }
         
-        .fullscreen-btn {
-            font-size: 20px;
+        .delete-room-btn {
+            background: transparent;
+            color: var(--whatsapp-text-secondary);
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 6px 12px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .delete-room-btn:focus {
+            outline: none;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .delete-room-btn:hover {
+            color: var(--error);
+        }
+        
+        .delete-room-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .delete-room-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
         }
         
         /* Scrollable Messages Container */
@@ -277,8 +333,9 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            background: var(--secondary);
+            background: var(--whatsapp-messages-bg);
             min-height: 0;
+            position: relative;
         }
         
         .messages-container {
@@ -287,21 +344,30 @@
             padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 2px;
             outline: none;
             -webkit-overflow-scrolling: touch;
             padding-bottom: env(safe-area-inset-bottom, 16px);
+            background: linear-gradient(180deg, var(--whatsapp-messages-bg) 0%, #111b21 100%);
+            background-size: cover;
         }
         
         .messages-container:focus {
-            box-shadow: inset 0 0 0 2px var(--primary);
+            box-shadow: inset 0 0 0 2px var(--focus-ring);
         }
         
-        /* Message Styling */
+        /* WhatsApp Message Styling */
         .message {
-            max-width: 80%;
+            max-width: 70%;
             display: flex;
             flex-direction: column;
+            margin: 2px 0;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .message.sent {
@@ -314,85 +380,102 @@
             align-items: flex-start;
         }
         
-        .message-content {
-            padding: 12px 16px;
-            border-radius: 18px;
+        .message-bubble {
+            padding: 8px 12px;
+            border-radius: 8px;
             word-wrap: break-word;
             line-height: 1.4;
             font-size: 15px;
             position: relative;
+            max-width: 100%;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.1);
         }
         
-        .message.sent .message-content {
-            background: var(--sent-bg);
-            color: white;
-            border-bottom-right-radius: 4px;
+        .message.sent .message-bubble {
+            background: var(--whatsapp-sent-bg);
+            color: var(--whatsapp-text-primary);
+            border-top-right-radius: 0;
+            margin-left: auto;
         }
         
-        .message.received .message-content {
-            background: var(--received-bg);
-            color: var(--text-primary);
-            border: 1px solid var(--border);
-            border-bottom-left-radius: 4px;
+        .message.received .message-bubble {
+            background: var(--whatsapp-received-bg);
+            color: var(--whatsapp-text-primary);
+            border-top-left-radius: 0;
+        }
+        
+        .message.sent:first-child .message-bubble,
+        .message.sent:not(:has(+ .message.sent)) .message-bubble {
+            border-bottom-right-radius: 8px;
+        }
+        
+        .message.received:first-child .message-bubble,
+        .message.received:not(:has(+ .message.received)) .message-bubble {
+            border-bottom-left-radius: 8px;
+        }
+        
+        .message.sent + .message.sent .message-bubble {
+            border-top-right-radius: 8px;
+        }
+        
+        .message.received + .message.received .message-bubble {
+            border-top-left-radius: 8px;
+        }
+        
+        .message-content {
+            padding-right: 60px;
+            min-height: 22px;
+        }
+        
+        .message-time {
+            position: absolute;
+            bottom: 6px;
+            right: 8px;
+            font-size: 11px;
+            color: var(--whatsapp-text-time);
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        
+        .message.sent .message-time {
+            color: #a3beb7;
         }
         
         .message-sender {
             font-size: 13px;
-            color: var(--text-secondary);
-            margin-bottom: 4px;
             font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            color: var(--whatsapp-text-primary);
+            margin-bottom: 4px;
+            padding-left: 4px;
         }
         
-        .message-type-badge {
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        .system-message {
+            align-self: center;
+            text-align: center;
+            margin: 12px 0;
+            max-width: 80%;
         }
         
-        .message-type-text {
-            background: var(--info);
-            color: white;
-        }
-        
-        .message-type-system {
-            background: var(--secondary);
-            color: var(--text-secondary);
-            border: 1px solid var(--border);
-        }
-        
-        .message-time {
-            font-size: 11px;
-            color: var(--text-secondary);
-            margin-top: 4px;
-            opacity: 0.8;
-        }
-        
-        /* Message Type Indicators in Content */
-        .message-system-indicator {
+        .system-message .message-bubble {
+            background: rgba(255,255,255,0.1);
+            color: var(--whatsapp-text-secondary);
+            font-size: 13px;
+            padding: 6px 12px;
+            border-radius: 20px;
             font-style: italic;
-            opacity: 0.8;
-            font-size: 14px;
         }
         
-        /* Fixed Input Area - ALWAYS VISIBLE AND ABOVE KEYBOARD */
+        /* Fixed Input Area - WhatsApp Style */
         .input-area {
-            background: var(--white);
-            border-top: 1px solid var(--border);
-            padding: 12px 16px;
+            background: var(--whatsapp-header-bg);
+            padding: 8px 16px;
             z-index: 1000;
             flex-shrink: 0;
             position: relative;
             width: 100%;
-            padding-bottom: calc(12px + env(safe-area-inset-bottom, 12px));
-            bottom: 0;
-            left: 0;
-            right: 0;
+            padding-bottom: calc(8px + env(safe-area-inset-bottom, 8px));
+            border-top: 1px solid var(--whatsapp-border);
         }
         
         .input-container {
@@ -404,30 +487,33 @@
         .message-input {
             flex: 1;
             padding: 12px 16px;
-            border: 2px solid var(--border);
+            border: none;
             border-radius: 24px;
             font-size: 15px;
             resize: none;
-            min-height: 48px;
+            min-height: 44px;
             max-height: 120px;
             line-height: 1.4;
-            background: var(--secondary);
+            background: var(--whatsapp-input-bg);
+            color: var(--whatsapp-text-primary);
             font-family: inherit;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            transition: all 0.2s;
         }
         
         .message-input:focus {
             outline: none;
-            border-color: var(--primary);
-            background: var(--white);
-            box-shadow: 0 0 0 3px var(--focus-ring);
+            box-shadow: 0 0 0 2px var(--focus-ring);
+        }
+        
+        .message-input::placeholder {
+            color: var(--whatsapp-text-secondary);
         }
         
         .send-btn {
-            width: 48px;
-            height: 48px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
-            background: var(--primary);
+            background: var(--whatsapp-green);
             border: none;
             color: var(--white);
             display: flex;
@@ -444,67 +530,24 @@
             box-shadow: 0 0 0 3px var(--focus-ring);
         }
         
-        .send-btn:hover {
-            background: var(--primary-dark);
-        }
-        
         .send-btn:active {
             transform: scale(0.95);
         }
         
         .send-btn:disabled {
-            background: var(--border);
+            background: var(--whatsapp-border);
+            color: var(--whatsapp-text-secondary);
             cursor: not-allowed;
             transform: none;
-        }
-        
-        /* Message Type Selector - SIMPLIFIED */
-        .message-type-selector {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
-            padding: 8px;
-            background: var(--secondary);
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            flex-shrink: 0;
-            margin: 8px 16px 12px;
-        }
-        
-        .type-btn {
-            flex: 1;
-            padding: 8px 12px;
-            border: none;
-            border-radius: 8px;
-            background: transparent;
-            color: var(--text-secondary);
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-        }
-        
-        .type-btn.active {
-            background: var(--white);
-            color: var(--primary);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .type-btn:hover:not(.active) {
-            background: rgba(255,255,255,0.5);
         }
         
         /* Status Bar */
         .status-bar {
             padding: 8px 16px;
-            background: var(--white);
-            border-top: 1px solid var(--border);
+            background: var(--whatsapp-header-bg);
+            border-top: 1px solid var(--whatsapp-border);
             font-size: 12px;
-            color: var(--text-secondary);
+            color: var(--whatsapp-text-secondary);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -514,7 +557,7 @@
         .test-btn {
             background: none;
             border: none;
-            color: var(--primary);
+            color: var(--whatsapp-green);
             font-size: 12px;
             cursor: pointer;
             padding: 4px 8px;
@@ -524,21 +567,52 @@
         
         .test-btn:focus {
             outline: none;
-            background: var(--secondary);
-            box-shadow: 0 0 0 2px var(--primary);
+            background: rgba(0,168,132,0.1);
         }
         
         .test-btn:hover {
             text-decoration: underline;
         }
         
-        /* Debug Panel */
+        /* Empty State */
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .empty-icon {
+            font-size: 64px;
+            color: var(--whatsapp-border);
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        .empty-title {
+            font-size: 18px;
+            font-weight: 300;
+            color: var(--whatsapp-text-primary);
+            margin-bottom: 8px;
+        }
+        
+        .empty-subtitle {
+            font-size: 14px;
+            color: var(--whatsapp-text-secondary);
+            max-width: 300px;
+            line-height: 1.5;
+        }
+        
+        /* Debug Panel - WhatsApp Theme */
         .debug-panel {
             position: fixed;
             top: 80px;
             right: 20px;
-            background: rgba(0,0,0,0.95);
-            color: white;
+            background: var(--whatsapp-header-bg);
+            color: var(--whatsapp-text-primary);
             padding: 16px;
             border-radius: 12px;
             font-size: 12px;
@@ -547,7 +621,7 @@
             display: none;
             z-index: 1000;
             box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid var(--whatsapp-border);
         }
         
         .debug-header {
@@ -556,19 +630,19 @@
             align-items: center;
             margin-bottom: 12px;
             padding-bottom: 8px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid var(--whatsapp-border);
         }
         
         .debug-title {
             font-size: 14px;
-            font-weight: 600;
-            color: white;
+            font-weight: 500;
+            color: var(--whatsapp-text-primary);
         }
         
         .debug-close-btn {
             background: none;
             border: none;
-            color: white;
+            color: var(--whatsapp-text-secondary);
             font-size: 16px;
             cursor: pointer;
             width: 24px;
@@ -598,14 +672,14 @@
         }
         
         .debug-label {
-            font-weight: 500;
-            color: #aaa;
+            font-weight: 400;
+            color: var(--whatsapp-text-secondary);
             min-width: 140px;
         }
         
         .debug-value {
-            font-weight: 600;
-            color: white;
+            font-weight: 500;
+            color: var(--whatsapp-text-primary);
             text-align: right;
             flex: 1;
         }
@@ -624,7 +698,7 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: var(--primary);
+            background: var(--whatsapp-green);
             border: none;
             display: flex;
             align-items: center;
@@ -633,17 +707,12 @@
             color: white;
             font-size: 18px;
             transition: all 0.2s;
-            box-shadow: 0 4px 12px rgba(0, 132, 255, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 168, 132, 0.3);
         }
         
         .control-btn:focus {
             outline: none;
             box-shadow: 0 0 0 3px var(--focus-ring);
-        }
-        
-        .control-btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
         }
         
         .control-btn:active {
@@ -654,177 +723,6 @@
             background: var(--warning);
         }
         
-        .debug-toggle:hover {
-            background: #e67e22;
-        }
-        
-        .fullscreen-toggle {
-            background: var(--success);
-        }
-        
-        .fullscreen-toggle:hover {
-            background: #2e7d32;
-        }
-        
-        .fullscreen-toggle.exit {
-            background: var(--error);
-        }
-        
-        .fullscreen-toggle.exit:hover {
-            background: #d32f2f;
-        }
-        
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 120px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--text-primary);
-            color: var(--white);
-            padding: 12px 24px;
-            border-radius: 24px;
-            font-size: 14px;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-        }
-        
-        .toast.show {
-            opacity: 1;
-        }
-        
-        /* Empty State */
-        .empty-state {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 40px 20px;
-        }
-        
-        .empty-icon {
-            font-size: 64px;
-            color: var(--border);
-            margin-bottom: 16px;
-        }
-        
-        .empty-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-        }
-        
-        /* Delete Button */
-        .delete-btn {
-            margin-top: 10px;
-            padding: 8px 12px;
-            background: var(--error);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.2s;
-        }
-        
-        .delete-btn:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.4);
-        }
-        
-        .delete-btn:hover {
-            background: #d32f2f;
-        }
-        
-        .delete-btn:active {
-            background: #c62828;
-            transform: scale(0.98);
-        }
-        
-        .delete-btn:disabled {
-            background: #ffb3b3;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        /* Cleanup Button */
-        .cleanup-btn {
-            margin-top: 8px;
-            padding: 6px 10px;
-            background: var(--warning);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.2s;
-        }
-        
-        .cleanup-btn:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.4);
-        }
-        
-        .cleanup-btn:hover {
-            background: #e67e22;
-        }
-        
-        .cleanup-btn:active {
-            background: #d35400;
-            transform: scale(0.98);
-        }
-        
-        .cleanup-btn:disabled {
-            background: #ffcc80;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        /* Delete Room Button */
-        .delete-room-btn {
-            background: var(--error);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            padding: 8px 12px;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .delete-room-btn:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.4);
-        }
-        
-        .delete-room-btn:hover {
-            background: #d32f2f;
-        }
-        
-        .delete-room-btn:active {
-            background: #c62828;
-            transform: scale(0.98);
-        }
-        
-        .delete-room-btn:disabled {
-            background: #ffb3b3;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
         /* Confirmation Dialog */
         .confirmation-dialog {
             position: fixed;
@@ -832,7 +730,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.7);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -848,24 +746,25 @@
         }
         
         .confirmation-content {
-            background: var(--white);
+            background: var(--whatsapp-header-bg);
             border-radius: 12px;
             padding: 24px;
             max-width: 400px;
             width: 90%;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid var(--whatsapp-border);
         }
         
         .confirmation-title {
             font-size: 18px;
-            font-weight: 600;
+            font-weight: 500;
             margin-bottom: 12px;
-            color: var(--text-primary);
+            color: var(--whatsapp-text-primary);
         }
         
         .confirmation-message {
             font-size: 14px;
-            color: var(--text-secondary);
+            color: var(--whatsapp-text-secondary);
             margin-bottom: 20px;
             line-height: 1.5;
         }
@@ -881,23 +780,19 @@
             border: none;
             border-radius: 8px;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
         }
         
         .confirm-btn:focus {
             outline: none;
-            box-shadow: 0 0 0 3px var(--focus-ring);
+            box-shadow: 0 0 0 2px var(--focus-ring);
         }
         
         .confirm-btn.cancel {
-            background: var(--secondary);
-            color: var(--text-primary);
-        }
-        
-        .confirm-btn.cancel:hover {
-            background: #e4e6ea;
+            background: var(--whatsapp-input-bg);
+            color: var(--whatsapp-text-primary);
         }
         
         .confirm-btn.cancel:active {
@@ -909,107 +804,73 @@
             color: white;
         }
         
-        .confirm-btn.delete:hover {
-            background: #d32f2f;
-        }
-        
         .confirm-btn.delete:active {
             transform: scale(0.98);
         }
         
-        /* Skip to content */
-        .skip-to-content {
-            position: absolute;
-            top: -40px;
-            left: 10px;
-            background: var(--primary);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 4px;
-            text-decoration: none;
-            font-weight: 600;
-            z-index: 1002;
-            transition: top 0.3s;
-        }
-        
-        .skip-to-content:focus {
-            top: 10px;
-            outline: none;
-            box-shadow: 0 0 0 3px var(--focus-ring);
-        }
-        
-        /* Keyboard shortcuts hint */
-        .keyboard-hint {
+        /* Toast */
+        .toast {
             position: fixed;
-            bottom: 80px;
-            left: 20px;
-            background: rgba(0,0,0,0.9);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 11px;
-            max-width: 200px;
-            display: none;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--whatsapp-header-bg);
+            color: var(--whatsapp-text-primary);
+            padding: 12px 20px;
+            border-radius: 20px;
+            font-size: 14px;
             z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            border: 1px solid var(--whatsapp-border);
+            max-width: 90%;
+            text-align: center;
         }
         
-        .keyboard-hint.show {
-            display: block;
+        .toast.show {
+            opacity: 1;
         }
         
-        .keyboard-shortcut {
-            display: inline-block;
-            background: rgba(255,255,255,0.2);
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin: 0 2px;
-            font-family: monospace;
+        /* Message Status Indicators */
+        .message-status {
+            font-size: 10px;
+            margin-left: 4px;
         }
         
-        /* Focus styles for all interactive elements */
-        button:focus,
-        input:focus,
-        textarea:focus,
-        select:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px var(--focus-ring);
+        .status-sent { color: var(--whatsapp-text-time); }
+        .status-delivered { color: var(--whatsapp-green); }
+        .status-read { color: var(--whatsapp-green); }
+        
+        /* Typing Indicator */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 12px;
+            background: var(--whatsapp-received-bg);
+            border-radius: 8px;
+            border-top-left-radius: 0;
+            align-self: flex-start;
+            margin: 4px 0;
+            max-width: 70px;
         }
         
-        /* High contrast mode support */
-        @media (prefers-contrast: high) {
-            :root {
-                --focus-ring: #000000;
-            }
-            
-            button:focus,
-            input:focus,
-            textarea:focus,
-            select:focus {
-                outline: 3px solid var(--focus-ring);
-                outline-offset: 2px;
-            }
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--whatsapp-text-secondary);
+            animation: typing 1.4s infinite ease-in-out;
         }
         
-        /* Reduced motion support */
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
         
-        /* Fullscreen styles */
-        :fullscreen .app-container {
-            height: 100vh;
-        }
-        
-        :-webkit-full-screen .app-container {
-            height: 100vh;
-        }
-        
-        :-moz-full-screen .app-container {
-            height: 100vh;
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.6; }
+            40% { transform: scale(1); opacity: 1; }
         }
         
         /* Mobile-specific optimizations */
@@ -1037,13 +898,13 @@
                 padding: 8px 12px;
             }
             
-            .header-btn {
+            .header-btn, .back-btn {
                 width: 36px;
                 height: 36px;
             }
             
-            .room-info h2 {
-                font-size: 16px;
+            .room-name {
+                font-size: 15px;
             }
             
             .messages-container {
@@ -1051,38 +912,32 @@
             }
             
             .input-area {
-                padding: 10px 12px;
+                padding: 6px 12px;
             }
             
             .message {
-                max-width: 85%;
-            }
-            
-            .message-type-selector {
-                margin: 8px 12px 12px;
-            }
-            
-            .type-btn {
-                padding: 6px 10px;
-                font-size: 11px;
+                max-width: 80%;
             }
             
             .toast {
-                bottom: 140px;
-                max-width: 90%;
-                text-align: center;
+                bottom: 120px;
+                max-width: 85%;
             }
             
             .delete-room-btn {
-                padding: 6px 10px;
-                font-size: 10px;
+                padding: 4px 8px;
+                font-size: 11px;
+            }
+            
+            .login-card {
+                padding: 24px;
             }
         }
         
         /* iPhone notch support */
         @supports (padding: max(0px)) {
             .chat-header {
-                padding-top: max(12px, env(safe-area-inset-top));
+                padding-top: max(10px, env(safe-area-inset-top));
                 padding-left: max(16px, env(safe-area-inset-left));
                 padding-right: max(16px, env(safe-area-inset-right));
             }
@@ -1090,7 +945,7 @@
             .input-area {
                 padding-left: max(16px, env(safe-area-inset-left));
                 padding-right: max(16px, env(safe-area-inset-right));
-                padding-bottom: max(12px, env(safe-area-inset-bottom, 12px));
+                padding-bottom: max(8px, env(safe-area-inset-bottom, 8px));
             }
             
             .messages-container {
@@ -1103,7 +958,6 @@
         /* Prevent zoom on input focus iOS */
         @media screen and (max-width: 768px) {
             input[type="text"],
-            input[type="search"],
             textarea {
                 font-size: 16px !important;
             }
@@ -1115,39 +969,130 @@
         
         /* Keyboard adjustment */
         .keyboard-open .input-area {
-            padding-bottom: calc(12px + env(safe-area-inset-bottom, 12px));
-            background: var(--white);
+            padding-bottom: calc(8px + env(safe-area-inset-bottom, 8px));
         }
         
         .keyboard-open .messages-container {
             padding-bottom: calc(16px + env(safe-area-inset-bottom, 16px));
         }
+        
+        /* Scrollbar styling */
+        .messages-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .messages-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .messages-container::-webkit-scrollbar-thumb {
+            background: var(--whatsapp-border);
+            border-radius: 3px;
+        }
+        
+        .messages-container::-webkit-scrollbar-thumb:hover {
+            background: var(--whatsapp-text-secondary);
+        }
     </style>
 </head>
 <body>
-    <!-- Skip to content link for screen readers -->
-    <a href="#messagesContainer" class="skip-to-content">
-        Skip to messages
-    </a>
-    
-    <!-- Keyboard shortcuts hint -->
-    <div class="keyboard-hint" id="keyboardHint">
-        <div><strong>Keyboard Shortcuts:</strong></div>
-        <div>Login: <span class="keyboard-shortcut">Enter</span></div>
-        <div>Send: <span class="keyboard-shortcut">Enter</span> or <span class="keyboard-shortcut">Ctrl+Enter</span></div>
-        <div>Focus input: <span class="keyboard-shortcut">/</span></div>
-        <div>Debug: <span class="keyboard-shortcut">Ctrl+D</span></div>
-        <div>Fullscreen: <span class="keyboard-shortcut">F11</span></div>
-        <div>Logout: <span class="keyboard-shortcut">Esc</span></div>
+    <div class="app-container">
+        <!-- Login Screen -->
+        <div class="login-screen" id="loginScreen">
+            <div class="app-logo" role="img" aria-label="Chat App Logo">
+                💬
+            </div>
+            <div class="login-card">
+                <h1 class="login-title">WhatsApp-like Chat</h1>
+                <div class="login-subtitle">End-to-end encrypted messaging</div>
+                
+                <div class="input-group">
+                    <label class="input-label" for="username">Your Name</label>
+                    <input type="text" class="input-field" id="username" placeholder="Enter your name" value="Alex" aria-required="true">
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label" for="room">Room Name</label>
+                    <input type="text" class="input-field" id="room" placeholder="Enter room name" value="general" aria-required="true">
+                </div>
+                
+                <button class="btn" onclick="startChat()" id="startChatBtn" aria-label="Start chatting">
+                    Start Chatting
+                </button>
+                
+                <div style="margin-top: 20px; font-size: 12px; color: var(--whatsapp-text-secondary); text-align: center; line-height: 1.5;">
+                    <div id="testStatus">Click "Start Chatting" to begin</div>
+                    <div style="margin-top: 8px; font-size: 11px; opacity: 0.8;">
+                        Messages are encrypted and stored securely
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chat Screen -->
+        <div class="chat-screen" id="chatScreen">
+            <!-- Header -->
+            <div class="chat-header">
+                <div class="header-left">
+                    <button class="back-btn" onclick="logout()" id="logoutBtn" aria-label="Leave chat">
+                        ←
+                    </button>
+                    <div class="room-info">
+                        <div class="room-name" id="roomTitle">#<span id="currentRoom">general</span></div>
+                        <div class="connection-status">
+                            <span class="status-dot" id="statusDot" role="status" aria-label="Connection status"></span>
+                            <span id="connectionText">Connecting...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <button class="delete-room-btn" onclick="showDeleteRoomConfirmation()" id="deleteRoomBtn" aria-label="Delete all messages in this room">
+                        🗑️ Clear
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Messages Container Wrapper -->
+            <div class="messages-wrapper">
+                <!-- Scrollable Messages Container -->
+                <div class="messages-container" id="messagesContainer" tabindex="0" role="log" aria-live="polite" aria-label="Chat messages">
+                    <!-- Messages will be added here -->
+                </div>
+            </div>
+            
+            <!-- Fixed Input Area -->
+            <div class="input-area" id="inputArea">
+                <div class="input-container">
+                    <textarea 
+                        class="message-input"
+                        id="messageInput" 
+                        placeholder="Type a message..."
+                        rows="1"
+                        aria-label="Type your message"
+                    ></textarea>
+                    <button class="send-btn" onclick="sendMessage()" id="sendBtn" aria-label="Send message" disabled>
+                        →
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <div id="statusText" role="status" aria-live="polite">Ready</div>
+                <button class="test-btn" onclick="testConnection()" id="testConnectionBtn" aria-label="Test connection">
+                    Test Connection
+                </button>
+            </div>
+        </div>
+        
+        <!-- Toast -->
+        <div class="toast" id="toast" role="alert" aria-live="assertive"></div>
     </div>
-    
-    <!-- Debug Controls (Top Right) -->
+
+    <!-- Debug Controls -->
     <div class="debug-controls" id="debugControls">
         <button class="control-btn debug-toggle" onclick="toggleDebug()" aria-label="Toggle debug panel" id="debugToggle">
             🐛
-        </button>
-        <button class="control-btn fullscreen-toggle" onclick="toggleFullscreen()" aria-label="Toggle fullscreen" id="fullscreenToggle">
-            ⛶
         </button>
     </div>
     
@@ -1177,8 +1122,8 @@
                 <div class="debug-value" id="debugRoomCount">0/20</div>
             </div>
             <div class="debug-row">
-                <div class="debug-label">Auto-cleanup:</div>
-                <div class="debug-value" id="debugCleanupStatus">20 per room</div>
+                <div class="debug-label">Last Updated:</div>
+                <div class="debug-value" id="debugLastUpdate">-</div>
             </div>
             <div class="debug-row">
                 <div class="debug-label">Connection:</div>
@@ -1189,29 +1134,19 @@
                 <div class="debug-value" id="debugError">None</div>
             </div>
             <div class="debug-row">
-                <div class="debug-label">Message Type:</div>
-                <div class="debug-value" id="debugMessageType">Text</div>
-            </div>
-            <div class="debug-row">
-                <div class="debug-label">Fullscreen:</div>
-                <div class="debug-value" id="debugFullscreen">No</div>
+                <div class="debug-label">Auto-cleanup:</div>
+                <div class="debug-value" id="debugCleanupStatus">20 per room</div>
             </div>
             
-            <div class="settings-group">
-                <div class="settings-info">
-                    <strong>Room-based limit:</strong><br>
-                    • 20 messages per room max<br>
-                    • At 21st message, oldest deleted<br>
-                    • Uses timestamp for ordering<br>
-                    • Each room independently managed
-                </div>
+            <div style="margin-top: 16px; font-size: 11px; color: var(--whatsapp-text-secondary); line-height: 1.4;">
+                <strong>Room-based limit:</strong><br>
+                • 20 messages per room max<br>
+                • At 21st message, oldest deleted<br>
+                • Uses timestamp for ordering<br>
+                • Each room independently managed
             </div>
             
-            <button class="cleanup-btn" onclick="showCleanupConfirmation()" id="cleanupBtn" aria-label="Cleanup old messages in current room">
-                🧹 Cleanup This Room
-            </button>
-            
-            <button class="delete-btn" onclick="showDeleteConfirmation()" id="deleteAllBtn" aria-label="Delete all messages from database">
+            <button style="margin-top: 12px; padding: 8px 12px; background: var(--error); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; width: 100%; transition: all 0.2s;" onclick="showDeleteConfirmation()" id="deleteAllBtn" aria-label="Delete all messages from database">
                 🗑️ DELETE ALL DATA
             </button>
         </div>
@@ -1239,9 +1174,9 @@
     <!-- Delete Room Confirmation Dialog -->
     <div class="confirmation-dialog" id="deleteRoomDialog" role="dialog" aria-labelledby="deleteRoomTitle" aria-modal="true" hidden>
         <div class="confirmation-content">
-            <h2 class="confirmation-title" id="deleteRoomTitle">🗑️ Delete Room Messages</h2>
+            <h2 class="confirmation-title" id="deleteRoomTitle">🗑️ Clear Chat</h2>
             <div class="confirmation-message" id="deleteRoomMessage">
-                This will permanently delete ALL messages from the current room "<span id="deleteRoomName"></span>".<br><br>
+                This will permanently delete ALL messages from the current chat "<span id="deleteRoomName"></span>".<br><br>
                 This action cannot be undone. Are you sure you want to proceed?
             </div>
             <div class="confirmation-buttons">
@@ -1249,112 +1184,10 @@
                     Cancel
                 </button>
                 <button class="confirm-btn delete" onclick="deleteCurrentRoom()" id="confirmDeleteRoomBtn">
-                    Delete Room
+                    Clear Chat
                 </button>
             </div>
         </div>
-    </div>
-    
-    <div class="app-container">
-        <!-- Login Screen -->
-        <div class="login-screen" id="loginScreen">
-            <div class="app-logo" role="img" aria-label="Chat App Logo">
-                💬
-            </div>
-            <div class="login-card">
-                <h1 class="login-title">Working Chat</h1>
-                
-                <div class="input-group">
-                    <label class="input-label" for="username">Your Name</label>
-                    <input type="text" class="input-field" id="username" placeholder="Enter your name" value="Alex" aria-required="true">
-                </div>
-                
-                <div class="input-group">
-                    <label class="input-label" for="room">Room Name</label>
-                    <input type="text" class="input-field" id="room" placeholder="Enter room name" value="general" aria-required="true">
-                </div>
-                
-                <button class="btn" onclick="startChat()" id="startChatBtn" aria-label="Start chatting">
-                    Start Chatting
-                </button>
-                
-                <div style="margin-top: 16px; font-size: 12px; color: var(--text-secondary); text-align: center;">
-                    <div id="testStatus">Click "Start Chatting" to begin</div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Chat Screen -->
-        <div class="chat-screen" id="chatScreen">
-            <!-- Header -->
-            <div class="chat-header">
-                <div class="header-left">
-                    <button class="header-btn" onclick="logout()" id="logoutBtn" aria-label="Leave chat and return to login">
-                        ←
-                    </button>
-                    <div class="room-info">
-                        <h2 id="roomTitle">#<span id="currentRoom">general</span></h2>
-                        <div class="connection-status">
-                            <span class="status-dot" id="statusDot" role="status" aria-label="Connection status"></span>
-                            <span id="connectionText">Connecting...</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="header-right">
-                    <button class="delete-room-btn" onclick="showDeleteRoomConfirmation()" id="deleteRoomBtn" aria-label="Delete all messages in this room">
-                        🗑️ Delete Room
-                    </button>
-                    <button class="header-btn fullscreen-btn" onclick="toggleFullscreen()" id="headerFullscreenBtn" aria-label="Toggle fullscreen">
-                        ⛶
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Message Type Selector - SIMPLIFIED -->
-            <div class="message-type-selector" id="messageTypeSelector">
-                <button class="type-btn active" data-type="text" onclick="setMessageType('text')">
-                    📝 Text
-                </button>
-                <button class="type-btn" data-type="system" onclick="setMessageType('system')">
-                    ⚙️ System
-                </button>
-            </div>
-            
-            <!-- Messages Container Wrapper -->
-            <div class="messages-wrapper">
-                <!-- Scrollable Messages Container -->
-                <div class="messages-container" id="messagesContainer" tabindex="0" role="log" aria-live="polite" aria-label="Chat messages">
-                    <!-- Messages will be added here -->
-                </div>
-            </div>
-            
-            <!-- Fixed Input Area - ALWAYS VISIBLE AND ABOVE KEYBOARD -->
-            <div class="input-area" id="inputArea">
-                <div class="input-container">
-                    <textarea 
-                        class="message-input"
-                        id="messageInput" 
-                        placeholder="Type a message... (Press Enter to send)"
-                        rows="1"
-                        aria-label="Type your message"
-                    ></textarea>
-                    <button class="send-btn" onclick="sendMessage()" id="sendBtn" aria-label="Send message" disabled>
-                        →
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Status Bar -->
-            <div class="status-bar">
-                <div id="statusText" role="status" aria-live="polite">Ready</div>
-                <button class="test-btn" onclick="testConnection()" id="testConnectionBtn" aria-label="Test connection to server">
-                    Test Connection
-                </button>
-            </div>
-        </div>
-        
-        <!-- Toast -->
-        <div class="toast" id="toast" role="alert" aria-live="assertive"></div>
     </div>
 
     <script>
@@ -1377,11 +1210,8 @@
             isCleaning: false,
             isDeletingRoom: false,
             maxMessagesPerRoom: 20, // Maximum 20 messages per room
-            pendingConfirmation: null, // {type: 'deleteAll' | 'cleanup' | 'deleteRoom', callback: function}
-            keyboardHintTimeout: null,
-            lastFocusedElement: null,
-            currentMessageType: 'text', // 'text' or 'system'
-            isFullscreen: false,
+            pendingConfirmation: null,
+            currentMessageType: 'text',
             isMobile: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent),
             keyboardVisible: false,
             viewportHeight: window.innerHeight,
@@ -1389,30 +1219,76 @@
             keyboardHeight: 0
         };
 
+        // ================= TIMESTAMP FUNCTIONS =================
+        function formatMessageTime(timestamp) {
+            if (!timestamp) return 'Just now';
+            
+            try {
+                const date = new Date(timestamp);
+                if (isNaN(date.getTime())) {
+                    return 'Just now';
+                }
+                
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / (1000 * 60));
+                const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                
+                // Today - show time
+                if (date.toDateString() === now.toDateString()) {
+                    if (diffMins < 1) return 'Just now';
+                    if (diffMins < 60) return `${diffMins}m`;
+                    return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                }
+                
+                // Yesterday
+                const yesterday = new Date(now);
+                yesterday.setDate(yesterday.getDate() - 1);
+                if (date.toDateString() === yesterday.toDateString()) {
+                    return 'Yesterday';
+                }
+                
+                // This week
+                if (diffDays < 7) {
+                    return date.toLocaleDateString([], {weekday: 'short'});
+                }
+                
+                // Older - show date
+                return date.toLocaleDateString([], {month: 'short', day: 'numeric'});
+                
+            } catch (e) {
+                console.warn('Error formatting time:', e);
+                return 'Just now';
+            }
+        }
+
+        function formatDetailedTime(timestamp) {
+            if (!timestamp) return '';
+            
+            try {
+                const date = new Date(timestamp);
+                if (isNaN(date.getTime())) return '';
+                
+                return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            } catch (e) {
+                return '';
+            }
+        }
+
         // ================= MOBILE KEYBOARD HANDLING =================
         function setupMobileKeyboardHandling() {
             if (!state.isMobile) return;
             
             const messageInput = document.getElementById('messageInput');
-            const messagesContainer = document.getElementById('messagesContainer');
-            const inputArea = document.getElementById('inputArea');
-            
-            // Store original viewport height
-            state.viewportHeight = window.innerHeight;
-            state.viewportWidth = window.innerWidth;
             
             // Use visualViewport API for better keyboard detection
             if (window.visualViewport) {
                 window.visualViewport.addEventListener('resize', handleVisualViewportResize);
-                window.visualViewport.addEventListener('scroll', handleVisualViewportScroll);
             }
-            
-            // Fallback for older browsers
-            window.addEventListener('resize', handleWindowResize);
             
             // Handle focus/blur events
             messageInput.addEventListener('focus', handleInputFocus);
-            messageInput.addEventListener('blur', handleInputBlur);
             
             // Scroll to bottom when input is focused
             messageInput.addEventListener('focus', function() {
@@ -1420,12 +1296,6 @@
                     scrollMessagesToBottom();
                 }, 300);
             });
-            
-            // Prevent zoom on iOS when focusing input
-            messageInput.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-                this.focus();
-            }, { passive: false });
         }
         
         function handleVisualViewportResize() {
@@ -1433,7 +1303,6 @@
             
             const visualViewport = window.visualViewport;
             const messagesContainer = document.getElementById('messagesContainer');
-            const inputArea = document.getElementById('inputArea');
             
             // Calculate keyboard height
             const keyboardHeight = state.viewportHeight - visualViewport.height;
@@ -1455,73 +1324,12 @@
                     setTimeout(() => {
                         scrollMessagesToBottom();
                     }, 100);
-                    
-                    showToast('Keyboard opened', 1000);
-                } else {
-                    // Keyboard closed
-                    document.body.classList.remove('keyboard-open');
-                    messagesContainer.style.paddingBottom = '';
-                    
-                    showToast('Keyboard closed', 1000);
-                }
-            }
-            
-            // Adjust viewport offset
-            if (isKeyboardVisible) {
-                // Scroll the viewport to keep input in view
-                window.scrollTo(0, visualViewport.offsetTop);
-            }
-        }
-        
-        function handleVisualViewportScroll() {
-            if (!state.isMobile || !window.visualViewport) return;
-            
-            // Keep input in view when scrolling with keyboard open
-            if (state.keyboardVisible) {
-                const visualViewport = window.visualViewport;
-                // You can adjust the scroll position if needed
-            }
-        }
-        
-        function handleWindowResize() {
-            // This is a fallback for browsers without visualViewport
-            if (!state.isMobile) return;
-            
-            const newHeight = window.innerHeight;
-            const newWidth = window.innerWidth;
-            
-            // Detect if keyboard opened/closed by comparing heights
-            const heightDiff = state.viewportHeight - newHeight;
-            const isKeyboardVisible = heightDiff > 100 && newWidth === state.viewportWidth;
-            
-            if (isKeyboardVisible !== state.keyboardVisible) {
-                state.keyboardVisible = isKeyboardVisible;
-                state.keyboardHeight = heightDiff;
-                
-                const messagesContainer = document.getElementById('messagesContainer');
-                
-                if (isKeyboardVisible) {
-                    // Keyboard opened
-                    document.body.classList.add('keyboard-open');
-                    
-                    // Add extra padding to messages container
-                    const extraPadding = heightDiff + 80;
-                    messagesContainer.style.paddingBottom = extraPadding + 'px';
-                    
-                    // Scroll to bottom
-                    setTimeout(() => {
-                        scrollMessagesToBottom();
-                    }, 100);
                 } else {
                     // Keyboard closed
                     document.body.classList.remove('keyboard-open');
                     messagesContainer.style.paddingBottom = '';
                 }
             }
-            
-            // Update stored dimensions
-            state.viewportHeight = newHeight;
-            state.viewportWidth = newWidth;
         }
         
         function handleInputFocus() {
@@ -1539,229 +1347,11 @@
             }, 100);
         }
         
-        function handleInputBlur() {
-            // Nothing to do here - input stays visible
-        }
-        
         function scrollMessagesToBottom() {
             const messagesContainer = document.getElementById('messagesContainer');
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
         
-        // ================= FULLSCREEN FUNCTIONS =================
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                // Enter fullscreen
-                if (document.documentElement.requestFullscreen) {
-                    document.documentElement.requestFullscreen();
-                } else if (document.documentElement.webkitRequestFullscreen) {
-                    document.documentElement.webkitRequestFullscreen();
-                } else if (document.documentElement.mozRequestFullScreen) {
-                    document.documentElement.mozRequestFullScreen();
-                } else if (document.documentElement.msRequestFullscreen) {
-                    document.documentElement.msRequestFullscreen();
-                }
-                state.isFullscreen = true;
-            } else {
-                // Exit fullscreen
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                } else if (document.mozCancelFullScreen) {
-                    document.mozCancelFullScreen();
-                } else if (document.msExitFullscreen) {
-                    document.msExitFullscreen();
-                }
-                state.isFullscreen = false;
-            }
-            
-            updateFullscreenButton();
-            updateDebugInfo();
-        }
-
-        function updateFullscreenButton() {
-            const fullscreenToggle = document.getElementById('fullscreenToggle');
-            const headerFullscreenBtn = document.getElementById('headerFullscreenBtn');
-            
-            if (state.isFullscreen) {
-                fullscreenToggle.textContent = '⛶';
-                fullscreenToggle.classList.add('exit');
-                headerFullscreenBtn.textContent = '⛶';
-                headerFullscreenBtn.classList.add('exit');
-                document.getElementById('debugFullscreen').textContent = 'Yes';
-            } else {
-                fullscreenToggle.textContent = '⛶';
-                fullscreenToggle.classList.remove('exit');
-                headerFullscreenBtn.textContent = '⛶';
-                headerFullscreenBtn.classList.remove('exit');
-                document.getElementById('debugFullscreen').textContent = 'No';
-            }
-        }
-
-        function handleFullscreenChange() {
-            state.isFullscreen = !!document.fullscreenElement;
-            updateFullscreenButton();
-            updateDebugInfo();
-            
-            if (state.isFullscreen) {
-                showToast('Entered fullscreen mode');
-            } else {
-                showToast('Exited fullscreen mode');
-            }
-        }
-
-        // ================= MESSAGE TYPE FUNCTIONS =================
-        function setMessageType(type) {
-            state.currentMessageType = type;
-            
-            // Update UI
-            document.querySelectorAll('.type-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            document.querySelector(`.type-btn[data-type="${type}"]`).classList.add('active');
-            
-            // Update placeholder based on type
-            const messageInput = document.getElementById('messageInput');
-            switch(type) {
-                case 'text':
-                    messageInput.placeholder = 'Type a message... (Press Enter to send)';
-                    break;
-                case 'system':
-                    messageInput.placeholder = 'System message... (Press Enter to send)';
-                    break;
-            }
-            
-            // Update debug info
-            document.getElementById('debugMessageType').textContent = type.charAt(0).toUpperCase() + type.slice(1);
-            
-            showToast(`Message type set to: ${type}`);
-            
-            // Focus back on input
-            setTimeout(() => {
-                messageInput.focus();
-            }, 100);
-        }
-
-        function getMessageTypeBadge(type) {
-            switch(type) {
-                case 'text': return 'Text';
-                case 'system': return 'System';
-                default: return 'Text';
-            }
-        }
-
-        function getMessageTypeClass(type) {
-            switch(type) {
-                case 'text': return 'message-type-text';
-                case 'system': return 'message-type-system';
-                default: return 'message-type-text';
-            }
-        }
-
-        function formatMessageContent(content, type) {
-            switch(type) {
-                case 'system':
-                    return `
-                        <div class="message-system-indicator">
-                            ⚙️ ${escapeHtml(content)}
-                        </div>
-                    `;
-                default:
-                    return escapeHtml(content);
-            }
-        }
-
-        // ================= KEYBOARD ACCESSIBILITY =================
-        function setupKeyboardShortcuts() {
-            // Global keyboard shortcuts
-            document.addEventListener('keydown', function(e) {
-                // Don't trigger shortcuts when user is typing in inputs
-                if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') {
-                    return;
-                }
-                
-                // Debug panel toggle: Ctrl+D
-                if (e.ctrlKey && e.key === 'd') {
-                    e.preventDefault();
-                    toggleDebug();
-                }
-                
-                // Focus message input: /
-                if (e.key === '/' && document.getElementById('chatScreen').classList.contains('active')) {
-                    e.preventDefault();
-                    document.getElementById('messageInput').focus();
-                    showToast('Message input focused');
-                }
-                
-                // Logout: Escape
-                if (e.key === 'Escape' && document.getElementById('chatScreen').classList.contains('active')) {
-                    e.preventDefault();
-                    logout();
-                }
-                
-                // Fullscreen: F11
-                if (e.key === 'F11') {
-                    e.preventDefault();
-                    toggleFullscreen();
-                }
-                
-                // Message type shortcuts: 1-2
-                if (e.key >= '1' && e.key <= '2' && document.getElementById('chatScreen').classList.contains('active')) {
-                    const types = ['text', 'system'];
-                    const index = parseInt(e.key) - 1;
-                    if (types[index]) {
-                        e.preventDefault();
-                        setMessageType(types[index]);
-                    }
-                }
-            });
-            
-            // Login screen shortcuts
-            document.getElementById('username').addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    document.getElementById('room').focus();
-                }
-            });
-            
-            document.getElementById('room').addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    startChat();
-                }
-            });
-            
-            // Chat screen shortcuts - ENTER TO SEND
-            const messageInput = document.getElementById('messageInput');
-            messageInput.addEventListener('keydown', function(e) {
-                // Send message: Enter (without Shift) or Ctrl+Enter
-                if ((e.key === 'Enter' && !e.shiftKey) || ((e.ctrlKey || e.metaKey) && e.key === 'Enter')) {
-                    e.preventDefault();
-                    sendMessage();
-                }
-                
-                // Clear message: Escape
-                if (e.key === 'Escape' && this.value.trim()) {
-                    e.preventDefault();
-                    this.value = '';
-                    this.style.height = 'auto';
-                    showToast('Message cleared');
-                }
-            });
-            
-            // Auto-resize textarea
-            messageInput.addEventListener('input', function() {
-                const hasText = this.value.trim().length > 0;
-                document.getElementById('sendBtn').disabled = !hasText;
-                document.getElementById('sendBtn').setAttribute('aria-disabled', !hasText);
-                
-                // Auto-resize
-                this.style.height = 'auto';
-                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-            });
-        }
-
         // ================= DEBUG FUNCTIONS =================
         function toggleDebug() {
             state.debugMode = !state.debugMode;
@@ -1770,12 +1360,11 @@
             if (state.debugMode) {
                 debugPanel.style.display = 'block';
                 debugPanel.removeAttribute('hidden');
+                updateDebugInfo();
             } else {
                 debugPanel.style.display = 'none';
                 debugPanel.setAttribute('hidden', 'true');
             }
-            
-            updateDebugInfo();
         }
 
         function updateDebugInfo() {
@@ -1786,8 +1375,6 @@
             document.getElementById('debugAppCount').textContent = state.messages.length;
             document.getElementById('debugConnection').textContent = state.isConnected ? '✅ Connected' : '❌ Disconnected';
             document.getElementById('debugCleanupStatus').textContent = `${state.maxMessagesPerRoom} per room`;
-            document.getElementById('debugMessageType').textContent = state.currentMessageType.charAt(0).toUpperCase() + state.currentMessageType.slice(1);
-            document.getElementById('debugFullscreen').textContent = state.isFullscreen ? 'Yes' : 'No';
             
             // Calculate room message count
             const roomMessageCount = state.messages.filter(m => 
@@ -1795,19 +1382,15 @@
             ).length;
             document.getElementById('debugRoomCount').textContent = `${roomMessageCount}/${state.maxMessagesPerRoom}`;
             
+            // Update last update time
+            document.getElementById('debugLastUpdate').textContent = new Date().toLocaleTimeString();
+            
             // Update button states
             const deleteBtn = document.getElementById('deleteAllBtn');
-            const cleanupBtn = document.getElementById('cleanupBtn');
             const deleteRoomBtn = document.getElementById('deleteRoomBtn');
             
             if (deleteBtn) {
                 deleteBtn.disabled = state.isDeleting || state.isCleaning || state.isDeletingRoom;
-                deleteBtn.textContent = state.isDeleting ? '🗑️ DELETING...' : '🗑️ DELETE ALL DATA';
-            }
-            
-            if (cleanupBtn) {
-                cleanupBtn.disabled = state.isDeleting || state.isCleaning || state.isDeletingRoom;
-                cleanupBtn.textContent = state.isCleaning ? '🧹 CLEANING...' : '🧹 Cleanup This Room';
             }
             
             if (deleteRoomBtn) {
@@ -1817,18 +1400,12 @@
 
         // ================= DELETE FUNCTIONS =================
         function showDeleteConfirmation() {
-            state.pendingConfirmation = {
-                type: 'deleteAll',
-                callback: deleteAllData
-            };
-            
             document.getElementById('confirmationTitle').textContent = '⚠️ Delete All Data';
             document.getElementById('confirmationMessage').innerHTML = 
                 'This will permanently delete ALL messages from the Baserow table.<br><br>' +
                 'This action cannot be undone. Are you sure you want to proceed?';
             
-            const deleteBtn = document.getElementById('confirmActionBtn');
-            deleteBtn.textContent = 'Delete All';
+            document.getElementById('confirmActionBtn').textContent = 'Delete All';
             
             const dialog = document.getElementById('confirmationDialog');
             dialog.classList.add('show');
@@ -1849,37 +1426,14 @@
             dialog.setAttribute('hidden', 'true');
         }
 
-        function showCleanupConfirmation() {
-            state.pendingConfirmation = {
-                type: 'cleanup',
-                callback: cleanupCurrentRoom
-            };
-            
-            document.getElementById('confirmationTitle').textContent = '🧹 Cleanup This Room';
-            document.getElementById('confirmationMessage').innerHTML = 
-                `This will delete older messages in room "<strong>${state.room}</strong>",<br>` +
-                `keeping only the <strong>20 most recent</strong> messages.<br><br>` +
-                'This action cannot be undone. Proceed with cleanup?';
-            
-            const deleteBtn = document.getElementById('confirmActionBtn');
-            deleteBtn.textContent = 'Cleanup Now';
-            
-            const dialog = document.getElementById('confirmationDialog');
-            dialog.classList.add('show');
-            dialog.removeAttribute('hidden');
-        }
-
         function hideConfirmation() {
-            state.pendingConfirmation = null;
             const dialog = document.getElementById('confirmationDialog');
             dialog.classList.remove('show');
             dialog.setAttribute('hidden', 'true');
         }
 
         function confirmAction() {
-            if (state.pendingConfirmation && state.pendingConfirmation.callback) {
-                state.pendingConfirmation.callback();
-            }
+            deleteAllData();
             hideConfirmation();
         }
 
@@ -1889,7 +1443,7 @@
             updateDebugInfo();
             
             const roomName = state.room;
-            updateStatus(`Deleting room "${roomName}"...`, true);
+            updateStatus(`Clearing chat...`, true);
             
             hideDeleteRoomConfirmation();
             
@@ -1918,10 +1472,10 @@
                 });
                 
                 if (roomMessages.length === 0) {
-                    showToast(`No messages to delete in room "${roomName}"`, 2000);
+                    showToast(`No messages to delete`, 2000);
                     state.isDeletingRoom = false;
                     updateDebugInfo();
-                    updateStatus(`No messages in room`, true);
+                    updateStatus(`No messages in chat`, true);
                     return;
                 }
                 
@@ -1947,9 +1501,6 @@
                             failedCount++;
                         }
                         
-                        // Update status during deletion
-                        updateStatus(`Deleting... ${deletedCount}/${roomMessages.length}`, true);
-                        
                     } catch (error) {
                         failedCount++;
                     }
@@ -1971,17 +1522,17 @@
                 
                 // Show result
                 if (failedCount === 0) {
-                    showToast(`✅ Successfully deleted ${deletedCount} messages from room "${roomName}"`, 3000);
+                    showToast(`✅ Cleared ${deletedCount} messages`, 2000);
                 } else {
-                    showToast(`⚠️ Deleted ${deletedCount} messages, ${failedCount} failed in room "${roomName}"`, 3000);
+                    showToast(`⚠️ Cleared ${deletedCount} messages, ${failedCount} failed`, 3000);
                 }
                 
-                updateStatus(`Deleted ${deletedCount} messages from room`, true);
+                updateStatus(`Chat cleared`, true);
                 
             } catch (error) {
                 console.error('Failed to delete room:', error);
-                showToast(`❌ Delete failed: ${error.message}`, 3000);
-                updateStatus('Delete failed', false);
+                showToast(`❌ Clear failed: ${error.message}`, 3000);
+                updateStatus('Clear failed', false);
             } finally {
                 state.isDeletingRoom = false;
                 updateDebugInfo();
@@ -2045,9 +1596,6 @@
                             failedCount++;
                         }
                         
-                        // Update status during deletion
-                        updateStatus(`Deleting... ${deletedCount}/${allMessages.length}`, true);
-                        
                     } catch (error) {
                         failedCount++;
                     }
@@ -2060,7 +1608,7 @@
                 
                 // Show result
                 if (failedCount === 0) {
-                    showToast(`✅ Successfully deleted ${deletedCount} messages`, 3000);
+                    showToast(`✅ Deleted ${deletedCount} messages`, 3000);
                 } else {
                     showToast(`⚠️ Deleted ${deletedCount} messages, ${failedCount} failed`, 3000);
                 }
@@ -2080,14 +1628,9 @@
             }
         }
 
-        async function cleanupCurrentRoom() {
-            state.isCleaning = true;
-            updateDebugInfo();
-            
-            updateStatus(`Cleaning up room "${state.room}"...`, true);
-            
+        async function autoCleanupRoomIfNeeded() {
             try {
-                // Get all messages from the table, ordered by newest first
+                // Get all messages for the current room
                 const response = await fetch(
                     `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true`,
                     {
@@ -2097,9 +1640,7 @@
                     }
                 );
                 
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch messages: HTTP ${response.status}`);
-                }
+                if (!response.ok) return;
                 
                 const data = await response.json();
                 const allMessages = data.results || [];
@@ -2110,74 +1651,52 @@
                     return msgRoom === state.room.toLowerCase();
                 });
                 
-                // Sort by timestamp (oldest first) to delete oldest
-                const sortedRoomMessages = [...roomMessages].sort((a, b) => {
-                    const timeA = new Date(a.created_on || a.timestamp || 0).getTime();
-                    const timeB = new Date(b.created_on || b.timestamp || 0).getTime();
-                    return timeA - timeB;
-                });
-                
-                // Keep only the 20 most recent messages
-                const messagesToKeep = sortedRoomMessages.slice(-20); // Last 20 messages
-                const messagesToDelete = sortedRoomMessages.slice(0, -20); // All except last 20
-                
-                if (messagesToDelete.length === 0) {
-                    showToast(`Room already at 20 messages`, 2000);
-                    state.isCleaning = false;
-                    updateDebugInfo();
-                    updateStatus(`Room at 20 messages`, true);
-                    return;
-                }
-                
-                // Delete old messages
-                let deletedCount = 0;
-                let failedCount = 0;
-                
-                for (const message of messagesToDelete) {
-                    try {
-                        const deleteResponse = await fetch(
-                            `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/${message.id}/`,
-                            {
-                                method: 'DELETE',
-                                headers: {
-                                    'Authorization': `Token ${BASEROW_CONFIG.TOKEN}`
+                // Check if we need to cleanup (more than 20 messages in this room)
+                if (roomMessages.length > state.maxMessagesPerRoom) {
+                    const excess = roomMessages.length - state.maxMessagesPerRoom;
+                    
+                    // Sort by timestamp (oldest first) to find oldest messages
+                    const sortedRoomMessages = [...roomMessages].sort((a, b) => {
+                        const timeA = new Date(a.timestamp || a.created_on || 0).getTime();
+                        const timeB = new Date(b.timestamp || b.created_on || 0).getTime();
+                        return timeA - timeB;
+                    });
+                    
+                    // Get oldest messages to delete
+                    const messagesToDelete = sortedRoomMessages.slice(0, excess);
+                    
+                    // Delete the oldest messages
+                    for (const message of messagesToDelete) {
+                        try {
+                            const deleteResponse = await fetch(
+                                `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/${message.id}/`,
+                                {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Authorization': `Token ${BASEROW_CONFIG.TOKEN}`
+                                    }
+                                }
+                            );
+                            
+                            if (deleteResponse.ok) {
+                                // Remove from local state if they exist
+                                state.messages = state.messages.filter(msg => msg.id !== message.id);
+                                
+                                // Remove from DOM
+                                const element = document.querySelector(`[data-id="${message.id}"]`);
+                                if (element) {
+                                    element.remove();
                                 }
                             }
-                        );
-                        
-                        if (deleteResponse.ok) {
-                            deletedCount++;
-                        } else {
-                            failedCount++;
+                        } catch (error) {
+                            console.debug('Auto-cleanup error:', error);
                         }
-                        
-                        // Update status during cleanup
-                        updateStatus(`Cleaning... ${deletedCount}/${messagesToDelete.length}`, true);
-                        
-                    } catch (error) {
-                        failedCount++;
                     }
                 }
                 
-                // Show result
-                if (failedCount === 0) {
-                    showToast(`✅ Cleanup complete! Room now at 20 messages`, 3000);
-                } else {
-                    showToast(`⚠️ Cleanup partial: ${deletedCount} deleted, ${failedCount} failed`, 3000);
-                }
-                
-                updateStatus(`Cleaned room to 20 messages`, true);
-                
             } catch (error) {
-                console.error('Failed to cleanup room:', error);
-                showToast(`❌ Cleanup failed: ${error.message}`, 3000);
-                updateStatus('Cleanup failed', false);
-            } finally {
-                state.isCleaning = false;
-                updateDebugInfo();
-                
-                // Reload messages to refresh the view
-                await loadMessages();
+                // Silent fail for auto-cleanup
+                console.debug('Auto-cleanup check failed:', error);
             }
         }
 
@@ -2194,7 +1713,7 @@
 
         function updateStatus(text, isConnected = true) {
             document.getElementById('statusText').textContent = text;
-            document.getElementById('connectionText').textContent = isConnected ? 'Connected' : 'Disconnected';
+            document.getElementById('connectionText').textContent = isConnected ? 'Online' : 'Offline';
             document.getElementById('statusDot').className = `status-dot ${isConnected ? '' : 'offline'}`;
             state.isConnected = isConnected;
         }
@@ -2208,7 +1727,7 @@
                     <div class="empty-state">
                         <div class="empty-icon">💬</div>
                         <div class="empty-title">No messages yet</div>
-                        <div>Send a message to start the conversation!</div>
+                        <div class="empty-subtitle">Send a message to start the conversation!</div>
                     </div>
                 `;
                 return;
@@ -2220,14 +1739,19 @@
             
             // Sort messages by timestamp (oldest first)
             const sortedMessages = [...state.messages].sort((a, b) => {
-                const timeA = new Date(a.timestamp || a.created_on).getTime();
-                const timeB = new Date(b.timestamp || b.created_on).getTime();
+                const timeA = new Date(a.timestamp || a.created_on || 0).getTime();
+                const timeB = new Date(b.timestamp || b.created_on || 0).getTime();
                 return timeA - timeB;
             });
             
-            // Display all messages
+            // Group messages by date and sender
+            let lastSender = null;
+            let lastDate = null;
+            
             sortedMessages.forEach(msg => {
-                addMessageToDOM(msg);
+                addMessageToDOM(msg, lastSender, lastDate);
+                lastSender = msg.username;
+                lastDate = msg.timestamp || msg.created_on;
             });
             
             // Scroll to bottom
@@ -2236,32 +1760,69 @@
             }, 100);
         }
 
-        function addMessageToDOM(message) {
+        function addMessageToDOM(message, lastSender, lastDate) {
             // Skip if already displayed
             if (state.displayedIds.has(message.id)) {
                 return;
             }
             
             const container = document.getElementById('messagesContainer');
-            const messageDiv = document.createElement('div');
-            
             const isSent = message.username === state.username;
-            messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
-            messageDiv.dataset.id = message.id;
-            messageDiv.tabIndex = 0;
-            messageDiv.setAttribute('role', 'article');
             
             // Get message type
             const messageType = message.message_type || 'text';
-            const typeBadge = getMessageTypeBadge(messageType);
-            const typeClass = getMessageTypeClass(messageType);
             
-            // Get timestamp
-            let timeStr = 'Just now';
-            if (message.timestamp || message.created_on) {
-                const date = new Date(message.timestamp || message.created_on);
-                timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            // Create message element based on type
+            let messageDiv;
+            
+            if (messageType === 'system') {
+                messageDiv = createSystemMessage(message);
+            } else {
+                messageDiv = createRegularMessage(message, isSent, lastSender, lastDate);
             }
+            
+            // Add to container
+            container.appendChild(messageDiv);
+            state.displayedIds.add(message.id);
+        }
+
+        function createSystemMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'system-message';
+            messageDiv.dataset.id = message.id;
+            
+            // Decode message
+            let content = '';
+            try {
+                if (message.encrypted_data) {
+                    const decoded = atob(message.encrypted_data);
+                    content = decodeURIComponent(escape(decoded));
+                } else {
+                    content = '[System message]';
+                }
+            } catch (e) {
+                content = message.encrypted_data || '[Cannot decode]';
+            }
+            
+            messageDiv.innerHTML = `
+                <div class="message-bubble">
+                    ${escapeHtml(content)}
+                </div>
+            `;
+            
+            return messageDiv;
+        }
+
+        function createRegularMessage(message, isSent, lastSender, lastDate) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+            messageDiv.dataset.id = message.id;
+            messageDiv.tabIndex = 0;
+            
+            // Get timestamp from table data
+            const timestamp = message.timestamp || message.created_on;
+            const displayTime = formatMessageTime(timestamp);
+            const detailedTime = formatDetailedTime(timestamp);
             
             // Decode message
             let content = '';
@@ -2276,31 +1837,27 @@
                 content = message.encrypted_data || '[Cannot decode]';
             }
             
-            // Format content based on type
-            const formattedContent = formatMessageContent(content, messageType);
+            // Show sender name for received messages if sender changed
+            const showSender = !isSent && lastSender !== message.username;
+            
+            // Format content
+            const formattedContent = escapeHtml(content);
             
             // Build message HTML
             messageDiv.innerHTML = `
-                ${!isSent ? `
-                    <div class="message-sender">
-                        ${escapeHtml(message.username || 'User')}
-                        <span class="message-type-badge ${typeClass}">${typeBadge}</span>
-                    </div>
+                ${showSender ? `
+                    <div class="message-sender">${escapeHtml(message.username || 'User')}</div>
                 ` : ''}
-                <div class="message-content">
-                    ${isSent ? `
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
-                            <span class="message-type-badge ${typeClass}" style="margin: 0;">${typeBadge}</span>
-                        </div>
-                    ` : ''}
-                    ${formattedContent}
+                <div class="message-bubble">
+                    <div class="message-content">${formattedContent}</div>
+                    <div class="message-time" title="${detailedTime}">
+                        ${displayTime}
+                        ${isSent ? '<span class="message-status status-delivered">✓✓</span>' : ''}
+                    </div>
                 </div>
-                <div class="message-time">${timeStr}</div>
             `;
             
-            // Add to container
-            container.appendChild(messageDiv);
-            state.displayedIds.add(message.id);
+            return messageDiv;
         }
 
         // ================= MESSAGE FUNCTIONS =================
@@ -2315,14 +1872,16 @@
             input.style.height = 'auto';
             document.getElementById('sendBtn').disabled = true;
             
-            // Create temporary message
+            // Create temporary message with current timestamp
             const tempId = 'temp-' + Date.now();
+            const currentTime = new Date().toISOString();
             const tempMessage = {
                 id: tempId,
                 username: state.username,
                 encrypted_data: btoa(unescape(encodeURIComponent(messageText))),
-                message_type: state.currentMessageType,
-                timestamp: new Date().toISOString(),
+                message_type: 'text',
+                timestamp: currentTime,
+                created_on: currentTime,
                 isTemp: true
             };
             
@@ -2340,7 +1899,7 @@
                     username: state.username,
                     encrypted_data: btoa(unescape(encodeURIComponent(messageText))),
                     encryption_key: btoa('chat-' + Date.now()),
-                    message_type: state.currentMessageType
+                    message_type: 'text'
                 };
                 
                 const response = await fetch(
@@ -2374,27 +1933,32 @@
                     tempElement.remove();
                 }
                 
-                // Add real message with the correct Baserow ID
+                // Add real message with the correct Baserow ID and timestamp
                 const realMessage = {
-                    id: result.id, // Use the Baserow ID
+                    id: result.id,
                     username: state.username,
                     room_id: state.room,
                     encrypted_data: data.encrypted_data,
-                    message_type: state.currentMessageType,
-                    timestamp: new Date().toISOString(),
-                    created_on: new Date().toISOString()
+                    message_type: 'text',
+                    timestamp: result.timestamp || result.created_on || currentTime,
+                    created_on: result.created_on || currentTime
                 };
                 
                 state.messages.push(realMessage);
                 addMessageToDOM(realMessage);
                 
+                // Trigger auto-cleanup for this room after sending message
+                setTimeout(() => {
+                    autoCleanupRoomIfNeeded();
+                }, 500);
+                
                 updateStatus('Sent ✓', true);
-                showToast(`${state.currentMessageType.charAt(0).toUpperCase() + state.currentMessageType.slice(1)} message sent and saved`);
+                showToast('Message sent');
                 
                 // Scroll to bottom
                 scrollMessagesToBottom();
                 
-                // Keep input focused after sending (important for mobile)
+                // Keep input focused after sending
                 setTimeout(() => {
                     input.focus();
                 }, 100);
@@ -2406,7 +1970,7 @@
                 const tempElement = document.querySelector(`[data-id="${tempId}"]`);
                 if (tempElement) {
                     tempElement.querySelector('.message-time').textContent = 'Failed';
-                    tempElement.querySelector('.message-content').style.opacity = '0.7';
+                    tempElement.querySelector('.message-bubble').style.opacity = '0.7';
                 }
                 
                 document.getElementById('debugError').textContent = error.message;
@@ -2456,8 +2020,8 @@
                             room_id: msg.room_id,
                             encrypted_data: msg.encrypted_data,
                             message_type: msg.message_type || 'text',
-                            created_on: msg.created_on,
-                            timestamp: msg.created_on
+                            timestamp: msg.timestamp || msg.created_on, // Use timestamp field
+                            created_on: msg.created_on
                         });
                     }
                 });
@@ -2465,7 +2029,10 @@
                 // Update display
                 updateMessageDisplay();
                 
-                updateStatus(`${roomMessages.length} messages in room`, true);
+                updateStatus(`${roomMessages.length} messages`, true);
+                
+                // Update debug info
+                updateDebugInfo();
                 
             } catch (error) {
                 console.error('Failed to load messages:', error);
@@ -2485,14 +2052,22 @@
             
             // Sort messages by timestamp (oldest first)
             const sortedMessages = [...state.messages].sort((a, b) => {
-                const timeA = new Date(a.timestamp || a.created_on).getTime();
-                const timeB = new Date(b.timestamp || b.created_on).getTime();
+                const timeA = new Date(a.timestamp || a.created_on || 0).getTime();
+                const timeB = new Date(b.timestamp || b.created_on || 0).getTime();
                 return timeA - timeB;
             });
             
+            // Group messages by date and sender
+            let lastSender = null;
+            let lastDate = null;
+            
             // Add only new messages to DOM
             sortedMessages.forEach(msg => {
-                addMessageToDOM(msg);
+                if (!state.displayedIds.has(msg.id)) {
+                    addMessageToDOM(msg, lastSender, lastDate);
+                    lastSender = msg.username;
+                    lastDate = msg.timestamp || msg.created_on;
+                }
             });
             
             // Scroll to bottom if we're near the bottom
@@ -2521,8 +2096,8 @@
                 
                 if (response.ok) {
                     const data = await response.json();
-                    showToast(`✅ Connected! Table has ${data.count || 0} rows`);
-                    updateStatus('Connected', true);
+                    showToast(`✅ Connected! ${data.count || 0} messages`);
+                    updateStatus('Online', true);
                     
                     // Reload messages
                     await loadMessages();
@@ -2531,7 +2106,7 @@
                 }
             } catch (error) {
                 showToast(`❌ Connection failed: ${error.message}`, 3000);
-                updateStatus('Connection failed', false);
+                updateStatus('Offline', false);
             }
         }
 
@@ -2556,19 +2131,12 @@
             state.room = room.toLowerCase();
             state.messages = [];
             state.displayedIds.clear();
-            state.currentMessageType = 'text';
             
             // Switch screens
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('chatScreen').classList.add('active');
             document.getElementById('currentRoom').textContent = room;
             document.getElementById('roomTitle').textContent = `#${room}`;
-            
-            // Reset message type selector
-            document.querySelectorAll('.type-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            document.querySelector('.type-btn[data-type="text"]').classList.add('active');
             
             // Test connection first
             updateStatus('Connecting...', true);
@@ -2584,19 +2152,9 @@
             setTimeout(() => {
                 const input = document.getElementById('messageInput');
                 input.focus();
-                
-                // On mobile, ensure proper positioning
-                if (state.isMobile) {
-                    // Force a resize to trigger keyboard handling
-                    setTimeout(() => {
-                        if (window.visualViewport) {
-                            window.visualViewport.dispatchEvent(new Event('resize'));
-                        }
-                    }, 200);
-                }
             }, 500);
             
-            showToast(`Welcome ${username}!`);
+            showToast(`Welcome to ${room}!`);
         }
 
         function logout() {
@@ -2609,7 +2167,6 @@
             // Reset state
             state.messages = [];
             state.displayedIds.clear();
-            state.currentMessageType = 'text';
             state.keyboardVisible = false;
             
             // Switch back to login
@@ -2624,7 +2181,7 @@
                 document.getElementById('username').focus();
             }, 100);
             
-            showToast('Goodbye!');
+            showToast('See you later!');
         }
 
         function escapeHtml(text) {
@@ -2633,14 +2190,47 @@
             return div.innerHTML;
         }
 
+        // ================= KEYBOARD SHORTCUTS =================
+        function setupKeyboardShortcuts() {
+            // Login screen shortcuts
+            document.getElementById('username').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('room').focus();
+                }
+            });
+            
+            document.getElementById('room').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    startChat();
+                }
+            });
+            
+            // Chat screen shortcuts - ENTER TO SEND
+            const messageInput = document.getElementById('messageInput');
+            messageInput.addEventListener('keydown', function(e) {
+                // Send message: Enter (without Shift) or Ctrl+Enter
+                if ((e.key === 'Enter' && !e.shiftKey) || ((e.ctrlKey || e.metaKey) && e.key === 'Enter')) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            // Auto-resize textarea
+            messageInput.addEventListener('input', function() {
+                const hasText = this.value.trim().length > 0;
+                document.getElementById('sendBtn').disabled = !hasText;
+                document.getElementById('sendBtn').setAttribute('aria-disabled', !hasText);
+                
+                // Auto-resize
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            });
+        }
+
         // ================= INITIALIZATION =================
         document.addEventListener('DOMContentLoaded', function() {
-            // Setup fullscreen event listeners
-            document.addEventListener('fullscreenchange', handleFullscreenChange);
-            document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-            document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-            document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-            
             // Setup mobile keyboard handling
             setupMobileKeyboardHandling();
             
@@ -2653,8 +2243,8 @@
             // Test connection on load
             document.getElementById('testStatus').textContent = 'Click "Start Chatting" to begin';
             
-            console.log('Chat app initialized with improved mobile keyboard handling');
-            console.log('Input area is now properly positioned above keyboard on mobile');
+            console.log('WhatsApp-like chat app initialized');
+            console.log('Using timestamp field from table for message times');
         });
     </script>
 </body>
