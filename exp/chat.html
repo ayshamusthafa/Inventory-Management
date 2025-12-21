@@ -510,14 +510,10 @@
             color: #aaa;
         }
         
-        .settings-input {
-            width: 100%;
-            padding: 4px 8px;
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 4px;
-            background: rgba(255,255,255,0.1);
-            color: white;
+        .settings-info {
             font-size: 11px;
+            color: #ccc;
+            margin-top: 2px;
         }
     </style>
 </head>
@@ -531,17 +527,20 @@
         <div><strong>User:</strong> <span id="debugUser">-</span></div>
         <div><strong>Messages in App:</strong> <span id="debugAppCount">0</span></div>
         <div><strong>Messages in Baserow:</strong> <span id="debugBaserowCount">0</span></div>
-        <div><strong>Auto-cleanup:</strong> <span id="debugCleanupStatus">Off</span></div>
+        <div><strong>Auto-cleanup:</strong> <span id="debugCleanupStatus">Always 20 messages</span></div>
         <div><strong>Connection:</strong> <span id="debugConnection">Checking...</span></div>
         <div><strong>Last Error:</strong> <span id="debugError">None</span></div>
         
         <div class="settings-group">
-            <label class="settings-label">Messages to keep:</label>
-            <input type="number" class="settings-input" id="maxMessagesInput" value="50" min="10" max="1000">
+            <div class="settings-info">
+                Auto-cleanup: Keeps 20 latest messages<br>
+                Starts at: 21+ messages<br>
+                Deletes: 10 oldest at a time
+            </div>
         </div>
         
         <button class="cleanup-btn" onclick="showCleanupConfirmation()">
-            🧹 Cleanup Old Messages
+            🧹 Cleanup to 20 Messages
         </button>
         
         <button class="delete-btn" onclick="showDeleteConfirmation()">
@@ -662,7 +661,7 @@
             debugMode: false,
             isDeleting: false,
             isCleaning: false,
-            maxMessagesToKeep: 50, // Keep last 50 messages, delete older ones
+            maxMessagesToKeep: 20, // ALWAYS keep only 20 messages
             pendingConfirmation: null // {type: 'deleteAll' | 'cleanup', callback: function}
         };
 
@@ -681,13 +680,7 @@
             document.getElementById('debugAppCount').textContent = state.messages.length;
             document.getElementById('debugConnection').textContent = state.isConnected ? '✅ Connected' : '❌ Disconnected';
             document.getElementById('debugCleanupStatus').textContent = 
-                `${state.maxMessagesToKeep} messages (auto)` + (state.isCleaning ? ' 🧹' : '');
-            
-            // Update max messages input
-            const maxMessagesInput = document.getElementById('maxMessagesInput');
-            if (maxMessagesInput.value !== state.maxMessagesToKeep.toString()) {
-                maxMessagesInput.value = state.maxMessagesToKeep;
-            }
+                `Always ${state.maxMessagesToKeep} messages` + (state.isCleaning ? ' 🧹' : '');
             
             // Update button states
             const deleteBtn = document.querySelector('.delete-btn');
@@ -702,7 +695,7 @@
             
             if (cleanupBtn) {
                 cleanupBtn.disabled = state.isDeleting || state.isCleaning;
-                cleanupBtn.textContent = state.isCleaning ? '🧹 CLEANING...' : '🧹 Cleanup Old Messages';
+                cleanupBtn.textContent = state.isCleaning ? '🧹 CLEANING...' : '🧹 Cleanup to 20 Messages';
                 cleanupBtn.style.opacity = (state.isDeleting || state.isCleaning) ? '0.7' : '1';
                 cleanupBtn.style.cursor = (state.isDeleting || state.isCleaning) ? 'not-allowed' : 'pointer';
             }
@@ -743,12 +736,12 @@
         function showCleanupConfirmation() {
             state.pendingConfirmation = {
                 type: 'cleanup',
-                callback: cleanupOldMessages
+                callback: cleanupToTwentyMessages
             };
             
-            document.getElementById('confirmationTitle').textContent = '🧹 Cleanup Old Messages';
+            document.getElementById('confirmationTitle').textContent = '🧹 Cleanup Messages';
             document.getElementById('confirmationMessage').innerHTML = 
-                `This will delete older messages, keeping only the latest <strong>${state.maxMessagesToKeep}</strong> messages.<br><br>` +
+                'This will delete older messages, keeping only the <strong>20 most recent</strong> messages.<br><br>' +
                 'This action cannot be undone. Proceed with cleanup?';
             
             const deleteBtn = document.querySelector('.confirm-btn.delete');
@@ -873,17 +866,17 @@
             }
         }
 
-        async function cleanupOldMessages() {
+        async function cleanupToTwentyMessages() {
             state.isCleaning = true;
             updateDebugInfo();
             
-            logDebug(`Starting cleanup: keeping last ${state.maxMessagesToKeep} messages...`, 'warning');
-            updateStatus('Cleaning up old messages...', true);
+            logDebug(`Starting cleanup: keeping only 20 latest messages...`, 'warning');
+            updateStatus('Cleaning up to 20 messages...', true);
             
             try {
-                // Get all messages from the table
+                // Get all messages from the table, ordered by newest first
                 const response = await fetch(
-                    `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true`,
+                    `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true&order_by=-created_on`,
                     {
                         headers: {
                             'Authorization': `Token ${BASEROW_CONFIG.TOKEN}`
@@ -900,23 +893,19 @@
                 
                 logDebug(`Found ${allMessages.length} total messages`, 'info');
                 
-                if (allMessages.length <= state.maxMessagesToKeep) {
-                    showToast(`No cleanup needed. Only ${allMessages.length} messages (limit: ${state.maxMessagesToKeep})`, 2000);
-                    state.isCleaning = false;
-                    updateDebugInfo();
-                    updateStatus('No cleanup needed', true);
-                    return;
-                }
-                
-                // Sort messages by created date (oldest first)
-                const sortedMessages = [...allMessages].sort((a, b) => {
-                    return new Date(a.created_on) - new Date(b.created_on);
-                });
-                
-                // Calculate how many to delete
-                const messagesToDelete = sortedMessages.slice(0, allMessages.length - state.maxMessagesToKeep);
+                // Keep only the 20 most recent messages
+                const messagesToKeep = allMessages.slice(0, 20);
+                const messagesToDelete = allMessages.slice(20);
                 
                 logDebug(`Will delete ${messagesToDelete.length} oldest messages`, 'warning');
+                
+                if (messagesToDelete.length === 0) {
+                    showToast('Already at 20 messages, no cleanup needed', 2000);
+                    state.isCleaning = false;
+                    updateDebugInfo();
+                    updateStatus('Already at 20 messages', true);
+                    return;
+                }
                 
                 // Delete old messages
                 let deletedCount = 0;
@@ -952,14 +941,14 @@
                 
                 // Show result
                 if (failedCount === 0) {
-                    showToast(`✅ Cleanup complete! Deleted ${deletedCount} old messages`, 3000);
+                    showToast(`✅ Cleanup complete! Now at 20 messages`, 3000);
                     logDebug(`Cleanup complete! Deleted ${deletedCount} old messages`, 'success');
                 } else {
                     showToast(`⚠️ Cleanup partial: ${deletedCount} deleted, ${failedCount} failed`, 3000);
                     logDebug(`Cleanup partial: ${deletedCount} deleted, ${failedCount} failed`, 'warning');
                 }
                 
-                updateStatus(`Cleaned ${deletedCount} old messages`, true);
+                updateStatus(`Cleaned to 20 messages`, true);
                 
             } catch (error) {
                 console.error('Failed to cleanup messages:', error);
@@ -992,16 +981,16 @@
                 const data = await response.json();
                 const totalMessages = data.count || 0;
                 
-                // Check if we need to cleanup
+                // Start auto-cleanup at 21 messages (21 > 20 limit)
                 if (totalMessages > state.maxMessagesToKeep) {
                     const excess = totalMessages - state.maxMessagesToKeep;
                     const messagesToDelete = Math.min(10, excess); // Delete up to 10 at once
                     
-                    logDebug(`Auto-cleanup needed: ${totalMessages} > ${state.maxMessagesToKeep} (delete ${messagesToDelete})`, 'warning');
+                    logDebug(`Auto-cleanup triggered: ${totalMessages} > ${state.maxMessagesToKeep} (delete ${messagesToDelete})`, 'warning');
                     
-                    // Get oldest messages
+                    // Get oldest messages (ascending order by created date)
                     const messagesResponse = await fetch(
-                        `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true&order_by=-created_on&size=${messagesToDelete}`,
+                        `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true&order_by=created_on&size=${messagesToDelete}`,
                         {
                             headers: {
                                 'Authorization': `Token ${BASEROW_CONFIG.TOKEN}`
@@ -1030,6 +1019,9 @@
                             
                             if (deleteResponse.ok) {
                                 deletedCount++;
+                                logDebug(`Auto-deleted old message: ${message.id}`, 'success');
+                            } else {
+                                logDebug(`Failed to auto-delete message ${message.id}: ${deleteResponse.status}`, 'error');
                             }
                         } catch (error) {
                             logDebug(`Auto-cleanup error: ${error.message}`, 'error');
@@ -1051,6 +1043,11 @@
                                 element.remove();
                             }
                         });
+                        
+                        // Update debug count
+                        if (state.debugMode) {
+                            document.getElementById('debugBaserowCount').textContent = totalMessages - deletedCount;
+                        }
                     }
                 }
                 
@@ -1258,7 +1255,7 @@
                 // Trigger auto-cleanup after sending message
                 setTimeout(() => {
                     autoCleanupIfNeeded();
-                }, 1000);
+                }, 500); // Shorter delay for faster cleanup
                 
                 updateStatus('Sent ✓', true);
                 showToast('Message sent and saved');
@@ -1507,29 +1504,14 @@
                 this.style.height = Math.min(this.scrollHeight, 120) + 'px';
             });
             
-            // Setup max messages input
-            const maxMessagesInput = document.getElementById('maxMessagesInput');
-            maxMessagesInput.addEventListener('change', function() {
-                const value = parseInt(this.value);
-                if (!isNaN(value) && value >= 10 && value <= 1000) {
-                    state.maxMessagesToKeep = value;
-                    updateDebugInfo();
-                    showToast(`Auto-cleanup set to keep ${value} messages`, 2000);
-                } else {
-                    this.value = state.maxMessagesToKeep;
-                    showToast('Please enter a value between 10 and 1000', 2000);
-                }
-            });
-            
             // Test connection on load
             document.getElementById('testStatus').textContent = 'Click "Start Chatting" to test connection';
             
             console.log('Chat app initialized with debugging');
             console.log('Click the 🐛 button for debug info');
-            console.log('Features:');
-            console.log('1. 🗑️ Delete All Data button');
-            console.log('2. 🧹 Auto-cleanup (keeps last 50 messages)');
-            console.log('3. 🧹 Manual cleanup button');
+            console.log('Auto-cleanup: Always keeps 20 messages');
+            console.log('Starts at: 21+ messages');
+            console.log('Deletes: 10 oldest messages at a time');
         });
     </script>
 </body>
