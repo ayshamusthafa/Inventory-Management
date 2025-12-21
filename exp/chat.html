@@ -1,189 +1,28 @@
+
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset="UTF-8">
-<title>Secure Chat</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<style>
-body{margin:0;font-family:system-ui;background:#ece5dd}
-header{background:#075e54;color:#fff;padding:12px;text-align:center}
-#room{background:#128c7e;color:#fff;padding:8px;text-align:center}
-#msgs{height:calc(100vh - 140px);overflow:auto;padding:10px}
-.msg{background:#fff;margin:6px 0;padding:8px;border-radius:8px;max-width:75%}
-.me{background:#dcf8c6;margin-left:auto}
-.user{font-size:11px;color:#555}
-#input{display:flex;padding:8px;background:#f0f0f0}
-#input input{flex:1;border:none;border-radius:20px;padding:10px}
-#input button{margin-left:6px;border:none;background:#075e54;color:#fff;border-radius:50%;width:40px}
-</style>
-</head>
-
 <body>
-<header>🔐 Secure Chat</header>
-<div id="room">Initializing…</div>
-<div id="msgs"></div>
-
-<div id="input">
-  <input id="text" placeholder="Message…">
-  <button onclick="send()">➤</button>
-</div>
-
 <script>
-/* ===== CONFIG ===== */
-const API_KEY = "jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw";
-const ROOMS_ID = 778590;
-const MSG_ID = 778592;
+const TOKEN = 'jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw';
+const headers = { 'Authorization': `Token ${TOKEN}` };
 
-const ROOMS_API = `https://api.baserow.io/api/database/rows/table/${ROOMS_ID}/`;
-const MSG_API = `https://api.baserow.io/api/database/rows/table/${MSG_ID}/`;
-
-/* ===== USER ===== */
-let user = localStorage.user || prompt("Your name?");
-localStorage.user = user;
-
-/* ===== STATE ===== */
-let ROOM_ID, roomKey;
-
-/* ===== UTIL ===== */
-const enc = new TextEncoder();
-
-async function sha256(text){
-  const b = await crypto.subtle.digest("SHA-256", enc.encode(text));
-  return btoa(String.fromCharCode(...new Uint8Array(b)));
-}
-
-function randomPassword(){
-  return Math.random().toString(36).slice(-10);
-}
-
-/* ===== INIT ===== */
-async function init(){
-  const r = await fetch(ROOMS_API,{
-    headers:{Authorization:"Token "+API_KEY}
-  });
-  const j = await r.json();
-
-  if(j.results.length === 0){
-    /* FIRST USER */
-    const password = randomPassword();
-    const hash = await sha256(password);
-    const room_id = crypto.randomUUID();
-
-    await fetch(ROOMS_API,{
-      method:"POST",
-      headers:{
-        Authorization:"Token "+API_KEY,
-        "Content-Type":"application/json"
-      },
-      body: JSON.stringify({
-        room_name: "Main Room",
-        room_id,
-        password_hash: hash
-      })
-    });
-
-    alert("ROOM CREATED!\n\nPASSWORD:\n" + password +
-          "\n\nSave this password. It will NOT be shown again.");
-
-    ROOM_ID = room_id;
-    roomKey = await deriveKey(password, ROOM_ID);
-
-  } else {
-    /* EXISTING ROOM */
-    const room = j.results[0];
-    ROOM_ID = room.room_id;
-
-    const pass = prompt("Enter room password");
-    const hash = await sha256(pass);
-
-    if(hash !== room.password_hash){
-      alert("Wrong password");
-      location.reload();
-      return;
-    }
-
-    roomKey = await deriveKey(pass, ROOM_ID);
+async function checkTables() {
+  console.log('=== Checking Rooms Table (778590) ===');
+  const roomsFields = await fetch('https://api.baserow.io/api/database/fields/table/778590/', { headers }).then(r => r.json());
+  roomsFields.forEach(f => console.log(`• ${f.name}: ${f.type}`));
+  
+  console.log('\n=== Checking Messages Table (778592) ===');
+  const msgFields = await fetch('https://api.baserow.io/api/database/fields/table/778592/', { headers }).then(r => r.json());
+  msgFields.forEach(f => console.log(`• ${f.name}: ${f.type}`));
+  
+  console.log('\n=== Sample Data Test ===');
+  const sampleData = await fetch('https://api.baserow.io/api/database/rows/table/778592/?user_field_names=true&size=1', { headers }).then(r => r.json());
+  if (sampleData.results?.[0]) {
+    console.log('Sample row keys:', Object.keys(sampleData.results[0]));
   }
-
-  document.getElementById("room").textContent = "Main Room";
-  load();
 }
 
-init();
-
-/* ===== CRYPTO ===== */
-async function deriveKey(pass, salt){
-  const base = await crypto.subtle.importKey(
-    "raw", enc.encode(pass), "PBKDF2", false, ["deriveKey"]
-  );
-  return crypto.subtle.deriveKey({
-    name:"PBKDF2",
-    salt: enc.encode(salt),
-    iterations:100000,
-    hash:"SHA-256"
-  }, base, {name:"AES-GCM", length:256}, false, ["encrypt","decrypt"]);
-}
-
-/* ===== SEND ===== */
-async function send(){
-  if(!text.value) return;
-
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const cipher = await crypto.subtle.encrypt(
-    {name:"AES-GCM", iv},
-    roomKey,
-    enc.encode(text.value)
-  );
-
-  await fetch(MSG_API,{
-    method:"POST",
-    headers:{
-      Authorization:"Token "+API_KEY,
-      "Content-Type":"application/json"
-    },
-    body: JSON.stringify({
-      room: ROOM_ID,
-      user,
-      type:"text",
-      iv:btoa(String.fromCharCode(...iv)),
-      cipher:btoa(String.fromCharCode(...new Uint8Array(cipher)))
-    })
-  });
-
-  text.value="";
-  load();
-}
-
-/* ===== LOAD ===== */
-async function load(){
-  const r = await fetch(
-    MSG_API+`?filter__room__equal=${ROOM_ID}`,
-    {headers:{Authorization:"Token "+API_KEY}}
-  );
-  const j = await r.json();
-  msgs.innerHTML="";
-
-  for(const m of j.results){
-    try{
-      const iv = Uint8Array.from(atob(m.iv),c=>c.charCodeAt(0));
-      const data = Uint8Array.from(atob(m.cipher),c=>c.charCodeAt(0));
-      const plain = await crypto.subtle.decrypt(
-        {name:"AES-GCM", iv},
-        roomKey,
-        data
-      );
-
-      const d = document.createElement("div");
-      d.className="msg"+(m.user===user?" me":"");
-      d.innerHTML=`<div class="user">${m.user}</div>`+
-        new TextDecoder().decode(plain);
-      msgs.appendChild(d);
-    }catch{}
-  }
-  msgs.scrollTop = msgs.scrollHeight;
-}
-
-setInterval(load,3000);
+checkTables().catch(console.error);
 </script>
 </body>
 </html>
