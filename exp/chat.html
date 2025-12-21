@@ -1,170 +1,576 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>🔍 Test Baserow Connection</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💬 Simple Chat</title>
     <style>
-        body { font-family: Arial; padding: 20px; background: #f5f5f5; }
-        .card { background: white; padding: 20px; border-radius: 10px; margin: 10px 0; }
-        .success { color: green; }
-        .error { color: red; }
-        button { padding: 10px 20px; margin: 5px; }
-        pre { background: #eee; padding: 10px; overflow: auto; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .chat-app {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        /* Login Screen */
+        .login-screen {
+            padding: 40px;
+        }
+        
+        .login-screen h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        /* Chat Screen */
+        .chat-screen {
+            display: none;
+            height: 600px;
+            flex-direction: column;
+        }
+        
+        /* Header */
+        .chat-header {
+            background: #667eea;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .room-info h2 {
+            font-size: 20px;
+        }
+        
+        .user-info {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        /* Messages Area */
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            max-width: 70%;
+        }
+        
+        .message.sent {
+            margin-left: auto;
+        }
+        
+        .message-content {
+            padding: 12px 16px;
+            border-radius: 18px;
+            background: #667eea;
+            color: white;
+            word-wrap: break-word;
+        }
+        
+        .message.received .message-content {
+            background: #e9ecef;
+            color: #333;
+        }
+        
+        .message-info {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        /* Input Area */
+        .chat-input {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .chat-input textarea {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            resize: none;
+            height: 60px;
+        }
+        
+        .chat-input textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 15px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .send-btn {
+            padding: 15px 25px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .send-btn:hover {
+            background: #5a67d8;
+        }
+        
+        /* Status */
+        .status {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            padding: 10px;
+            background: #f8f9fa;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
     </style>
 </head>
 <body>
-    <h1>🔍 Test Baserow Connection</h1>
-    
-    <div class="card">
-        <h3>Step 1: Test Token & Table</h3>
-        <button onclick="testConnection()">Test Connection</button>
-        <div id="result1"></div>
-    </div>
-    
-    <div class="card">
-        <h3>Step 2: Check Table Fields</h3>
-        <button onclick="checkFields()">Check Fields</button>
-        <div id="result2"></div>
-    </div>
-    
-    <div class="card">
-        <h3>Step 3: Create Test Message</h3>
-        <button onclick="createTest()">Create Test Message</button>
-        <div id="result3"></div>
-    </div>
-    
-    <div class="card">
-        <h3>Step 4: View All Messages</h3>
-        <button onclick="viewMessages()">View Messages</button>
-        <div id="result4"></div>
+    <div class="chat-app">
+        <!-- Login Screen -->
+        <div class="login-screen" id="loginScreen">
+            <h1>💬 Simple Chat</h1>
+            
+            <div class="input-group">
+                <label>Your Name</label>
+                <input type="text" id="username" placeholder="Enter your name">
+            </div>
+            
+            <div class="input-group">
+                <label>Room Name</label>
+                <input type="text" id="room" placeholder="Enter room name (e.g., general)" value="general">
+            </div>
+            
+            <button class="btn" onclick="startChat()" style="width: 100%;">
+                Join Chat
+            </button>
+            
+            <div class="status" style="margin-top: 20px;">
+                <div id="connectionStatus">Ready to connect...</div>
+            </div>
+        </div>
+        
+        <!-- Chat Screen -->
+        <div class="chat-screen" id="chatScreen">
+            <div class="chat-header">
+                <div class="room-info">
+                    <h2>#<span id="currentRoom">general</span></h2>
+                    <div class="user-info">You: <span id="currentUser">User</span></div>
+                </div>
+                <button class="btn" onclick="logout()" style="padding: 10px 20px;">
+                    Leave
+                </button>
+            </div>
+            
+            <div class="messages" id="messagesContainer">
+                <div class="message received">
+                    <div class="message-info">
+                        <span>System</span>
+                        <span>Just now</span>
+                    </div>
+                    <div class="message-content">
+                        Welcome to the chat! Type a message below.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input">
+                <textarea 
+                    id="messageInput" 
+                    placeholder="Type your message..."
+                    rows="1"
+                ></textarea>
+                <button class="send-btn" onclick="sendMessage()">
+                    Send
+                </button>
+            </div>
+            
+            <div class="status">
+                <div id="chatStatus">Connected</div>
+            </div>
+        </div>
     </div>
 
     <script>
-        const TOKEN = "jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw";
-        const TABLE_ID = "778927";
-        
-        async function testConnection() {
-            try {
-                const response = await fetch(
-                    `https://api.baserow.io/api/database/rows/table/${TABLE_ID}/?user_field_names=true&size=1`,
-                    {
-                        headers: { 'Authorization': `Token ${TOKEN}` }
-                    }
-                );
-                
-                const result = document.getElementById('result1');
-                if (response.ok) {
-                    const data = await response.json();
-                    result.innerHTML = `<div class="success">✅ Connected! Table has ${data.count || 0} rows</div>`;
-                } else {
-                    const error = await response.text();
-                    result.innerHTML = `<div class="error">❌ Failed: ${response.status} ${response.statusText}</div><pre>${error}</pre>`;
-                }
-            } catch (error) {
-                document.getElementById('result1').innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
-            }
-        }
-        
-        async function checkFields() {
-            try {
-                const response = await fetch(
-                    `https://api.baserow.io/api/database/fields/table/${TABLE_ID}/`,
-                    {
-                        headers: { 'Authorization': `Token ${TOKEN}` }
-                    }
-                );
-                
-                const result = document.getElementById('result2');
-                if (response.ok) {
-                    const fields = await response.json();
-                    let html = `<div class="success">✅ Found ${fields.length} fields:</div><ul>`;
-                    fields.forEach(field => {
-                        html += `<li><strong>${field.name}</strong>: ${field.type} (ID: ${field.id})</li>`;
-                    });
-                    html += '</ul>';
-                    result.innerHTML = html;
-                } else {
-                    const error = await response.text();
-                    result.innerHTML = `<div class="error">❌ Failed: ${response.status}</div><pre>${error}</pre>`;
-                }
-            } catch (error) {
-                document.getElementById('result2').innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
-            }
-        }
-        
-        async function createTest() {
-            try {
-                // Simple test data - adjust based on your actual fields
-                const testData = {
-                    room_id: "test-room",
-                    username: "tester",
-                    encrypted_data: "VGVzdCBtZXNzYWdl", // "Test message" in base64
-                    encryption_key: "dGVzdC1rZXk=" // "test-key" in base64
-                };
-                
-                const response = await fetch(
-                    `https://api.baserow.io/api/database/rows/table/${TABLE_ID}/?user_field_names=true`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Token ${TOKEN}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(testData)
-                    }
-                );
-                
-                const result = document.getElementById('result3');
-                if (response.ok) {
-                    const data = await response.json();
-                    result.innerHTML = `<div class="success">✅ Created message! ID: ${data.id}</div>`;
-                } else {
-                    const error = await response.text();
-                    result.innerHTML = `<div class="error">❌ Failed: ${response.status}</div><pre>${error}</pre>`;
-                }
-            } catch (error) {
-                document.getElementById('result3').innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
-            }
-        }
-        
-        async function viewMessages() {
-            try {
-                const response = await fetch(
-                    `https://api.baserow.io/api/database/rows/table/${TABLE_ID}/?user_field_names=true&size=10`,
-                    {
-                        headers: { 'Authorization': `Token ${TOKEN}` }
-                    }
-                );
-                
-                const result = document.getElementById('result4');
-                if (response.ok) {
-                    const data = await response.json();
-                    result.innerHTML = `<div class="success">✅ Found ${data.results?.length || 0} messages:</div>`;
-                    
-                    if (data.results && data.results.length > 0) {
-                        let html = '<pre>';
-                        data.results.forEach((msg, i) => {
-                            html += `\n=== Message ${i+1} ===\n`;
-                            for (const [key, value] of Object.entries(msg)) {
-                                html += `${key}: ${value}\n`;
-                            }
-                        });
-                        html += '</pre>';
-                        result.innerHTML += html;
-                    }
-                } else {
-                    const error = await response.text();
-                    result.innerHTML = `<div class="error">❌ Failed: ${response.status}</div><pre>${error}</pre>`;
-                }
-            } catch (error) {
-                document.getElementById('result4').innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
-            }
-        }
-        
-        // Run tests automatically
-        window.onload = function() {
-            setTimeout(testConnection, 500);
-            setTimeout(checkFields, 1000);
+        // ================= CONFIGURATION =================
+        const BASEROW_CONFIG = {
+            TOKEN: "jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw",
+            TABLE_ID: "778927"
         };
+
+        // ================= STATE =================
+        let state = {
+            username: '',
+            room: 'general',
+            autoRefresh: null
+        };
+
+        // ================= BASEROW FUNCTIONS =================
+        async function baserowRequest(url, method = 'GET', data = null) {
+            const headers = {
+                'Authorization': `Token ${BASEROW_CONFIG.TOKEN}`,
+                'Content-Type': 'application/json'
+            };
+
+            const options = {
+                method,
+                headers
+            };
+
+            if (data) {
+                options.body = JSON.stringify(data);
+            }
+
+            try {
+                const response = await fetch(`https://api.baserow.io/api${url}`, options);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Baserow error:', error);
+                return null;
+            }
+        }
+
+        async function saveMessage(message) {
+            const data = {
+                room_id: state.room,
+                username: state.username,
+                encrypted_data: btoa(message), // Simple base64 encoding
+                encryption_key: btoa('simple-key') // Simple key
+            };
+            
+            return await baserowRequest(
+                `/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true`,
+                'POST',
+                data
+            );
+        }
+
+        async function loadMessages() {
+            // Get messages for current room
+            const filter = encodeURIComponent(JSON.stringify({
+                room_id: state.room
+            }));
+            
+            const data = await baserowRequest(
+                `/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true&filters=${filter}&order_by=-id&size=50`
+            );
+            
+            if (data && data.results) {
+                displayMessages(data.results);
+            }
+        }
+
+        // ================= UI FUNCTIONS =================
+        function displayMessages(messages) {
+            const container = document.getElementById('messagesContainer');
+            
+            // Clear existing messages except system message
+            const systemMsg = container.querySelector('.message.received');
+            container.innerHTML = '';
+            
+            if (systemMsg) {
+                container.appendChild(systemMsg);
+            }
+            
+            // Sort by ID (newest first) and reverse for display (oldest first)
+            const sortedMessages = [...messages].sort((a, b) => a.id - b.id);
+            
+            sortedMessages.forEach(msg => {
+                const isSent = msg.username === state.username;
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+                
+                const time = msg.timestamp ? 
+                    new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) :
+                    'Just now';
+                
+                // Decode message (simple base64)
+                let content = '';
+                try {
+                    content = atob(msg.encrypted_data || '');
+                } catch (e) {
+                    content = '[Cannot decode message]';
+                }
+                
+                messageDiv.innerHTML = `
+                    <div class="message-info">
+                        <span>${msg.username || 'Unknown'}</span>
+                        <span>${time}</span>
+                    </div>
+                    <div class="message-content">${escapeHtml(content)}</div>
+                `;
+                
+                container.appendChild(messageDiv);
+            });
+            
+            // Scroll to bottom
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function addSystemMessage(text) {
+            const container = document.getElementById('messagesContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message received';
+            
+            messageDiv.innerHTML = `
+                <div class="message-info">
+                    <span>System</span>
+                    <span>${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                </div>
+                <div class="message-content">${escapeHtml(text)}</div>
+            `;
+            
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function updateStatus(text) {
+            document.getElementById('chatStatus').textContent = text;
+        }
+
+        // ================= CHAT FUNCTIONS =================
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Clear input
+            input.value = '';
+            
+            // Show immediately in UI
+            const tempMessageDiv = document.createElement('div');
+            tempMessageDiv.className = 'message sent';
+            tempMessageDiv.innerHTML = `
+                <div class="message-info">
+                    <span>${state.username}</span>
+                    <span>Sending...</span>
+                </div>
+                <div class="message-content">${escapeHtml(message)}</div>
+            `;
+            document.getElementById('messagesContainer').appendChild(tempMessageDiv);
+            
+            // Save to Baserow
+            const result = await saveMessage(message);
+            
+            if (result) {
+                updateStatus('Message sent ✓');
+                
+                // Replace temp message with confirmed one
+                tempMessageDiv.querySelector('.message-info span:last-child').textContent = 
+                    new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            } else {
+                updateStatus('Failed to send - trying again');
+                tempMessageDiv.querySelector('.message-content').textContent += ' (sending...)';
+                
+                // Try again after 2 seconds
+                setTimeout(() => {
+                    saveMessage(message).then(success => {
+                        if (success) {
+                            tempMessageDiv.querySelector('.message-content').textContent = 
+                                tempMessageDiv.querySelector('.message-content').textContent.replace(' (sending...)', '');
+                            updateStatus('Message sent ✓');
+                        }
+                    });
+                }, 2000);
+            }
+            
+            // Scroll to bottom
+            document.getElementById('messagesContainer').scrollTop = 
+                document.getElementById('messagesContainer').scrollHeight;
+        }
+
+        function startChat() {
+            const username = document.getElementById('username').value.trim();
+            const room = document.getElementById('room').value.trim();
+            
+            if (!username) {
+                alert('Please enter your name');
+                return;
+            }
+            
+            if (!room) {
+                alert('Please enter a room name');
+                return;
+            }
+            
+            state.username = username;
+            state.room = room.toLowerCase();
+            
+            // Switch screens
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('chatScreen').style.display = 'flex';
+            document.getElementById('currentUser').textContent = username;
+            document.getElementById('currentRoom').textContent = room;
+            
+            // Load existing messages
+            loadMessages();
+            
+            // Start auto-refresh every 3 seconds
+            if (state.autoRefresh) {
+                clearInterval(state.autoRefresh);
+            }
+            state.autoRefresh = setInterval(loadMessages, 3000);
+            
+            // Setup Enter key for sending
+            document.getElementById('messageInput').focus();
+            updateStatus('Connected to room: ' + room);
+        }
+
+        function logout() {
+            if (state.autoRefresh) {
+                clearInterval(state.autoRefresh);
+            }
+            
+            // Reset UI
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('chatScreen').style.display = 'none';
+            document.getElementById('username').value = '';
+            document.getElementById('messageInput').value = '';
+            document.getElementById('messagesContainer').innerHTML = `
+                <div class="message received">
+                    <div class="message-info">
+                        <span>System</span>
+                        <span>Just now</span>
+                    </div>
+                    <div class="message-content">
+                        Welcome to the chat! Type a message below.
+                    </div>
+                </div>
+            `;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ================= INITIALIZATION =================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Setup Enter key for login
+            document.getElementById('room').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    startChat();
+                }
+            });
+            
+            // Setup Enter key for sending (Ctrl+Enter for new line)
+            document.getElementById('messageInput').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            // Auto-resize textarea
+            const textarea = document.getElementById('messageInput');
+            textarea.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+            
+            // Test connection on load
+            updateStatus('Ready to connect...');
+        });
     </script>
 </body>
 </html>
