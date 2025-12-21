@@ -1,28 +1,949 @@
-
+jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw
+340628
+778590
+778592
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 Encrypted Chat - Baserow</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        /* Screenshot Blocker Styles */
+        .screenshot-blocker {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            color: #ff4757;
+        }
+        
+        .screenshot-blocker.show {
+            display: flex;
+        }
+        
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #4cc9f0;
+        }
+        
+        .logo i {
+            font-size: 1.8em;
+        }
+        
+        .security-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(76, 201, 240, 0.1);
+            border-radius: 20px;
+            border: 1px solid rgba(76, 201, 240, 0.3);
+        }
+        
+        /* Main Layout */
+        .main-content {
+            display: flex;
+            gap: 20px;
+            height: 70vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 300px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .section {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .section h3 {
+            color: #4cc9f0;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Chat Area */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+        
+        .chat-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.03);
+        }
+        
+        .chat-header h2 {
+            color: #4cc9f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .message {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 15px;
+            position: relative;
+            word-wrap: break-word;
+        }
+        
+        .message.sent {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+            border-bottom-right-radius: 5px;
+        }
+        
+        .message.received {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom-left-radius: 5px;
+        }
+        
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.85em;
+            opacity: 0.8;
+        }
+        
+        /* Message Input */
+        .message-input {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.03);
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .input-group textarea {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            color: white;
+            resize: none;
+            font-size: 1em;
+        }
+        
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #4cc9f0;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(67, 97, 238, 0.3);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ff4757 0%, #b33939 100%);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 71, 87, 0.3);
+        }
+        
+        /* User List */
+        .user-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .user-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            transition: background 0.3s ease;
+        }
+        
+        .user-item:hover {
+            background: rgba(255, 255, 255, 0.07);
+        }
+        
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4361ee 0%, #4cc9f0 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        /* Room List */
+        .room-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .room-item {
+            padding: 12px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        
+        .room-item:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(76, 201, 240, 0.3);
+        }
+        
+        .room-item.active {
+            background: rgba(67, 97, 238, 0.2);
+            border-color: #4361ee;
+        }
+        
+        /* Crypto Status */
+        .crypto-status {
+            font-size: 0.9em;
+            color: #4cc9f0;
+        }
+        
+        .key-status {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            font-size: 0.85em;
+        }
+        
+        .key-status.good {
+            border-left: 4px solid #2ed573;
+        }
+        
+        .key-status.warning {
+            border-left: 4px solid #ffa502;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(76, 201, 240, 0.3);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(76, 201, 240, 0.5);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .message {
+                max-width: 85%;
+            }
+        }
+    </style>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
 <body>
-<script>
-const TOKEN = 'jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw';
-const headers = { 'Authorization': `Token ${TOKEN}` };
+    <!-- Screenshot Blocker -->
+    <div id="screenshotBlocker" class="screenshot-blocker">
+        <div class="blocker-content">
+            <i class="fas fa-shield-alt fa-3x"></i>
+            <p style="margin-top: 20px;">🔒 Screenshot Blocked</p>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <i class="fas fa-lock"></i>
+                <span>SecureChat</span>
+            </div>
+            <div class="security-status">
+                <i class="fas fa-shield-alt"></i>
+                <span>End-to-End Encrypted</span>
+            </div>
+        </header>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Authentication Section -->
+                <div class="section" id="authSection">
+                    <h3><i class="fas fa-key"></i> Authentication</h3>
+                    <div class="input-group" style="flex-direction: column; gap: 10px;">
+                        <input type="text" id="username" placeholder="Your Name" class="input-field" 
+                               style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; color: white;">
+                        <input type="password" id="password" placeholder="Encryption Password" class="input-field"
+                               style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; color: white;">
+                        <button class="btn btn-primary" onclick="login()">
+                            <i class="fas fa-sign-in-alt"></i> Start Secure Session
+                        </button>
+                    </div>
+                    <div class="key-status warning" id="keyStatus" style="display: none;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>No encryption key loaded</span>
+                    </div>
+                </div>
+                
+                <!-- Rooms Section -->
+                <div class="section" id="roomsSection" style="display: none;">
+                    <h3><i class="fas fa-door-closed"></i> Rooms</h3>
+                    <div class="room-list" id="roomList">
+                        <!-- Rooms will be populated here -->
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <input type="text" id="newRoomName" placeholder="New room name" 
+                               style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; color: white; width: 100%; margin-bottom: 10px;">
+                        <button class="btn btn-secondary" onclick="createRoom()" style="width: 100%;">
+                            <i class="fas fa-plus"></i> Create Room
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Users Section -->
+                <div class="section" id="usersSection" style="display: none;">
+                    <h3><i class="fas fa-users"></i> Online Users</h3>
+                    <div class="user-list" id="userList">
+                        <!-- Users will be populated here -->
+                    </div>
+                </div>
+                
+                <!-- Crypto Info -->
+                <div class="section" id="cryptoSection" style="display: none;">
+                    <h3><i class="fas fa-lock"></i> Encryption Status</h3>
+                    <div class="crypto-status" id="cryptoStatus">
+                        <p><i class="fas fa-check-circle"></i> AES-256-CBC Active</p>
+                        <p><i class="fas fa-check-circle"></i> Client-side Encryption</p>
+                        <p><i class="fas fa-times-circle"></i> No Screenshot Protection</p>
+                    </div>
+                    <button class="btn btn-danger" onclick="logout()" style="width: 100%; margin-top: 15px;">
+                        <i class="fas fa-sign-out-alt"></i> Clear Keys & Logout
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Chat Area -->
+            <div class="chat-area" id="chatArea" style="display: none;">
+                <div class="chat-header">
+                    <h2><i class="fas fa-hashtag"></i> <span id="currentRoom">general</span></h2>
+                    <p style="opacity: 0.7; margin-top: 5px;" id="roomStatus">End-to-end encrypted room</p>
+                </div>
+                
+                <div class="messages-container" id="messagesContainer">
+                    <!-- Messages will appear here -->
+                    <div class="message received">
+                        <div class="message-header">
+                            <span class="sender">System</span>
+                            <span class="time">Just now</span>
+                        </div>
+                        <div class="message-content">Welcome to encrypted chat! All messages are encrypted before sending to Baserow.</div>
+                    </div>
+                </div>
+                
+                <div class="message-input">
+                    <div class="input-group">
+                        <textarea id="messageInput" placeholder="Type your encrypted message..." rows="2" 
+                                  onkeydown="handleKeyPress(event)"></textarea>
+                        <button class="btn btn-primary" onclick="sendMessage()">
+                            <i class="fas fa-paper-plane"></i> Send
+                        </button>
+                    </div>
+                    <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="font-size: 0.85em; opacity: 0.7;">
+                            <i class="fas fa-info-circle"></i> Messages encrypted with AES-256
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-secondary" onclick="clearChat()">
+                                <i class="fas fa-trash"></i> Clear
+                            </button>
+                            <button class="btn btn-secondary" onclick="loadMessages()">
+                                <i class="fas fa-sync"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-async function checkTables() {
-  console.log('=== Checking Rooms Table (778590) ===');
-  const roomsFields = await fetch('https://api.baserow.io/api/database/fields/table/778590/', { headers }).then(r => r.json());
-  roomsFields.forEach(f => console.log(`• ${f.name}: ${f.type}`));
-  
-  console.log('\n=== Checking Messages Table (778592) ===');
-  const msgFields = await fetch('https://api.baserow.io/api/database/fields/table/778592/', { headers }).then(r => r.json());
-  msgFields.forEach(f => console.log(`• ${f.name}: ${f.type}`));
-  
-  console.log('\n=== Sample Data Test ===');
-  const sampleData = await fetch('https://api.baserow.io/api/database/rows/table/778592/?user_field_names=true&size=1', { headers }).then(r => r.json());
-  if (sampleData.results?.[0]) {
-    console.log('Sample row keys:', Object.keys(sampleData.results[0]));
-  }
-}
+    <script>
+        // ================= CONFIGURATION =================
+        const BASEROW_CONFIG = {
+            // Replace with your actual Baserow details
+            TOKEN: "jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw",
+            BASE_URL: "https://api.baserow.io/api",
+            DATABASE_ID: "340628",
+            ROOMS_TABLE_ID: "778590",  // Your Rooms table ID
+            MESSAGES_TABLE_ID: "778592" // Your Messages table ID
+        };
 
-checkTables().catch(console.error);
-</script>
+        // ================= STATE =================
+        let state = {
+            currentUser: null,
+            encryptionKey: null,
+            currentRoom: null,
+            rooms: [],
+            users: new Set(),
+            isEncrypted: false,
+            screenshotBlocked: false
+        };
+
+        // ================= SECURITY FEATURES =================
+        // Screenshot blocking (best-effort)
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'PrintScreen' || e.key === 's' || e.key === 'p')) {
+                e.preventDefault();
+                showScreenshotBlocker();
+            }
+        });
+
+        // Prevent right-click
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            showScreenshotBlocker();
+        });
+
+        // Prevent drag/drop
+        document.addEventListener('dragstart', (e) => e.preventDefault());
+        document.addEventListener('drop', (e) => e.preventDefault());
+
+        function showScreenshotBlocker() {
+            const blocker = document.getElementById('screenshotBlocker');
+            blocker.classList.add('show');
+            setTimeout(() => {
+                blocker.classList.remove('show');
+            }, 2000);
+        }
+
+        // ================= ENCRYPTION FUNCTIONS =================
+        async function deriveKey(password, salt) {
+            const encoder = new TextEncoder();
+            const keyMaterial = await window.crypto.subtle.importKey(
+                "raw",
+                encoder.encode(password),
+                { name: "PBKDF2" },
+                false,
+                ["deriveKey"]
+            );
+
+            return await window.crypto.subtle.deriveKey(
+                {
+                    name: "PBKDF2",
+                    salt: encoder.encode(salt),
+                    iterations: 100000,
+                    hash: "SHA-256"
+                },
+                keyMaterial,
+                { name: "AES-CBC", length: 256 },
+                false,
+                ["encrypt", "decrypt"]
+            );
+        }
+
+        async function encryptMessage(text) {
+            if (!state.encryptionKey) throw new Error("No encryption key");
+            
+            const iv = window.crypto.getRandomValues(new Uint8Array(16));
+            const encoder = new TextEncoder();
+            const data = encoder.encode(text);
+            
+            const encrypted = await window.crypto.subtle.encrypt(
+                { name: "AES-CBC", iv },
+                state.encryptionKey,
+                data
+            );
+            
+            return {
+                cipher: btoa(String.fromCharCode(...new Uint8Array(encrypted))),
+                iv: btoa(String.fromCharCode(...iv))
+            };
+        }
+
+        async function decryptMessage(cipherBase64, ivBase64) {
+            if (!state.encryptionKey) throw new Error("No encryption key");
+            
+            const cipher = Uint8Array.from(atob(cipherBase64), c => c.charCodeAt(0));
+            const iv = Uint8Array.from(atob(ivBase64), c => c.charCodeAt(0));
+            
+            const decrypted = await window.crypto.subtle.decrypt(
+                { name: "AES-CBC", iv },
+                state.encryptionKey,
+                cipher
+            );
+            
+            return new TextDecoder().decode(decrypted);
+        }
+
+        // ================= BASEROW API FUNCTIONS =================
+        async function baserowRequest(endpoint, method = 'GET', data = null) {
+            const headers = {
+                'Authorization': `Token ${BASEROW_CONFIG.TOKEN}`,
+                'Content-Type': 'application/json'
+            };
+
+            const options = {
+                method,
+                headers,
+                body: data ? JSON.stringify(data) : null
+            };
+
+            try {
+                const response = await fetch(`${BASEROW_CONFIG.BASE_URL}${endpoint}`, options);
+                if (!response.ok) throw new Error(`Baserow API error: ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                console.error('Baserow request failed:', error);
+                throw error;
+            }
+        }
+
+        async function loadRooms() {
+            try {
+                const data = await baserowRequest(`/database/rows/table/${BASEROW_CONFIG.ROOMS_TABLE_ID}/?user_field_names=true`);
+                state.rooms = data.results || [];
+                displayRooms();
+            } catch (error) {
+                console.error('Failed to load rooms:', error);
+            }
+        }
+
+        async function createRoom() {
+            const roomName = document.getElementById('newRoomName').value;
+            if (!roomName) return;
+
+            try {
+                const data = await baserowRequest(
+                    `/database/rows/table/${BASEROW_CONFIG.ROOMS_TABLE_ID}/?user_field_names=true`,
+                    'POST',
+                    { room_name: roomName }
+                );
+                
+                state.rooms.push(data);
+                displayRooms();
+                document.getElementById('newRoomName').value = '';
+                
+                // Join the new room
+                joinRoom(data.room_id, data.room_name);
+            } catch (error) {
+                console.error('Failed to create room:', error);
+                alert('Failed to create room. Check your Baserow configuration.');
+            }
+        }
+
+        async function loadMessages() {
+            if (!state.currentRoom) return;
+
+            try {
+                const data = await baserowRequest(
+                    `/database/rows/table/${BASEROW_CONFIG.MESSAGES_TABLE_ID}/?user_field_names=true&filters={"room":"${state.currentRoom}"}&order_by="-created_at"&size=50`
+                );
+                
+                const messagesContainer = document.getElementById('messagesContainer');
+                messagesContainer.innerHTML = '';
+                
+                // Add welcome message
+                addMessageToUI('System', 'Welcome to encrypted chat! All messages are encrypted before sending to Baserow.', 'received', true);
+                
+                // Decrypt and display messages
+                for (const message of (data.results || []).reverse()) {
+                    try {
+                        const decrypted = await decryptMessage(message.cipher, message.iv);
+                        const isSent = message.user === state.currentUser;
+                        addMessageToUI(message.user, decrypted, isSent ? 'sent' : 'received', true);
+                    } catch (error) {
+                        console.error('Failed to decrypt message:', error);
+                        addMessageToUI('System', `[Encrypted message - decryption failed]`, 'received', true);
+                    }
+                }
+                
+                scrollToBottom();
+            } catch (error) {
+                console.error('Failed to load messages:', error);
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            if (!message || !state.currentRoom || !state.currentUser) return;
+
+            try {
+                // Encrypt the message
+                const encrypted = await encryptMessage(message);
+                
+                // Prepare data for Baserow
+                const rowData = {
+                    room: state.currentRoom,
+                    user: state.currentUser,
+                    type: "text",
+                    cipher: encrypted.cipher,
+                    iv: encrypted.iv
+                };
+
+                // Send to Baserow
+                await baserowRequest(
+                    `/database/rows/table/${BASEROW_CONFIG.MESSAGES_TABLE_ID}/?user_field_names=true`,
+                    'POST',
+                    rowData
+                );
+
+                // Add to UI
+                addMessageToUI(state.currentUser, message, 'sent');
+                input.value = '';
+                scrollToBottom();
+            } catch (error) {
+                console.error('Failed to send message:', error);
+                alert('Failed to send message. Check your encryption key and connection.');
+            }
+        }
+
+        // ================= UI FUNCTIONS =================
+        async function login() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                alert('Please enter both username and password');
+                return;
+            }
+
+            try {
+                // Derive encryption key from password
+                const salt = `securechat-${username}-${state.currentRoom || 'general'}`;
+                state.encryptionKey = await deriveKey(password, salt);
+                state.currentUser = username;
+                state.isEncrypted = true;
+
+                // Update UI
+                document.getElementById('authSection').style.display = 'none';
+                document.getElementById('roomsSection').style.display = 'block';
+                document.getElementById('usersSection').style.display = 'block';
+                document.getElementById('cryptoSection').style.display = 'block';
+                document.getElementById('chatArea').style.display = 'flex';
+                document.getElementById('keyStatus').style.display = 'block';
+                document.getElementById('keyStatus').className = 'key-status good';
+                document.getElementById('keyStatus').innerHTML = `
+                    <i class="fas fa-check-circle"></i>
+                    <span>Encryption key loaded in memory</span>
+                `;
+
+                // Load rooms
+                await loadRooms();
+                
+                // Join default room
+                joinRoom('general', 'General Chat');
+                
+                // Add user to online list
+                state.users.add(username);
+                updateUserList();
+                
+                // Start polling for new messages
+                setInterval(loadMessages, 5000);
+                
+            } catch (error) {
+                console.error('Login failed:', error);
+                alert('Failed to initialize encryption. Please try again.');
+            }
+        }
+
+        function joinRoom(roomId, roomName) {
+            state.currentRoom = roomId;
+            document.getElementById('currentRoom').textContent = roomName;
+            document.getElementById('roomStatus').textContent = `End-to-end encrypted room - ${roomName}`;
+            
+            // Update room list UI
+            document.querySelectorAll('.room-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.roomId === roomId) {
+                    item.classList.add('active');
+                }
+            });
+            
+            // Load messages for this room
+            loadMessages();
+        }
+
+        function addMessageToUI(sender, content, type, isSystem = false) {
+            const messagesContainer = document.getElementById('messagesContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <span class="sender">${isSystem ? 'System' : sender}</span>
+                    <span class="time">${time}</span>
+                </div>
+                <div class="message-content">${escapeHtml(content)}</div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+        }
+
+        function displayRooms() {
+            const roomList = document.getElementById('roomList');
+            roomList.innerHTML = '';
+            
+            // Add default room
+            const defaultRoom = document.createElement('div');
+            defaultRoom.className = `room-item ${state.currentRoom === 'general' ? 'active' : ''}`;
+            defaultRoom.dataset.roomId = 'general';
+            defaultRoom.innerHTML = `<i class="fas fa-hashtag"></i> General Chat`;
+            defaultRoom.onclick = () => joinRoom('general', 'General Chat');
+            roomList.appendChild(defaultRoom);
+            
+            // Add rooms from Baserow
+            state.rooms.forEach(room => {
+                const roomItem = document.createElement('div');
+                roomItem.className = `room-item ${state.currentRoom === room.room_id ? 'active' : ''}`;
+                roomItem.dataset.roomId = room.room_id;
+                roomItem.innerHTML = `<i class="fas fa-door-closed"></i> ${escapeHtml(room.room_name)}`;
+                roomItem.onclick = () => joinRoom(room.room_id, room.room_name);
+                roomList.appendChild(roomItem);
+            });
+        }
+
+        function updateUserList() {
+            const userList = document.getElementById('userList');
+            userList.innerHTML = '';
+            
+            state.users.forEach(username => {
+                const userItem = document.createElement('div');
+                userItem.className = 'user-item';
+                userItem.innerHTML = `
+                    <div class="user-avatar">${username.charAt(0).toUpperCase()}</div>
+                    <div>${escapeHtml(username)}</div>
+                    ${username === state.currentUser ? '<span style="font-size: 0.8em; opacity: 0.7;">(You)</span>' : ''}
+                `;
+                userList.appendChild(userItem);
+            });
+        }
+
+        function logout() {
+            // Clear all sensitive data from memory
+            state.encryptionKey = null;
+            state.currentUser = null;
+            state.isEncrypted = false;
+            
+            // Clear password field
+            document.getElementById('password').value = '';
+            
+            // Reset UI
+            document.getElementById('authSection').style.display = 'block';
+            document.getElementById('roomsSection').style.display = 'none';
+            document.getElementById('usersSection').style.display = 'none';
+            document.getElementById('cryptoSection').style.display = 'none';
+            document.getElementById('chatArea').style.display = 'none';
+            document.getElementById('keyStatus').className = 'key-status warning';
+            document.getElementById('keyStatus').innerHTML = `
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>No encryption key loaded</span>
+            `;
+            
+            // Clear messages
+            document.getElementById('messagesContainer').innerHTML = `
+                <div class="message received">
+                    <div class="message-header">
+                        <span class="sender">System</span>
+                        <span class="time">Just now</span>
+                    </div>
+                    <div class="message-content">Welcome to encrypted chat! All messages are encrypted before sending to Baserow.</div>
+                </div>
+            `;
+            
+            alert('Encryption keys cleared from memory. Re-login required.');
+        }
+
+        function clearChat() {
+            if (confirm('Clear all messages from this view?')) {
+                const messagesContainer = document.getElementById('messagesContainer');
+                messagesContainer.innerHTML = `
+                    <div class="message received">
+                        <div class="message-header">
+                            <span class="sender">System</span>
+                            <span class="time">Just now</span>
+                        </div>
+                        <div class="message-content">Chat cleared. Loading messages from Baserow...</div>
+                    </div>
+                `;
+                loadMessages();
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('messagesContainer');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ================= INITIALIZATION =================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check for Web Crypto API
+            if (!window.crypto || !window.crypto.subtle) {
+                alert('Web Crypto API not supported. Please use a modern browser.');
+                return;
+            }
+            
+            // Set up event listeners
+            document.getElementById('password').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') login();
+            });
+            
+            // Initial UI state
+            document.getElementById('keyStatus').innerHTML = `
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Enter password to load encryption key</span>
+            `;
+            
+            console.log('🔐 Secure Chat initialized');
+            console.log('⚠️  REMEMBER: Replace BASEROW_CONFIG values with your actual Baserow credentials');
+        });
+    </script>
 </body>
 </html>
+
