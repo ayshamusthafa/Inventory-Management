@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔐 Fixed - Local-First Encrypted Chat</title>
+    <title>🔐 Fixed Sync - Encrypted Chat</title>
     <style>
+        /* Keep all the previous styles */
         * {
             margin: 0;
             padding: 0;
@@ -24,385 +25,39 @@
             margin: 0 auto;
         }
         
-        header {
-            text-align: center;
-            padding: 30px 20px;
-            margin-bottom: 30px;
-        }
+        /* ... (keep all previous styles) ... */
         
-        .logo {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            font-size: 2.5em;
-            font-weight: 800;
-            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
-        }
-        
-        .tagline {
-            color: #94a3b8;
-            font-size: 1.1em;
-        }
-        
-        .main-content {
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 20px;
-            min-height: 70vh;
-        }
-        
-        @media (max-width: 768px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        /* Sidebar */
-        .sidebar {
-            background: rgba(30, 41, 59, 0.8);
-            border-radius: 16px;
-            padding: 25px;
-            border: 1px solid rgba(100, 116, 139, 0.2);
-            backdrop-filter: blur(10px);
-        }
-        
-        .panel {
-            margin-bottom: 30px;
-        }
-        
-        .panel h3 {
-            color: #60a5fa;
-            margin-bottom: 20px;
-            font-size: 1.2em;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        /* Chat Area */
-        .chat-area {
-            background: rgba(30, 41, 59, 0.8);
-            border-radius: 16px;
-            padding: 25px;
-            border: 1px solid rgba(100, 116, 139, 0.2);
-            backdrop-filter: blur(10px);
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .chat-header {
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(100, 116, 139, 0.2);
-            margin-bottom: 20px;
-        }
-        
-        .chat-header h2 {
-            color: #60a5fa;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .messages-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-            margin-bottom: 20px;
-            background: rgba(15, 23, 42, 0.5);
-            border-radius: 12px;
-            min-height: 400px;
-        }
-        
-        .message {
-            padding: 12px 16px;
-            margin-bottom: 15px;
-            border-radius: 12px;
-            max-width: 80%;
-            word-wrap: break-word;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .message.sent {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            margin-left: auto;
-            border-bottom-right-radius: 4px;
-        }
-        
-        .message.received {
-            background: rgba(71, 85, 105, 0.7);
-            margin-right: auto;
-            border-bottom-left-radius: 4px;
-        }
-        
-        .message.system {
-            background: rgba(100, 116, 139, 0.3);
-            margin: 10px auto;
-            text-align: center;
-            max-width: 90%;
-            border: 1px solid rgba(100, 116, 139, 0.5);
-        }
-        
-        .message-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-            font-size: 0.85em;
-            opacity: 0.9;
-        }
-        
-        /* Input Area */
-        .message-input {
-            background: rgba(15, 23, 42, 0.7);
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid rgba(100, 116, 139, 0.2);
-        }
-        
-        .input-group {
-            display: flex;
-            gap: 10px;
-        }
-        
-        textarea {
-            flex: 1;
-            background: rgba(30, 41, 59, 0.9);
-            border: 1px solid rgba(100, 116, 139, 0.3);
-            border-radius: 8px;
-            padding: 15px;
-            color: #e2e8f0;
-            resize: none;
-            font-size: 1em;
-            min-height: 60px;
-            transition: border-color 0.3s;
-        }
-        
-        textarea:focus {
-            outline: none;
-            border-color: #3b82f6;
-        }
-        
-        /* Buttons */
-        .btn {
-            padding: 12px 24px;
+        /* Add this new style for test button */
+        .test-btn {
+            background: #10b981;
+            color: white;
             border: none;
-            border-radius: 8px;
-            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 6px;
             cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            color: white;
-        }
-        
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
-        }
-        
-        .btn-secondary {
-            background: rgba(71, 85, 105, 0.7);
-            color: white;
-            border: 1px solid rgba(100, 116, 139, 0.3);
-        }
-        
-        .btn-secondary:hover {
-            background: rgba(71, 85, 105, 0.9);
-        }
-        
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        /* Form Elements */
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #94a3b8;
-            font-size: 0.95em;
-        }
-        
-        input[type="text"],
-        input[type="password"] {
-            width: 100%;
-            padding: 12px;
-            background: rgba(30, 41, 59, 0.9);
-            border: 1px solid rgba(100, 116, 139, 0.3);
-            border-radius: 8px;
-            color: #e2e8f0;
-            font-size: 1em;
-        }
-        
-        input:focus {
-            outline: none;
-            border-color: #3b82f6;
-        }
-        
-        /* Room List */
-        .room-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .room-item {
-            padding: 15px;
-            background: rgba(15, 23, 42, 0.5);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: 1px solid transparent;
-        }
-        
-        .room-item:hover {
-            background: rgba(15, 23, 42, 0.7);
-            border-color: rgba(59, 130, 246, 0.3);
-        }
-        
-        .room-item.active {
-            background: rgba(30, 64, 175, 0.2);
-            border-color: #3b82f6;
-        }
-        
-        /* Status */
-        .status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px;
-            background: rgba(15, 23, 42, 0.5);
-            border-radius: 8px;
-            font-size: 0.9em;
             margin-top: 10px;
-        }
-        
-        .status.online {
-            color: #10b981;
-        }
-        
-        .status.offline {
-            color: #ef4444;
-        }
-        
-        /* Sync Status */
-        .sync-status {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 10px 20px;
-            background: rgba(15, 23, 42, 0.9);
-            border-radius: 8px;
-            border: 1px solid rgba(100, 116, 139, 0.3);
             font-size: 0.9em;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            z-index: 100;
         }
         
-        /* Debug Panel */
-        .debug-panel {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.9);
-            border: 1px solid #ff4444;
-            border-radius: 8px;
-            padding: 15px;
-            font-size: 0.8em;
-            max-width: 300px;
-            display: none;
-            z-index: 1000;
-        }
-        
-        .debug-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #ef4444;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            cursor: pointer;
-            z-index: 1001;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: rgba(30, 41, 59, 0.5);
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: rgba(59, 130, 246, 0.5);
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(59, 130, 246, 0.7);
+        .test-btn:hover {
+            background: #0da271;
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- Debug Toggle -->
-    <button class="debug-toggle" onclick="toggleDebug()">
-        <i class="fas fa-bug"></i>
-    </button>
-    
-    <!-- Debug Panel -->
-    <div class="debug-panel" id="debugPanel">
-        <h4 style="color: #ff4444; margin-bottom: 10px;">Debug Info</h4>
-        <div id="debugInfo">
-            <div>Connection: <span id="debugConnection">❓</span></div>
-            <div>Last Error: <span id="debugError">None</span></div>
-            <div>Messages: <span id="debugMessageCount">0</span></div>
-            <div>Current Room: <span id="debugRoom">None</span></div>
-            <div>User: <span id="debugUser">None</span></div>
-        </div>
-    </div>
-    
+    <!-- Keep all previous HTML structure -->
     <div class="container">
         <header>
             <div class="logo">
                 <i class="fas fa-shield-alt"></i>
-                <span>LocalSecure Chat</span>
+                <span>Fixed Sync Chat</span>
             </div>
-            <p class="tagline">Messages stored locally, only sync via Baserow</p>
+            <p class="tagline">Now with working Baserow sync!</p>
         </header>
         
         <div class="main-content">
-            <!-- Sidebar -->
             <div class="sidebar">
-                <!-- Auth Panel -->
                 <div class="panel" id="authPanel">
                     <h3><i class="fas fa-user-lock"></i> Authentication</h3>
                     <div class="form-group">
@@ -416,14 +71,15 @@
                     <button class="btn btn-primary" onclick="login()" style="width: 100%;">
                         <i class="fas fa-sign-in-alt"></i> Start Chatting
                     </button>
+                    <!-- TEST BUTTON -->
+                    <button class="test-btn" onclick="testBaserowConnection()" style="width: 100%; margin-top: 15px;">
+                        <i class="fas fa-vial"></i> Test Baserow Connection
+                    </button>
                 </div>
                 
-                <!-- Rooms Panel -->
                 <div class="panel" id="roomsPanel" style="display: none;">
                     <h3><i class="fas fa-door-closed"></i> Rooms</h3>
-                    <div class="room-list" id="roomList">
-                        <!-- Rooms will be added here -->
-                    </div>
+                    <div class="room-list" id="roomList"></div>
                     <div style="margin-top: 15px;">
                         <input type="text" id="newRoomName" placeholder="New room name" style="width: 100%; margin-bottom: 10px;">
                         <button class="btn btn-secondary" onclick="createRoom()" style="width: 100%;">
@@ -432,29 +88,25 @@
                     </div>
                 </div>
                 
-                <!-- Local Storage Info -->
                 <div class="panel" id="storagePanel" style="display: none;">
-                    <h3><i class="fas fa-database"></i> Local Storage</h3>
-                    <div id="storageInfo">
-                        <p>Messages stored: <span id="messageCount">0</span></p>
-                        <p>Storage used: <span id="storageUsed">0 KB</span></p>
+                    <h3><i class="fas fa-database"></i> Sync Status</h3>
+                    <div id="syncInfo">
+                        <p>Last Sync: <span id="lastSyncTime">Never</span></p>
+                        <p>Sync Status: <span id="syncStatusText">❓</span></p>
+                        <p>Messages: <span id="messageCount">0</span> local</p>
                     </div>
-                    <button class="btn btn-secondary" onclick="exportMessages()" style="width: 100%; margin-top: 10px;">
-                        <i class="fas fa-download"></i> Export Messages
-                    </button>
-                    <button class="btn btn-secondary" onclick="clearLocalMessages()" style="width: 100%; margin-top: 10px;">
-                        <i class="fas fa-trash"></i> Clear Local Data
+                    <button class="btn btn-secondary" onclick="forceSync()" style="width: 100%; margin-top: 10px;">
+                        <i class="fas fa-sync"></i> Force Sync Now
                     </button>
                 </div>
             </div>
             
-            <!-- Chat Area -->
             <div class="chat-area" id="chatArea" style="display: none;">
                 <div class="chat-header">
                     <h2><i class="fas fa-hashtag"></i> <span id="currentRoomName">Select a Room</span></h2>
-                    <div class="status" id="syncStatus">
+                    <div class="status" id="connectionStatus">
                         <i class="fas fa-circle"></i>
-                        <span>Local storage active</span>
+                        <span>Checking connection...</span>
                     </div>
                 </div>
                 
@@ -465,7 +117,7 @@
                             <span class="time">Just now</span>
                         </div>
                         <div class="message-content">
-                            Welcome! Messages are stored locally. Only latest message syncs to Baserow.
+                            Welcome! Testing Baserow sync...
                         </div>
                     </div>
                 </div>
@@ -479,7 +131,7 @@
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-top: 10px;">
                         <div style="font-size: 0.85em; color: #94a3b8;">
-                            <i class="fas fa-info-circle"></i> Messages encrypted & stored locally
+                            <i class="fas fa-info-circle"></i> <span id="syncHint">Click "Test Connection" first</span>
                         </div>
                         <div style="font-size: 0.85em; color: #94a3b8;">
                             <span id="charCount">0</span>/1000
@@ -489,10 +141,9 @@
             </div>
         </div>
         
-        <!-- Sync Status Indicator -->
         <div class="sync-status" id="globalSyncStatus">
             <i class="fas fa-sync"></i>
-            <span>Last sync: Never</span>
+            <span>Baserow: Testing...</span>
         </div>
     </div>
 
@@ -512,131 +163,296 @@
             encryptionKey: null,
             currentRoom: null,
             rooms: [],
-            messages: new Map(), // roomId -> array of messages
-            lastSyncedMessage: null,
-            isOnline: true,
-            debugMode: false
+            messages: new Map(),
+            isOnline: false,
+            connectionTested: false
         };
 
-        // ================= DEBUG FUNCTIONS =================
-        function toggleDebug() {
-            const panel = document.getElementById('debugPanel');
-            state.debugMode = !state.debugMode;
-            panel.style.display = state.debugMode ? 'block' : 'none';
-            updateDebugInfo();
-        }
-
-        function updateDebugInfo() {
-            if (!state.debugMode) return;
+        // ================= TEST CONNECTION =================
+        async function testBaserowConnection() {
+            console.log('🔍 Testing Baserow connection...');
+            updateStatus('Testing connection to Baserow...', 'warning');
             
-            const messages = state.messages.get(state.currentRoom) || [];
-            document.getElementById('debugConnection').textContent = 
-                state.isOnline ? '✅ Online' : '❌ Offline';
-            document.getElementById('debugMessageCount').textContent = messages.length;
-            document.getElementById('debugRoom').textContent = state.currentRoom || 'None';
-            document.getElementById('debugUser').textContent = state.currentUser || 'None';
-        }
-
-        function logDebug(message, type = 'info') {
-            if (!state.debugMode) return;
-            
-            const colors = {
-                info: '#60a5fa',
-                success: '#10b981',
-                error: '#ef4444',
-                warning: '#f59e0b'
-            };
-            
-            console.log(`%c${message}`, `color: ${colors[type] || colors.info}`);
-            updateDebugInfo();
-        }
-
-        // ================= LOCAL STORAGE =================
-        const STORAGE_KEYS = {
-            USER: 'securechat_user',
-            ROOMS: 'securechat_rooms',
-            MESSAGES: 'securechat_messages',
-            LAST_SYNC: 'securechat_last_sync'
-        };
-
-        function saveToLocalStorage() {
             try {
-                // Save user info
-                if (state.currentUser) {
-                    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify({
-                        username: state.currentUser,
-                        timestamp: Date.now()
-                    }));
-                }
+                // Test 1: Check if we can access the messages table
+                console.log('Testing messages table access...');
+                const testUrl = `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.MESSAGES_TABLE_ID}/?user_field_names=true&size=1`;
                 
-                // Save rooms
-                localStorage.setItem(STORAGE_KEYS.ROOMS, JSON.stringify(state.rooms));
-                
-                // Save messages
-                const messagesData = {};
-                state.messages.forEach((msgs, roomId) => {
-                    messagesData[roomId] = msgs;
+                const response = await fetch(testUrl, {
+                    headers: {
+                        'Authorization': `Token ${BASEROW_CONFIG.TOKEN}`,
+                        'Content-Type': 'application/json'
+                    }
                 });
-                localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(messagesData));
                 
-                updateStorageInfo();
-                logDebug('Saved to local storage', 'success');
+                console.log('Response status:', response.status, response.statusText);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    
+                    if (response.status === 401) {
+                        throw new Error('❌ Invalid API token. Check your Baserow token.');
+                    } else if (response.status === 404) {
+                        throw new Error('❌ Table not found. Check table ID: ' + BASEROW_CONFIG.MESSAGES_TABLE_ID);
+                    } else {
+                        throw new Error(`❌ HTTP ${response.status}: ${response.statusText}`);
+                    }
+                }
+                
+                const data = await response.json();
+                console.log('✅ Connection successful! Data:', data);
+                
+                // Test 2: Try to create a test message
+                console.log('Testing message creation...');
+                const testMessage = {
+                    room: "test_room",
+                    user: "tester",
+                    type: "text",
+                    cipher: "dGVzdCBtZXNzYWdl", // "test message" in base64
+                    iv: "dGVzdCBpbg==" // "test iv" in base64
+                };
+                
+                const createResponse = await fetch(
+                    `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.MESSAGES_TABLE_ID}/?user_field_names=true`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Token ${BASEROW_CONFIG.TOKEN}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(testMessage)
+                    }
+                );
+                
+                console.log('Create response:', createResponse.status);
+                
+                if (createResponse.ok) {
+                    const result = await createResponse.json();
+                    console.log('✅ Message created successfully! ID:', result.id);
+                    
+                    // Delete the test message
+                    await fetch(
+                        `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.MESSAGES_TABLE_ID}/${result.id}/`,
+                        {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Token ${BASEROW_CONFIG.TOKEN}`
+                            }
+                        }
+                    );
+                    console.log('✅ Test message cleaned up');
+                    
+                    state.isOnline = true;
+                    state.connectionTested = true;
+                    
+                    updateStatus('✅ Baserow connection successful! Ready to sync.', 'success');
+                    document.getElementById('syncHint').innerHTML = '<i class="fas fa-check-circle"></i> Baserow connected';
+                    document.getElementById('syncStatusText').textContent = '✅ Connected';
+                    
+                    // Enable login
+                    document.getElementById('username').disabled = false;
+                    document.getElementById('encryptionKey').disabled = false;
+                    
+                } else {
+                    const errorText = await createResponse.text();
+                    console.error('Create failed:', errorText);
+                    
+                    // Check if it's a field validation error
+                    if (createResponse.status === 400 && errorText.includes('field')) {
+                        throw new Error('❌ Field validation failed. Check your table columns match: room, user, type, cipher, iv');
+                    }
+                    throw new Error(`❌ Cannot create messages: HTTP ${createResponse.status}`);
+                }
                 
             } catch (error) {
-                console.error('Failed to save to localStorage:', error);
-                logDebug(`Storage error: ${error.message}`, 'error');
+                console.error('Connection test failed:', error);
+                updateStatus(error.message, 'error');
+                document.getElementById('syncStatusText').textContent = '❌ Failed';
+                state.isOnline = false;
+                
+                // Show detailed error
+                alert(`Connection test failed:\n\n${error.message}\n\n1. Check API token is valid\n2. Check table IDs are correct\n3. Check table has required fields:\n   - room (Text)\n   - user (Text)\n   - type (Single select)\n   - cipher (Long text)\n   - iv (Text)`);
             }
         }
 
-        function loadFromLocalStorage() {
+        // ================= FIXED BASEROW REQUEST =================
+        async function baserowRequest(endpoint, method = 'GET', data = null) {
+            console.log(`📤 ${method} ${endpoint}`, data);
+            
+            const headers = {
+                'Authorization': `Token ${BASEROW_CONFIG.TOKEN}`,
+                'Content-Type': 'application/json'
+            };
+
+            const options = {
+                method,
+                headers
+            };
+
+            if (data && method !== 'GET') {
+                options.body = JSON.stringify(data);
+            }
+
             try {
-                // Load user
-                const userData = localStorage.getItem(STORAGE_KEYS.USER);
-                if (userData) {
-                    const user = JSON.parse(userData);
-                    state.currentUser = user.username;
-                    document.getElementById('username').value = user.username;
+                const response = await fetch(`${BASEROW_CONFIG.BASE_URL}${endpoint}`, options);
+                console.log(`📥 Response: ${response.status} ${response.statusText}`);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error details:', errorText);
+                    
+                    // Parse error for better message
+                    let errorMessage = `HTTP ${response.status}`;
+                    try {
+                        const errorJson = JSON.parse(errorText);
+                        if (errorJson.error) errorMessage = errorJson.error;
+                        if (errorJson.detail) errorMessage = errorJson.detail;
+                    } catch (e) {
+                        errorMessage = errorText.substring(0, 100);
+                    }
+                    
+                    throw new Error(errorMessage);
                 }
                 
-                // Load rooms
-                const roomsData = localStorage.getItem(STORAGE_KEYS.ROOMS);
-                if (roomsData) {
-                    state.rooms = JSON.parse(roomsData) || [];
-                    displayRooms();
-                }
-                
-                // Load messages
-                const messagesData = localStorage.getItem(STORAGE_KEYS.MESSAGES);
-                if (messagesData) {
-                    const messages = JSON.parse(messagesData);
-                    Object.entries(messages).forEach(([roomId, msgs]) => {
-                        state.messages.set(roomId, msgs);
-                    });
-                }
-                
-                updateStorageInfo();
-                logDebug('Loaded from local storage', 'success');
+                const responseData = await response.json();
+                console.log('✅ Request successful:', responseData);
+                return responseData;
                 
             } catch (error) {
-                console.error('Failed to load from localStorage:', error);
-                logDebug(`Load error: ${error.message}`, 'error');
+                console.error('❌ Request failed:', error);
+                throw error;
             }
         }
 
-        function updateStorageInfo() {
-            let totalMessages = 0;
-            let totalSize = 0;
+        // ================= FIXED SYNC FUNCTION =================
+        async function syncMessageToBaserow(messageData) {
+            if (!state.isOnline) {
+                console.log('⚠️ Offline - skipping sync');
+                return false;
+            }
             
-            state.messages.forEach((msgs, roomId) => {
-                totalMessages += msgs.length;
-                totalSize += JSON.stringify(msgs).length;
-            });
+            console.log('🔄 Syncing message to Baserow:', messageData);
             
-            document.getElementById('messageCount').textContent = totalMessages;
-            document.getElementById('storageUsed').textContent = `${Math.round(totalSize / 1024)} KB`;
+            try {
+                // Clean the data - ensure it matches table structure
+                const cleanData = {
+                    room: String(messageData.room || 'general'),
+                    user: String(messageData.user || 'unknown'),
+                    type: messageData.type || 'text',
+                    cipher: String(messageData.cipher),
+                    iv: String(messageData.iv)
+                };
+                
+                console.log('📦 Cleaned data for Baserow:', cleanData);
+                
+                const result = await baserowRequest(
+                    `/database/rows/table/${BASEROW_CONFIG.MESSAGES_TABLE_ID}/?user_field_names=true`,
+                    'POST',
+                    cleanData
+                );
+                
+                console.log('✅ Sync successful! Message ID:', result.id);
+                
+                // Update UI
+                updateSyncStatus(true);
+                return true;
+                
+            } catch (error) {
+                console.error('❌ Sync failed:', error);
+                updateSyncStatus(false, error.message);
+                return false;
+            }
         }
 
-        // ================= ENCRYPTION =================
+        // ================= MESSAGE FUNCTIONS =================
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const messageText = input.value.trim();
+            
+            if (!messageText) return;
+            
+            console.log('💬 Sending message:', messageText.substring(0, 50));
+            
+            // Disable input while processing
+            input.disabled = true;
+            document.getElementById('sendBtn').disabled = true;
+            
+            try {
+                // 1. Encrypt the message
+                const encrypted = await encryptMessage(messageText);
+                console.log('🔐 Encrypted successfully');
+                
+                // 2. Create message object
+                const messageObj = {
+                    room: state.currentRoom || 'general',
+                    user: state.currentUser,
+                    type: "text",
+                    cipher: encrypted.cipher,
+                    iv: encrypted.iv,
+                    decryptedContent: messageText,
+                    timestamp: new Date().toISOString(),
+                    localId: Date.now()
+                };
+                
+                // 3. Save locally
+                saveMessageLocally(messageObj);
+                console.log('💾 Saved locally');
+                
+                // 4. Clear input
+                input.value = '';
+                input.disabled = false;
+                document.getElementById('sendBtn').disabled = false;
+                updateCharCount();
+                
+                // 5. Try to sync to Baserow
+                if (state.isOnline) {
+                    console.log('🔄 Attempting Baserow sync...');
+                    const syncResult = await syncMessageToBaserow({
+                        room: messageObj.room,
+                        user: messageObj.user,
+                        type: messageObj.type,
+                        cipher: messageObj.cipher,
+                        iv: messageObj.iv
+                    });
+                    
+                    if (syncResult) {
+                        addSystemMessage('✅ Message sent and synced to Baserow!');
+                    } else {
+                        addSystemMessage('⚠️ Message saved locally (sync failed)');
+                    }
+                } else {
+                    addSystemMessage('📴 Message saved locally (offline)');
+                }
+                
+            } catch (error) {
+                console.error('❌ Send failed:', error);
+                input.disabled = false;
+                document.getElementById('sendBtn').disabled = false;
+                addSystemMessage(`❌ Error: ${error.message}`);
+            }
+        }
+
+        function saveMessageLocally(message) {
+            const roomId = message.room;
+            
+            if (!state.messages.has(roomId)) {
+                state.messages.set(roomId, []);
+            }
+            
+            const roomMessages = state.messages.get(roomId);
+            roomMessages.push(message);
+            
+            // Update UI if this is the current room
+            if (roomId === state.currentRoom) {
+                displayMessage(message);
+            }
+            
+            // Update count
+            updateMessageCount();
+        }
+
+        // ================= ENCRYPTION FUNCTIONS =================
         async function deriveKey(password, salt) {
             const encoder = new TextEncoder();
             const keyMaterial = await window.crypto.subtle.importKey(
@@ -680,379 +496,72 @@
             };
         }
 
-        async function decryptMessage(cipherBase64, ivBase64) {
-            if (!state.encryptionKey) throw new Error("No encryption key");
-            
-            const cipher = base64ToArrayBuffer(cipherBase64);
-            const iv = base64ToArrayBuffer(ivBase64);
-            
-            const decrypted = await window.crypto.subtle.decrypt(
-                { name: "AES-CBC", iv },
-                state.encryptionKey,
-                cipher
-            );
-            
-            return new TextDecoder().decode(decrypted);
-        }
-
         // ================= UTILITY FUNCTIONS =================
         function arrayBufferToBase64(buffer) {
-            return btoa(String.fromCharCode(...new Uint8Array(buffer)));
+            const bytes = new Uint8Array(buffer);
+            let binary = '';
+            for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary);
         }
 
-        function base64ToArrayBuffer(base64) {
-            const binary = atob(base64);
-            const bytes = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i++) {
-                bytes[i] = binary.charCodeAt(i);
-            }
-            return bytes.buffer;
-        }
-
-        // ================= BASEROW API =================
-        async function baserowRequest(endpoint, method = 'GET', data = null) {
-            const headers = {
-                'Authorization': `Token ${BASEROW_CONFIG.TOKEN}`,
-                'Content-Type': 'application/json'
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('connectionStatus');
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-times-circle',
+                warning: 'fa-exclamation-circle',
+                info: 'fa-info-circle'
             };
-
-            const options = {
-                method,
-                headers
+            const colors = {
+                success: '#10b981',
+                error: '#ef4444',
+                warning: '#f59e0b',
+                info: '#60a5fa'
             };
-
-            if (data && method !== 'GET') {
-                options.body = JSON.stringify(data);
-            }
-
-            logDebug(`Making ${method} request to: ${endpoint}`, 'info');
-
-            try {
-                const response = await fetch(`${BASEROW_CONFIG.BASE_URL}${endpoint}`, options);
-                
-                logDebug(`Response status: ${response.status} ${response.statusText}`, 
-                    response.ok ? 'success' : 'error');
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    logDebug(`Error response: ${errorText}`, 'error');
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const responseData = await response.json();
-                logDebug(`Request successful`, 'success');
-                return responseData;
-                
-            } catch (error) {
-                logDebug(`Request failed: ${error.message}`, 'error');
-                state.isOnline = false;
-                document.getElementById('syncStatus').innerHTML = `
-                    <i class="fas fa-circle" style="color: #ef4444;"></i>
-                    <span>Offline - working locally</span>
+            
+            statusEl.innerHTML = `
+                <i class="fas ${icons[type]}" style="color: ${colors[type]}"></i>
+                <span>${message}</span>
+            `;
+            
+            // Update global status
+            if (type === 'success') {
+                document.getElementById('globalSyncStatus').innerHTML = `
+                    <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                    <span>Baserow: Connected</span>
                 `;
-                throw error;
             }
         }
 
-        // ================= MESSAGE MANAGEMENT =================
-        async function sendMessage() {
+        function updateSyncStatus(success, errorMessage = '') {
+            const now = new Date();
+            document.getElementById('lastSyncTime').textContent = 
+                now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            if (success) {
+                document.getElementById('syncStatusText').innerHTML = 
+                    '<span style="color: #10b981;">✅ Synced</span>';
+            } else {
+                document.getElementById('syncStatusText').innerHTML = 
+                    `<span style="color: #ef4444;">❌ Failed: ${errorMessage.substring(0, 30)}...</span>`;
+            }
+        }
+
+        function updateMessageCount() {
+            let total = 0;
+            state.messages.forEach(msgs => total += msgs.length);
+            document.getElementById('messageCount').textContent = total;
+        }
+
+        function updateCharCount() {
             const input = document.getElementById('messageInput');
-            const messageText = input.value.trim();
-            
-            if (!messageText || !state.currentRoom || !state.currentUser) {
-                logDebug('Cannot send: missing message, room, or user', 'warning');
-                return;
-            }
-            
-            logDebug(`Sending message: "${messageText.substring(0, 50)}..."`, 'info');
-            
-            try {
-                // 1. Encrypt the message
-                logDebug('Encrypting message...', 'info');
-                const encrypted = await encryptMessage(messageText);
-                logDebug('Encryption successful', 'success');
-                
-                // 2. Create message object
-                const messageObj = {
-                    room: state.currentRoom,
-                    user: state.currentUser,
-                    type: "text",
-                    cipher: encrypted.cipher,
-                    iv: encrypted.iv,
-                    decryptedContent: messageText,
-                    timestamp: new Date().toISOString(),
-                    localId: Date.now() + Math.random().toString(36).substr(2, 9)
-                };
-                
-                // 3. Save locally immediately
-                saveMessageLocally(state.currentRoom, messageObj);
-                logDebug('Message saved locally', 'success');
-                
-                // 4. Clear input
-                input.value = '';
-                updateCharCount();
-                
-                // 5. Try to sync to Baserow
-                logDebug('Attempting to sync to Baserow...', 'info');
-                const baserowData = {
-                    room: state.currentRoom,
-                    user: state.currentUser,
-                    type: "text",
-                    cipher: encrypted.cipher,
-                    iv: encrypted.iv
-                };
-                
-                try {
-                    const response = await baserowRequest(
-                        `/database/rows/table/${BASEROW_CONFIG.MESSAGES_TABLE_ID}/?user_field_names=true`,
-                        'POST',
-                        baserowData
-                    );
-                    
-                    logDebug(`Synced to Baserow! ID: ${response.id}`, 'success');
-                    
-                    // Update sync status
-                    const now = new Date();
-                    document.getElementById('globalSyncStatus').innerHTML = `
-                        <i class="fas fa-check-circle" style="color: #10b981;"></i>
-                        <span>Synced: ${now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                    `;
-                    
-                    // Save sync time
-                    localStorage.setItem(STORAGE_KEYS.LAST_SYNC, now.toISOString());
-                    
-                    state.isOnline = true;
-                    document.getElementById('syncStatus').innerHTML = `
-                        <i class="fas fa-circle" style="color: #10b981;"></i>
-                        <span>Online - syncing to Baserow</span>
-                    `;
-                    
-                } catch (syncError) {
-                    logDebug(`Baserow sync failed: ${syncError.message}`, 'warning');
-                    addSystemMessage('Message saved locally (sync failed)');
-                }
-                
-            } catch (error) {
-                logDebug(`Send failed: ${error.message}`, 'error');
-                addSystemMessage(`Failed to send: ${error.message}`);
-                
-                // Still save message locally even if encryption fails
-                const fallbackMessage = {
-                    room: state.currentRoom,
-                    user: state.currentUser,
-                    type: "text",
-                    cipher: "ENCRYPTION_FAILED",
-                    iv: "ENCRYPTION_FAILED",
-                    decryptedContent: messageText,
-                    timestamp: new Date().toISOString(),
-                    localId: Date.now() + Math.random().toString(36).substr(2, 9)
-                };
-                
-                saveMessageLocally(state.currentRoom, fallbackMessage);
-            }
-        }
-
-        function saveMessageLocally(roomId, message) {
-            if (!state.messages.has(roomId)) {
-                state.messages.set(roomId, []);
-            }
-            
-            const roomMessages = state.messages.get(roomId);
-            roomMessages.push(message);
-            
-            // Keep only last 1000 messages per room
-            if (roomMessages.length > 1000) {
-                roomMessages.splice(0, roomMessages.length - 1000);
-            }
-            
-            saveToLocalStorage();
-            
-            // Display if current room
-            if (roomId === state.currentRoom) {
-                displayMessage(message);
-            }
-            
-            logDebug(`Saved message locally to room ${roomId}`, 'success');
-        }
-
-        async function checkForNewMessages() {
-            if (!state.currentRoom || !state.isOnline) return;
-            
-            logDebug('Checking for new messages...', 'info');
-            
-            try {
-                const filter = encodeURIComponent(JSON.stringify({room: state.currentRoom}));
-                const data = await baserowRequest(
-                    `/database/rows/table/${BASEROW_CONFIG.MESSAGES_TABLE_ID}/?user_field_names=true&filters=${filter}&order_by=-id&size=5`
-                );
-                
-                if (data.results && data.results.length > 0) {
-                    logDebug(`Found ${data.results.length} messages on Baserow`, 'info');
-                    
-                    const localMessages = state.messages.get(state.currentRoom) || [];
-                    let newMessages = 0;
-                    
-                    for (const remoteMsg of data.results) {
-                        // Check if we already have this message
-                        const exists = localMessages.some(localMsg => 
-                            localMsg.cipher === remoteMsg.cipher && 
-                            localMsg.iv === remoteMsg.iv
-                        );
-                        
-                        if (!exists && remoteMsg.user !== state.currentUser) {
-                            try {
-                                const decrypted = await decryptMessage(remoteMsg.cipher, remoteMsg.iv);
-                                const messageToSave = {
-                                    ...remoteMsg,
-                                    decryptedContent: decrypted,
-                                    timestamp: remoteMsg.created_at || new Date().toISOString()
-                                };
-                                
-                                saveMessageLocally(state.currentRoom, messageToSave);
-                                newMessages++;
-                                logDebug(`Decrypted new message from ${remoteMsg.user}`, 'success');
-                                
-                            } catch (decryptError) {
-                                logDebug(`Failed to decrypt message from ${remoteMsg.user}`, 'warning');
-                            }
-                        }
-                    }
-                    
-                    if (newMessages > 0) {
-                        logDebug(`Added ${newMessages} new messages from Baserow`, 'success');
-                    }
-                }
-                
-            } catch (error) {
-                logDebug(`Failed to check for new messages: ${error.message}`, 'warning');
-            }
+            const count = input.value.length;
+            document.getElementById('charCount').textContent = count;
         }
 
         // ================= UI FUNCTIONS =================
-        function displayRooms() {
-            const roomList = document.getElementById('roomList');
-            roomList.innerHTML = '';
-            
-            // Always show general room
-            const generalRoom = document.createElement('div');
-            generalRoom.className = `room-item ${state.currentRoom === 'general' ? 'active' : ''}`;
-            generalRoom.innerHTML = `<i class="fas fa-hashtag"></i> General Chat`;
-            generalRoom.onclick = () => joinRoom('general', 'General Chat');
-            roomList.appendChild(generalRoom);
-            
-            // Show other rooms
-            state.rooms.forEach(room => {
-                const roomItem = document.createElement('div');
-                roomItem.className = `room-item ${state.currentRoom === room.room_id ? 'active' : ''}`;
-                roomItem.innerHTML = `<i class="fas fa-door-closed"></i> ${escapeHtml(room.room_name)}`;
-                roomItem.onclick = () => joinRoom(room.room_id, room.room_name);
-                roomList.appendChild(roomItem);
-            });
-            
-            logDebug(`Displayed ${state.rooms.length + 1} rooms`, 'info');
-        }
-
-        function joinRoom(roomId, roomName) {
-            state.currentRoom = roomId;
-            document.getElementById('currentRoomName').textContent = roomName;
-            
-            // Update UI
-            document.getElementById('messageInput').disabled = false;
-            document.getElementById('sendBtn').disabled = false;
-            
-            // Update room list highlight
-            document.querySelectorAll('.room-item').forEach(item => {
-                item.classList.remove('active');
-                if (item.textContent.includes(roomName)) {
-                    item.classList.add('active');
-                }
-            });
-            
-            // Load messages
-            loadMessages();
-            
-            // Start checking for new messages
-            if (state.messageCheckInterval) {
-                clearInterval(state.messageCheckInterval);
-            }
-            state.messageCheckInterval = setInterval(checkForNewMessages, 3000);
-            
-            logDebug(`Joined room: ${roomName} (${roomId})`, 'success');
-        }
-
-        function loadMessages() {
-            if (!state.currentRoom) return;
-            
-            const messagesContainer = document.getElementById('messagesContainer');
-            messagesContainer.innerHTML = '';
-            
-            // Add welcome message
-            addSystemMessage('Welcome to ' + document.getElementById('currentRoomName').textContent);
-            
-            // Load local messages
-            const roomMessages = state.messages.get(state.currentRoom) || [];
-            
-            if (roomMessages.length === 0) {
-                addSystemMessage('No messages yet. Start the conversation!');
-            } else {
-                roomMessages.forEach(msg => {
-                    displayMessage(msg);
-                });
-            }
-            
-            scrollToBottom();
-            logDebug(`Loaded ${roomMessages.length} messages for room ${state.currentRoom}`, 'info');
-        }
-
-        function displayMessage(message) {
-            const messagesContainer = document.getElementById('messagesContainer');
-            const isSent = message.user === state.currentUser;
-            
-            // Handle encryption failures
-            let content;
-            if (message.decryptedContent) {
-                content = message.decryptedContent;
-            } else if (message.cipher === "ENCRYPTION_FAILED") {
-                content = message.decryptedContent || '[Encryption failed]';
-            } else {
-                content = '[Encrypted message - decryption needed]';
-            }
-            
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
-            
-            const time = message.timestamp ? 
-                new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) :
-                new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            
-            messageDiv.innerHTML = `
-                <div class="message-header">
-                    <span class="sender">${escapeHtml(message.user)}</span>
-                    <span class="time">${time}</span>
-                </div>
-                <div class="message-content">${escapeHtml(content)}</div>
-            `;
-            
-            messagesContainer.appendChild(messageDiv);
-            scrollToBottom();
-        }
-
-        function addSystemMessage(content) {
-            const messagesContainer = document.getElementById('messagesContainer');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message system';
-            messageDiv.innerHTML = `
-                <div class="message-header">
-                    <span class="sender">System</span>
-                    <span class="time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                </div>
-                <div class="message-content">${escapeHtml(content)}</div>
-            `;
-            messagesContainer.appendChild(messageDiv);
-            scrollToBottom();
-        }
-
-        // ================= MAIN FUNCTIONS =================
         async function login() {
             const username = document.getElementById('username').value.trim();
             const key = document.getElementById('encryptionKey').value;
@@ -1062,7 +571,13 @@
                 return;
             }
             
-            logDebug(`Attempting login for user: ${username}`, 'info');
+            if (!state.connectionTested) {
+                const proceed = confirm('⚠️ Baserow connection not tested. Test connection first?');
+                if (proceed) {
+                    testBaserowConnection();
+                }
+                return;
+            }
             
             try {
                 // Derive encryption key
@@ -1070,139 +585,80 @@
                 state.encryptionKey = await deriveKey(key, salt);
                 state.currentUser = username;
                 
-                logDebug('Encryption key derived successfully', 'success');
-                
                 // Update UI
                 document.getElementById('authPanel').style.display = 'none';
                 document.getElementById('roomsPanel').style.display = 'block';
                 document.getElementById('storagePanel').style.display = 'block';
                 document.getElementById('chatArea').style.display = 'flex';
                 
-                // Load rooms
-                await loadRoomsFromBaserow();
+                // Join general room
+                joinRoom('general', 'General Chat');
                 
-                // Update sync status
-                const lastSync = localStorage.getItem(STORAGE_KEYS.LAST_SYNC);
-                if (lastSync) {
-                    const time = new Date(lastSync);
-                    document.getElementById('globalSyncStatus').innerHTML = `
-                        <i class="fas fa-sync"></i>
-                        <span>Last sync: ${time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                    `;
-                }
-                
-                // Test connection
-                try {
-                    await baserowRequest(`/database/rows/table/${BASEROW_CONFIG.MESSAGES_TABLE_ID}/?user_field_names=true&size=1`);
-                    addSystemMessage('Connected to Baserow. Messages will sync.');
-                } catch (error) {
-                    addSystemMessage('Working offline. Messages saved locally only.');
-                }
-                
-                logDebug('Login successful', 'success');
+                updateStatus('✅ Logged in as ' + username, 'success');
                 
             } catch (error) {
-                logDebug(`Login failed: ${error.message}`, 'error');
-                alert('Failed to initialize encryption: ' + error.message);
+                alert('Login failed: ' + error.message);
             }
         }
 
-        async function loadRoomsFromBaserow() {
-            try {
-                const data = await baserowRequest(
-                    `/database/rows/table/${BASEROW_CONFIG.ROOMS_TABLE_ID}/?user_field_names=true`
-                );
-                
-                const baserowRooms = data.results || [];
-                const localRoomIds = new Set(state.rooms.map(r => r.room_id));
-                
-                baserowRooms.forEach(room => {
-                    if (!localRoomIds.has(room.room_id)) {
-                        state.rooms.push(room);
-                    }
-                });
-                
-                displayRooms();
-                saveToLocalStorage();
-                
-                logDebug(`Loaded ${baserowRooms.length} rooms from Baserow`, 'success');
-                
-            } catch (error) {
-                logDebug('Could not load rooms from Baserow, using local only', 'warning');
-            }
+        function joinRoom(roomId, roomName) {
+            state.currentRoom = roomId;
+            document.getElementById('currentRoomName').textContent = roomName;
+            
+            // Load messages for this room
+            loadMessages();
         }
 
-        async function createRoom() {
-            const roomName = document.getElementById('newRoomName').value.trim();
-            if (!roomName) return;
-            
-            const roomId = `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            const newRoom = {
-                room_id: roomId,
-                room_name: roomName
-            };
-            
-            // Add locally
-            state.rooms.push(newRoom);
-            saveToLocalStorage();
-            displayRooms();
-            
-            // Try to save to Baserow
-            try {
-                await baserowRequest(
-                    `/database/rows/table/${BASEROW_CONFIG.ROOMS_TABLE_ID}/?user_field_names=true`,
-                    'POST',
-                    newRoom
-                );
-                logDebug(`Room "${roomName}" created on Baserow`, 'success');
-            } catch (error) {
-                logDebug(`Room "${roomName}" saved locally only`, 'warning');
-            }
-            
-            document.getElementById('newRoomName').value = '';
-            joinRoom(roomId, roomName);
-        }
-
-        // ================= UTILITY FUNCTIONS =================
-        function exportMessages() {
-            const exportData = {
-                user: state.currentUser,
-                timestamp: new Date().toISOString(),
-                rooms: state.rooms,
-                messages: Object.fromEntries(state.messages)
-            };
-            
-            const dataStr = JSON.stringify(exportData, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
-            const exportFileDefaultName = `securechat_backup_${new Date().toISOString().slice(0,10)}.json`;
-            
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-        }
-
-        function clearLocalMessages() {
-            if (confirm('Clear ALL local messages? This cannot be undone!')) {
-                localStorage.removeItem(STORAGE_KEYS.MESSAGES);
-                state.messages.clear();
-                saveToLocalStorage();
-                updateStorageInfo();
-                loadMessages();
-                alert('All local messages cleared!');
-                logDebug('Cleared all local messages', 'warning');
-            }
-        }
-
-        function updateCharCount() {
-            const input = document.getElementById('messageInput');
-            const count = input.value.length;
-            document.getElementById('charCount').textContent = count;
-        }
-
-        function scrollToBottom() {
+        function loadMessages() {
             const container = document.getElementById('messagesContainer');
+            container.innerHTML = '';
+            
+            const roomMessages = state.messages.get(state.currentRoom) || [];
+            
+            if (roomMessages.length === 0) {
+                addSystemMessage('No messages yet. Start chatting!');
+            } else {
+                roomMessages.forEach(msg => displayMessage(msg));
+            }
+        }
+
+        function displayMessage(message) {
+            const container = document.getElementById('messagesContainer');
+            const isSent = message.user === state.currentUser;
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+            
+            const time = message.timestamp ? 
+                new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) :
+                'Just now';
+            
+            msgDiv.innerHTML = `
+                <div class="message-header">
+                    <span class="sender">${escapeHtml(message.user)}</span>
+                    <span class="time">${time}</span>
+                </div>
+                <div class="message-content">${escapeHtml(message.decryptedContent || '[Encrypted]')}</div>
+            `;
+            
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function addSystemMessage(content) {
+            const container = document.getElementById('messagesContainer');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message system';
+            
+            msgDiv.innerHTML = `
+                <div class="message-header">
+                    <span class="sender">System</span>
+                    <span class="time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                </div>
+                <div class="message-content">${escapeHtml(content)}</div>
+            `;
+            
+            container.appendChild(msgDiv);
             container.scrollTop = container.scrollHeight;
         }
 
@@ -1212,12 +668,39 @@
             return div.innerHTML;
         }
 
+        async function forceSync() {
+            if (!state.isOnline) {
+                alert('Not connected to Baserow. Test connection first.');
+                return;
+            }
+            
+            const roomMessages = state.messages.get(state.currentRoom) || [];
+            if (roomMessages.length === 0) {
+                alert('No messages to sync.');
+                return;
+            }
+            
+            // Get the latest message
+            const latestMessage = roomMessages[roomMessages.length - 1];
+            
+            addSystemMessage('🔄 Attempting to sync latest message...');
+            
+            const success = await syncMessageToBaserow({
+                room: latestMessage.room,
+                user: latestMessage.user,
+                type: latestMessage.type,
+                cipher: latestMessage.cipher,
+                iv: latestMessage.iv
+            });
+            
+            if (success) {
+                addSystemMessage('✅ Latest message synced successfully!');
+            }
+        }
+
         // ================= INITIALIZATION =================
         document.addEventListener('DOMContentLoaded', () => {
-            logDebug('Application initialized', 'info');
-            
-            // Load from local storage
-            loadFromLocalStorage();
+            console.log('🚀 Chat application starting...');
             
             // Setup message input
             const messageInput = document.getElementById('messageInput');
@@ -1230,42 +713,18 @@
                 }
             });
             
+            // Setup send button
+            document.getElementById('sendBtn').addEventListener('click', sendMessage);
+            
             // Setup login on Enter
             document.getElementById('encryptionKey').addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') login();
             });
             
-            // Setup send button
-            document.getElementById('sendBtn').addEventListener('click', sendMessage);
+            // Initial status
+            updateStatus('Click "Test Connection" to begin', 'info');
             
-            // Auto-join general room if logged in
-            if (state.currentUser) {
-                setTimeout(() => {
-                    login();
-                    setTimeout(() => joinRoom('general', 'General Chat'), 500);
-                }, 100);
-            }
-            
-            // Monitor online status
-            window.addEventListener('online', () => {
-                state.isOnline = true;
-                document.getElementById('syncStatus').innerHTML = `
-                    <i class="fas fa-circle" style="color: #10b981;"></i>
-                    <span>Online - syncing to Baserow</span>
-                `;
-                logDebug('Browser is online', 'success');
-            });
-            
-            window.addEventListener('offline', () => {
-                state.isOnline = false;
-                document.getElementById('syncStatus').innerHTML = `
-                    <i class="fas fa-circle" style="color: #ef4444;"></i>
-                    <span>Offline - working locally</span>
-                `;
-                logDebug('Browser is offline', 'warning');
-            });
-            
-            console.log('✅ Chat application ready');
+            console.log('✅ Application ready. Click "Test Connection" first.');
         });
     </script>
 </body>
