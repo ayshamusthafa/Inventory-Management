@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>💬 Working Chat</title>
+    <title>💬 Auto-Clean Chat</title>
     <style>
         :root {
             --primary: #0084ff;
@@ -15,6 +15,7 @@
             --sent-bg: #0084ff;
             --received-bg: #ffffff;
             --white: #ffffff;
+            --warning: #ff6b6b;
         }
         
         * {
@@ -76,6 +77,13 @@
             color: var(--text-primary);
         }
         
+        .login-subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
         .input-group {
             margin-bottom: 16px;
         }
@@ -113,11 +121,12 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
         }
         
         .btn:active {
             background: var(--primary-dark);
+            transform: scale(0.98);
         }
         
         /* Chat Screen */
@@ -146,6 +155,12 @@
             font-size: 18px;
             font-weight: 600;
             color: var(--text-primary);
+        }
+        
+        .room-stats {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
         }
         
         .header-btn {
@@ -225,6 +240,21 @@
             opacity: 0.8;
         }
         
+        /* Expiring Message Warning */
+        .message.expiring-soon .message-content {
+            opacity: 0.8;
+            border: 1px dashed var(--warning);
+        }
+        
+        .expiry-warning {
+            font-size: 10px;
+            color: var(--warning);
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
         /* Input Area */
         .input-container {
             padding: 12px 16px;
@@ -278,6 +308,17 @@
             color: var(--text-secondary);
             display: flex;
             justify-content: space-between;
+            align-items: center;
+        }
+        
+        .cleanup-btn {
+            background: var(--warning);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 4px 12px;
+            font-size: 11px;
+            cursor: pointer;
         }
         
         /* Toast */
@@ -299,6 +340,36 @@
         .toast.show {
             opacity: 1;
         }
+        
+        /* Empty State */
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .empty-icon {
+            font-size: 64px;
+            color: var(--border);
+            margin-bottom: 16px;
+        }
+        
+        .empty-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        
+        .empty-text {
+            color: var(--text-secondary);
+            font-size: 14px;
+            max-width: 300px;
+        }
     </style>
 </head>
 <body>
@@ -309,16 +380,17 @@
                 💬
             </div>
             <div class="login-card">
-                <h1 class="login-title">Chat App</h1>
+                <h1 class="login-title">Auto-Clean Chat</h1>
+                <p class="login-subtitle">Messages auto-delete after 10 minutes</p>
                 
                 <div class="input-group">
                     <label class="input-label">Your Name</label>
-                    <input type="text" class="input-field" id="username" placeholder="Enter your name" value="User1">
+                    <input type="text" class="input-field" id="username" placeholder="Enter your name" value="Alex">
                 </div>
                 
                 <div class="input-group">
                     <label class="input-label">Room Name</label>
-                    <input type="text" class="input-field" id="room" placeholder="Enter room name" value="test">
+                    <input type="text" class="input-field" id="room" placeholder="Enter room name" value="general">
                 </div>
                 
                 <button class="btn" onclick="startChat()">
@@ -332,7 +404,11 @@
             <!-- Header -->
             <div class="chat-header">
                 <div class="room-info">
-                    <h2>#<span id="currentRoom">test</span></h2>
+                    <h2>#<span id="currentRoom">general</span></h2>
+                    <div class="room-stats">
+                        <span id="messageCount">0 messages</span> • 
+                        <span id="expiryInfo">Auto-clean: 10min</span>
+                    </div>
                 </div>
                 <button class="header-btn" onclick="logout()">
                     ←
@@ -360,7 +436,9 @@
             <!-- Status Bar -->
             <div class="status-bar">
                 <div id="statusText">Ready</div>
-                <div id="messageCount">0 messages</div>
+                <button class="cleanup-btn" onclick="forceCleanup()" id="cleanupBtn">
+                    Clean Old Messages
+                </button>
             </div>
         </div>
         
@@ -375,15 +453,20 @@
             TABLE_ID: "778927"
         };
 
+        // ================= CONSTANTS =================
+        const MESSAGE_LIFETIME_MINUTES = 10; // Messages auto-delete after 10 minutes
+        const MESSAGE_LIFETIME_MS = MESSAGE_LIFETIME_MINUTES * 60 * 1000;
+        const CLEANUP_CHECK_INTERVAL = 30000; // Check every 30 seconds
+
         // ================= STATE =================
         let state = {
             username: '',
-            room: '',
-            messages: [],
-            displayedIds: new Set(),
-            pendingMessages: new Map(),
+            room: 'general',
+            messages: [], // All messages in the room
+            displayedIds: new Set(), // IDs of messages already shown
+            pendingMessages: new Map(), // Temp messages waiting for server response
             autoRefresh: null,
-            lastMessageId: 0
+            cleanupInterval: null
         };
 
         // ================= UTILITY FUNCTIONS =================
@@ -401,25 +484,166 @@
             document.getElementById('statusText').textContent = text;
         }
 
-        // ================= MESSAGE DISPLAY =================
-        function displayAllMessages() {
-            const container = document.getElementById('messagesContainer');
+        function getMessageAge(message) {
+            const timestamp = message.timestamp || message.created_on;
+            if (!timestamp) return Infinity;
             
-            if (state.messages.length > 0) {
-                container.innerHTML = '';
-                state.displayedIds.clear();
+            const messageTime = new Date(timestamp).getTime();
+            return Date.now() - messageTime;
+        }
+
+        function isMessageExpired(message) {
+            return getMessageAge(message) > MESSAGE_LIFETIME_MS;
+        }
+
+        function getTimeUntilExpiry(message) {
+            const age = getMessageAge(message);
+            return Math.max(0, MESSAGE_LIFETIME_MS - age);
+        }
+
+        function formatTimeUntilExpiry(ms) {
+            const minutes = Math.floor(ms / (60 * 1000));
+            const seconds = Math.floor((ms % (60 * 1000)) / 1000);
+            
+            if (minutes > 0) {
+                return `${minutes}m ${seconds}s`;
+            }
+            return `${seconds}s`;
+        }
+
+        // ================= MESSAGE CLEANUP =================
+        async function cleanupOldMessages() {
+            const now = Date.now();
+            let deletedCount = 0;
+            let remainingCount = 0;
+            
+            // Filter out expired messages
+            const validMessages = state.messages.filter(msg => {
+                if (msg.isTemp) return true; // Keep temp messages
                 
-                // Sort messages by ID (oldest first)
-                const sortedMessages = [...state.messages].sort((a, b) => a.id - b.id);
+                const age = getMessageAge(msg);
+                const isExpired = age > MESSAGE_LIFETIME_MS;
                 
-                // Display all messages
-                sortedMessages.forEach(msg => {
-                    addMessageToDOM(msg);
-                });
+                if (!isExpired) {
+                    remainingCount++;
+                    
+                    // Check if expiring soon (less than 1 minute)
+                    const timeLeft = MESSAGE_LIFETIME_MS - age;
+                    if (timeLeft < 60000 && timeLeft > 0) {
+                        msg.expiringSoon = true;
+                    } else {
+                        msg.expiringSoon = false;
+                    }
+                }
+                
+                return !isExpired;
+            });
+            
+            // If messages were removed
+            if (validMessages.length !== state.messages.length) {
+                deletedCount = state.messages.length - validMessages.length;
+                state.messages = validMessages;
+                
+                // Update display
+                displayAllMessages();
+                
+                // Show notification if messages were deleted
+                if (deletedCount > 0) {
+                    showToast(`Cleaned ${deletedCount} old message${deletedCount > 1 ? 's' : ''}`);
+                    updateMessageCount();
+                }
+            }
+            
+            // Update cleanup button text
+            const cleanupBtn = document.getElementById('cleanupBtn');
+            if (remainingCount === 0) {
+                cleanupBtn.textContent = 'No messages';
+            } else {
+                const oldestMessage = state.messages
+                    .filter(m => !m.isTemp)
+                    .sort((a, b) => getMessageAge(a) - getMessageAge(b))[0];
+                
+                if (oldestMessage) {
+                    const timeLeft = getTimeUntilExpiry(oldestMessage);
+                    cleanupBtn.textContent = `Clean in ${formatTimeUntilExpiry(timeLeft)}`;
+                }
+            }
+            
+            return deletedCount;
+        }
+
+        async function forceCleanup() {
+            const deleted = await cleanupOldMessages();
+            if (deleted === 0) {
+                showToast('No old messages to clean');
             }
         }
 
+        async function deleteMessageFromBaserow(messageId) {
+            try {
+                const response = await fetch(
+                    `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/${messageId}/`,
+                    {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Token ${BASEROW_CONFIG.TOKEN}`
+                        }
+                    }
+                );
+                
+                return response.ok;
+            } catch (error) {
+                console.error('Failed to delete message:', error);
+                return false;
+            }
+        }
+
+        // ================= MESSAGE DISPLAY =================
+        function updateMessageCount() {
+            const realMessages = state.messages.filter(m => !m.isTemp).length;
+            document.getElementById('messageCount').textContent = `${realMessages} message${realMessages !== 1 ? 's' : ''}`;
+        }
+
+        function displayAllMessages() {
+            const container = document.getElementById('messagesContainer');
+            
+            if (state.messages.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">💬</div>
+                        <div class="empty-title">No messages yet</div>
+                        <div class="empty-text">Messages auto-delete after 10 minutes</div>
+                    </div>
+                `;
+                state.displayedIds.clear();
+                return;
+            }
+            
+            container.innerHTML = '';
+            state.displayedIds.clear();
+            
+            // Sort messages by time (oldest first)
+            const sortedMessages = [...state.messages].sort((a, b) => {
+                const timeA = new Date(a.timestamp || a.created_on).getTime();
+                const timeB = new Date(b.timestamp || b.created_on).getTime();
+                return timeA - timeB;
+            });
+            
+            // Display all messages
+            sortedMessages.forEach(msg => {
+                addMessageToDOM(msg);
+            });
+            
+            updateMessageCount();
+            
+            // Scroll to bottom
+            setTimeout(() => {
+                container.scrollTop = container.scrollHeight;
+            }, 100);
+        }
+
         function addMessageToDOM(message) {
+            // Skip if already displayed
             if (state.displayedIds.has(message.id)) {
                 return;
             }
@@ -429,45 +653,47 @@
             
             const isSent = message.username === state.username;
             messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+            if (message.expiringSoon) {
+                messageDiv.classList.add('expiring-soon');
+            }
             messageDiv.dataset.id = message.id;
             
-            // Get timestamp
+            // Get timestamp and calculate age
             let timeStr = 'Just now';
+            let expiryInfo = '';
+            
             if (message.timestamp || message.created_on) {
                 const date = new Date(message.timestamp || message.created_on);
                 timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                if (!message.isTemp) {
+                    const timeLeft = getTimeUntilExpiry(message);
+                    if (timeLeft > 0 && timeLeft < 60000) {
+                        expiryInfo = `Expires in ${Math.floor(timeLeft / 1000)}s`;
+                    }
+                }
             }
             
-            // Decode message from base64
+            // Decode message
             let content = '';
             try {
-                if (message.encrypted_data) {
-                    // Try to decode as base64
-                    content = atob(message.encrypted_data);
-                } else {
-                    content = '[No content]';
-                }
+                const decoded = atob(message.encrypted_data || '');
+                content = decodeURIComponent(escape(decoded));
             } catch (e) {
                 content = message.encrypted_data || '[Message]';
             }
             
             // Build message HTML
             messageDiv.innerHTML = `
-                ${!isSent ? `<div class="message-sender">${escapeHtml(message.username || 'Unknown')}</div>` : ''}
+                ${!isSent ? `<div class="message-sender">${escapeHtml(message.username || 'User')}</div>` : ''}
                 <div class="message-content">${escapeHtml(content)}</div>
                 <div class="message-time">${timeStr}</div>
+                ${expiryInfo ? `<div class="expiry-warning">⏰ ${expiryInfo}</div>` : ''}
             `;
             
+            // Add to container
             container.appendChild(messageDiv);
             state.displayedIds.add(message.id);
-            
-            // Scroll to bottom
-            setTimeout(() => {
-                const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
-                if (isNearBottom) {
-                    container.scrollTop = container.scrollHeight;
-                }
-            }, 50);
         }
 
         // ================= MESSAGE FUNCTIONS =================
@@ -497,8 +723,8 @@
             // Add to messages array
             state.messages.push(tempMessage);
             
-            // Add to DOM immediately
-            addMessageToDOM(tempMessage);
+            // Update display
+            displayAllMessages();
             updateStatus('Sending...');
             
             // Send to Baserow
@@ -507,7 +733,7 @@
                     room_id: state.room,
                     username: state.username,
                     encrypted_data: btoa(unescape(encodeURIComponent(messageText))),
-                    encryption_key: btoa('simple-key')
+                    encryption_key: btoa('chat')
                 };
                 
                 const response = await fetch(
@@ -534,29 +760,19 @@
                         state.messages.splice(tempIndex, 1);
                     }
                     
-                    // Remove from displayed IDs
-                    state.displayedIds.delete(tempId);
-                    
-                    // Update last message ID
-                    state.lastMessageId = Math.max(state.lastMessageId, result.id);
-                    
                     // Create real message
                     const realMessage = {
                         ...result,
                         encrypted_data: data.encrypted_data,
-                        username: state.username
+                        username: state.username,
+                        timestamp: new Date().toISOString()
                     };
                     
                     // Add real message to array
                     state.messages.push(realMessage);
                     
-                    // Remove temp message from DOM and add real one
-                    const tempElement = document.querySelector(`[data-id="${tempId}"]`);
-                    if (tempElement) {
-                        tempElement.remove();
-                    }
-                    
-                    addMessageToDOM(realMessage);
+                    // Update display
+                    displayAllMessages();
                     
                     updateStatus('Sent ✓');
                     showToast('Message sent');
@@ -577,10 +793,6 @@
 
         async function loadMessages() {
             try {
-                // First, let's check what's in the table
-                console.log('Loading messages for room:', state.room);
-                
-                // Get ALL messages to debug
                 const response = await fetch(
                     `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true&size=100`,
                     {
@@ -592,64 +804,46 @@
                 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('All messages from Baserow:', data.results);
+                    const allMessages = data.results || [];
                     
-                    // Filter for current room (case-insensitive)
-                    const roomMessages = data.results.filter(msg => {
+                    // Filter for current room (case insensitive)
+                    const roomMessages = allMessages.filter(msg => {
                         const msgRoom = String(msg.room_id || '').toLowerCase();
-                        const currentRoom = state.room.toLowerCase();
-                        const isMatch = msgRoom === currentRoom;
-                        
-                        console.log(`Checking message: room_id="${msg.room_id}", matches=${isMatch}`);
-                        return isMatch;
+                        return msgRoom === state.room.toLowerCase();
                     });
                     
-                    console.log(`Found ${roomMessages.length} messages for room "${state.room}":`, roomMessages);
+                    // Track if we need to update
+                    let needsUpdate = false;
                     
-                    // Find new messages
-                    const newMessages = roomMessages.filter(msg => {
-                        // Check if message is already in state
-                        const alreadyExists = state.messages.some(m => m.id === msg.id);
-                        // Check if it's a new message (id > lastMessageId)
-                        const isNew = msg.id > state.lastMessageId;
+                    // Check for new messages
+                    roomMessages.forEach(msg => {
+                        // Check if message already exists
+                        const exists = state.messages.some(m => 
+                            m.id === msg.id || 
+                            (m.isTemp && m.encrypted_data === msg.encrypted_data)
+                        );
                         
-                        return !alreadyExists && isNew;
+                        if (!exists) {
+                            state.messages.push(msg);
+                            needsUpdate = true;
+                        }
                     });
                     
-                    console.log(`Found ${newMessages.length} new messages:`, newMessages);
+                    // Clean old messages
+                    const deleted = await cleanupOldMessages();
                     
-                    if (newMessages.length > 0) {
-                        // Update last message ID
-                        const maxId = Math.max(...newMessages.map(m => m.id));
-                        state.lastMessageId = Math.max(state.lastMessageId, maxId);
+                    // Only update display if there are new messages or deletions
+                    if (needsUpdate || deleted > 0) {
+                        // Remove any pending temp messages that might have been saved
+                        state.messages = state.messages.filter(m => 
+                            !m.isTemp || state.pendingMessages.has(m.id)
+                        );
                         
-                        // Add new messages to state
-                        newMessages.forEach(msg => {
-                            if (!state.messages.some(m => m.id === msg.id)) {
-                                state.messages.push(msg);
-                            }
-                        });
-                        
-                        // Sort messages by ID
-                        state.messages.sort((a, b) => a.id - b.id);
-                        
-                        // Update display
                         displayAllMessages();
                     }
-                    
-                    // Update counts
-                    const messageCount = state.messages.filter(m => !m.isTemp).length;
-                    const users = [...new Set(state.messages.map(m => m.username).filter(Boolean))];
-                    
-                    document.getElementById('messageCount').textContent = `${messageCount} messages`;
-                    updateStatus(`${users.length} users in room`);
-                    
-                } else {
-                    console.error('Failed to load messages:', response.status);
                 }
             } catch (error) {
-                console.error('Error loading messages:', error);
-                updateStatus('Connection error');
+                console.error('Failed to load messages:', error);
             }
         }
 
@@ -673,49 +867,49 @@
             state.messages = [];
             state.displayedIds.clear();
             state.pendingMessages.clear();
-            state.lastMessageId = 0;
             
             // Switch screens
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('chatScreen').classList.add('active');
             document.getElementById('currentRoom').textContent = room;
-            
-            // Show loading
-            const container = document.getElementById('messagesContainer');
-            container.innerHTML = `
-                <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                    <div style="font-size: 14px; color: #65676b;">Loading messages...</div>
-                </div>
-            `;
-            
-            updateStatus('Loading...');
+            document.getElementById('expiryInfo').textContent = `Auto-clean: ${MESSAGE_LIFETIME_MINUTES}min`;
             
             // Load messages
+            updateStatus('Loading...');
             await loadMessages();
             
-            // Start auto-refresh (every 2 seconds)
+            // Start auto-refresh (every 5 seconds)
             if (state.autoRefresh) {
                 clearInterval(state.autoRefresh);
             }
-            state.autoRefresh = setInterval(loadMessages, 2000);
+            state.autoRefresh = setInterval(loadMessages, 5000);
+            
+            // Start cleanup checker (every 30 seconds)
+            if (state.cleanupInterval) {
+                clearInterval(state.cleanupInterval);
+            }
+            state.cleanupInterval = setInterval(cleanupOldMessages, CLEANUP_CHECK_INTERVAL);
             
             // Focus input
             document.getElementById('messageInput').focus();
-            showToast(`Joined #${room} as ${username}`);
+            showToast(`Welcome ${username}! Messages auto-delete after ${MESSAGE_LIFETIME_MINUTES} minutes`);
         }
 
         function logout() {
-            // Clear auto-refresh
+            // Clear intervals
             if (state.autoRefresh) {
                 clearInterval(state.autoRefresh);
                 state.autoRefresh = null;
+            }
+            if (state.cleanupInterval) {
+                clearInterval(state.cleanupInterval);
+                state.cleanupInterval = null;
             }
             
             // Reset state
             state.messages = [];
             state.displayedIds.clear();
             state.pendingMessages.clear();
-            state.lastMessageId = 0;
             
             // Switch back to login
             document.getElementById('chatScreen').classList.remove('active');
@@ -757,7 +951,7 @@
                 this.style.height = Math.min(this.scrollHeight, 120) + 'px';
             });
             
-            console.log('Chat app ready - debug mode active');
+            console.log('Auto-clean chat app ready');
         });
     </script>
 </body>
