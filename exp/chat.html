@@ -178,9 +178,6 @@
             max-width: 80%;
             display: flex;
             flex-direction: column;
-            opacity: 1;
-            transform: translateY(0);
-            transition: opacity 0.3s ease, transform 0.3s ease;
         }
         
         .message.sent {
@@ -310,7 +307,7 @@
                 💬
             </div>
             <div class="login-card">
-                <h1 class="login-title">Smooth Chat</h1>
+                <h1 class="login-title">Clean Chat</h1>
                 
                 <div class="input-group">
                     <label class="input-label">Your Name</label>
@@ -379,10 +376,10 @@
         let state = {
             username: '',
             room: 'general',
-            messages: [], // Array of message objects
-            messageIds: new Set(), // Track displayed message IDs
-            autoRefresh: null,
-            isLoading: false
+            messages: [], // All messages in the room
+            displayedIds: new Set(), // IDs of messages already shown
+            pendingMessages: new Map(), // Temp messages waiting for server response
+            autoRefresh: null
         };
 
         // ================= UTILITY FUNCTIONS =================
@@ -400,19 +397,37 @@
             document.getElementById('statusText').textContent = text;
         }
 
-        // ================= MESSAGE DISPLAY - NO BLINKING =================
-        function addMessageToUI(message, shouldAnimate = true) {
+        // ================= MESSAGE DISPLAY =================
+        function displayAllMessages() {
+            const container = document.getElementById('messagesContainer');
+            
+            // Clear only if there are messages to display
+            if (state.messages.length > 0) {
+                container.innerHTML = '';
+                state.displayedIds.clear();
+                
+                // Sort messages by ID (oldest first)
+                const sortedMessages = [...state.messages].sort((a, b) => a.id - b.id);
+                
+                // Display all messages
+                sortedMessages.forEach(msg => {
+                    addMessageToDOM(msg, false);
+                });
+            }
+        }
+
+        function addMessageToDOM(message, animate = true) {
             // Skip if already displayed
-            if (state.messageIds.has(message.id)) {
-                return false;
+            if (state.displayedIds.has(message.id)) {
+                return;
             }
             
             const container = document.getElementById('messagesContainer');
             const messageDiv = document.createElement('div');
             
-            // Determine if message is from current user
             const isSent = message.username === state.username;
             messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+            messageDiv.dataset.id = message.id;
             
             // Get timestamp
             let timeStr = 'Just now';
@@ -439,45 +454,15 @@
             
             // Add to container
             container.appendChild(messageDiv);
-            state.messageIds.add(message.id);
+            state.displayedIds.add(message.id);
             
-            // Animate if needed
-            if (shouldAnimate) {
-                messageDiv.style.opacity = '0';
-                messageDiv.style.transform = 'translateY(10px)';
-                
-                setTimeout(() => {
-                    messageDiv.style.opacity = '1';
-                    messageDiv.style.transform = 'translateY(0)';
-                }, 10);
-            }
-            
-            // Auto-scroll if near bottom
-            const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
-            if (isNearBottom) {
-                setTimeout(() => {
+            // Scroll to bottom
+            setTimeout(() => {
+                const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+                if (isNearBottom) {
                     container.scrollTop = container.scrollHeight;
-                }, 50);
-            }
-            
-            return true;
-        }
-
-        function addMessagesToUI(messages) {
-            const container = document.getElementById('messagesContainer');
-            let hasNewMessages = false;
-            
-            // Sort messages by ID
-            const sortedMessages = [...messages].sort((a, b) => a.id - b.id);
-            
-            // Add each message
-            sortedMessages.forEach(msg => {
-                if (addMessageToUI(msg, false)) {
-                    hasNewMessages = true;
                 }
-            });
-            
-            return hasNewMessages;
+            }, 50);
         }
 
         // ================= MESSAGE FUNCTIONS =================
@@ -491,10 +476,8 @@
             input.value = '';
             input.style.height = 'auto';
             
-            // Create unique temp ID
-            const tempId = 'temp-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-            
             // Create temporary message
+            const tempId = 'temp-' + Date.now();
             const tempMessage = {
                 id: tempId,
                 username: state.username,
@@ -503,11 +486,14 @@
                 isTemp: true
             };
             
-            // Add temp message to state
+            // Store pending message
+            state.pendingMessages.set(tempId, tempMessage);
+            
+            // Add to messages array
             state.messages.push(tempMessage);
             
-            // Display temp message
-            addMessageToUI(tempMessage);
+            // Add to DOM immediately
+            addMessageToDOM(tempMessage);
             updateStatus('Sending...');
             
             // Send to Baserow
@@ -534,14 +520,17 @@
                 if (response.ok) {
                     const result = await response.json();
                     
-                    // Remove temp message from state
+                    // Remove from pending
+                    state.pendingMessages.delete(tempId);
+                    
+                    // Find and remove temp message from array
                     const tempIndex = state.messages.findIndex(m => m.id === tempId);
                     if (tempIndex !== -1) {
                         state.messages.splice(tempIndex, 1);
                     }
                     
                     // Remove from displayed IDs
-                    state.messageIds.delete(tempId);
+                    state.displayedIds.delete(tempId);
                     
                     // Create real message
                     const realMessage = {
@@ -550,25 +539,17 @@
                         username: state.username
                     };
                     
-                    // Add real message to state
+                    // Add real message to array
                     state.messages.push(realMessage);
                     
-                    // Remove temp message from UI
+                    // Remove temp message from DOM
                     const tempElement = document.querySelector(`[data-id="${tempId}"]`);
                     if (tempElement) {
-                        // Fade out temp message
-                        tempElement.style.opacity = '0';
-                        tempElement.style.transform = 'translateY(-10px)';
-                        
-                        setTimeout(() => {
-                            tempElement.remove();
-                            // Add real message
-                            addMessageToUI(realMessage);
-                        }, 300);
-                    } else {
-                        // If temp element not found, just add real message
-                        addMessageToUI(realMessage);
+                        tempElement.remove();
                     }
+                    
+                    // Add real message to DOM
+                    addMessageToDOM(realMessage);
                     
                     updateStatus('Sent ✓');
                     showToast('Message sent');
@@ -576,10 +557,9 @@
             } catch (error) {
                 console.error('Failed to send message:', error);
                 
-                // Mark temp message as failed
+                // Mark as failed
                 const tempElement = document.querySelector(`[data-id="${tempId}"]`);
                 if (tempElement) {
-                    tempElement.querySelector('.message-content').style.opacity = '0.7';
                     tempElement.querySelector('.message-time').textContent = 'Failed';
                 }
                 
@@ -588,13 +568,8 @@
             }
         }
 
-        async function checkForNewMessages() {
-            if (state.isLoading) return;
-            
+        async function loadMessages() {
             try {
-                state.isLoading = true;
-                
-                // Get all messages
                 const response = await fetch(
                     `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true&size=100`,
                     {
@@ -614,77 +589,39 @@
                         return msgRoom === state.room.toLowerCase();
                     });
                     
-                    // Find new messages that aren't temp messages
-                    const newMessages = roomMessages.filter(msg => 
-                        !state.messageIds.has(msg.id) && 
-                        !msg.id.toString().startsWith('temp-')
-                    );
+                    // Track if we need to update
+                    let needsUpdate = false;
                     
-                    if (newMessages.length > 0) {
-                        // Add new messages to state
-                        newMessages.forEach(msg => {
-                            if (!state.messages.some(m => m.id === msg.id)) {
-                                state.messages.push(msg);
-                            }
-                        });
+                    // Check for new messages
+                    roomMessages.forEach(msg => {
+                        // Check if message already exists
+                        const exists = state.messages.some(m => 
+                            m.id === msg.id || 
+                            (m.isTemp && m.encrypted_data === msg.encrypted_data)
+                        );
                         
-                        // Sort messages by ID
-                        state.messages.sort((a, b) => a.id - b.id);
-                        
-                        // Add to UI
-                        const hasAdded = addMessagesToUI(newMessages);
-                        
-                        if (hasAdded) {
-                            updateStatus(`${state.messages.length} messages`);
+                        if (!exists) {
+                            state.messages.push(msg);
+                            needsUpdate = true;
                         }
-                    }
-                }
-            } catch (error) {
-                console.error('Failed to check messages:', error);
-            } finally {
-                state.isLoading = false;
-            }
-        }
-
-        async function loadInitialMessages() {
-            updateStatus('Loading...');
-            
-            try {
-                const response = await fetch(
-                    `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true&size=100`,
-                    {
-                        headers: {
-                            'Authorization': `Token ${BASEROW_CONFIG.TOKEN}`
-                        }
-                    }
-                );
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    const allMessages = data.results || [];
-                    
-                    // Filter for current room
-                    state.messages = allMessages.filter(msg => {
-                        const msgRoom = String(msg.room_id || '').toLowerCase();
-                        return msgRoom === state.room.toLowerCase();
                     });
                     
-                    // Sort by ID
-                    state.messages.sort((a, b) => a.id - b.id);
+                    // Only update display if there are new messages
+                    if (needsUpdate) {
+                        // Remove any pending temp messages that might have been saved
+                        state.messages = state.messages.filter(m => 
+                            !m.isTemp || state.pendingMessages.has(m.id)
+                        );
+                        
+                        displayAllMessages();
+                    }
                     
-                    // Clear container
-                    const container = document.getElementById('messagesContainer');
-                    container.innerHTML = '';
-                    state.messageIds.clear();
-                    
-                    // Add all messages to UI (no animation)
-                    addMessagesToUI(state.messages);
-                    
-                    updateStatus(`${state.messages.length} messages loaded`);
+                    // Update status
+                    const realMessages = state.messages.filter(m => !m.isTemp).length;
+                    updateStatus(`${realMessages} messages`);
                 }
             } catch (error) {
                 console.error('Failed to load messages:', error);
-                updateStatus('Connection error');
             }
         }
 
@@ -706,7 +643,8 @@
             state.username = username;
             state.room = room.toLowerCase();
             state.messages = [];
-            state.messageIds.clear();
+            state.displayedIds.clear();
+            state.pendingMessages.clear();
             
             // Switch screens
             document.getElementById('loginScreen').classList.add('hidden');
@@ -714,13 +652,14 @@
             document.getElementById('currentRoom').textContent = room;
             
             // Load messages
-            await loadInitialMessages();
+            updateStatus('Loading...');
+            await loadMessages();
             
-            // Start background checking (every 3 seconds)
+            // Start auto-refresh (every 3 seconds)
             if (state.autoRefresh) {
                 clearInterval(state.autoRefresh);
             }
-            state.autoRefresh = setInterval(checkForNewMessages, 3000);
+            state.autoRefresh = setInterval(loadMessages, 3000);
             
             // Focus input
             document.getElementById('messageInput').focus();
@@ -736,7 +675,8 @@
             
             // Reset state
             state.messages = [];
-            state.messageIds.clear();
+            state.displayedIds.clear();
+            state.pendingMessages.clear();
             
             // Switch back to login
             document.getElementById('chatScreen').classList.remove('active');
@@ -778,7 +718,7 @@
                 this.style.height = Math.min(this.scrollHeight, 120) + 'px';
             });
             
-            console.log('Smooth chat app ready');
+            console.log('Chat app ready - no double entries!');
         });
     </script>
 </body>
