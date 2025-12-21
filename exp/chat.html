@@ -19,8 +19,7 @@
             --error: #ff6b6b;
             --warning: #ff9500;
             --focus-ring: rgba(0, 132, 255, 0.4);
-            --system-bg: #f8f9fa;
-            --system-color: #666;
+            --info: #17a2b8;
         }
         
         * {
@@ -169,6 +168,18 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 12px;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+        
+        .room-info {
+            flex: 1;
         }
         
         .room-info h2 {
@@ -197,10 +208,10 @@
             background: var(--error);
         }
         
-        .header-controls {
+        .header-right {
             display: flex;
-            gap: 8px;
             align-items: center;
+            gap: 8px;
         }
         
         .header-btn {
@@ -231,18 +242,9 @@
             transform: scale(0.95);
         }
         
-        /* Fullscreen button states */
-        .fullscreen-btn .enter-fullscreen { display: block; }
-        .fullscreen-btn .exit-fullscreen { display: none; }
-        
-        :fullscreen .fullscreen-btn .enter-fullscreen { display: none; }
-        :fullscreen .fullscreen-btn .exit-fullscreen { display: block; }
-        
-        :-webkit-full-screen .fullscreen-btn .enter-fullscreen { display: none; }
-        :-webkit-full-screen .fullscreen-btn .exit-fullscreen { display: block; }
-        
-        :-moz-full-screen .fullscreen-btn .enter-fullscreen { display: none; }
-        :-moz-full-screen .fullscreen-btn .exit-fullscreen { display: block; }
+        .fullscreen-btn {
+            font-size: 20px;
+        }
         
         /* Messages Container */
         .messages-container {
@@ -265,7 +267,6 @@
             max-width: 80%;
             display: flex;
             flex-direction: column;
-            position: relative;
         }
         
         .message.sent {
@@ -278,19 +279,13 @@
             align-items: flex-start;
         }
         
-        .message.system {
-            align-self: center;
-            align-items: center;
-            max-width: 90%;
-            width: 100%;
-        }
-        
         .message-content {
             padding: 12px 16px;
             border-radius: 18px;
             word-wrap: break-word;
             line-height: 1.4;
             font-size: 15px;
+            position: relative;
         }
         
         .message.sent .message-content {
@@ -306,22 +301,44 @@
             border-bottom-left-radius: 4px;
         }
         
-        .message.system .message-content {
-            background: var(--system-bg);
-            color: var(--system-color);
-            font-style: italic;
-            font-size: 14px;
-            padding: 8px 16px;
-            border-radius: 12px;
-            text-align: center;
-            border: 1px solid rgba(0,0,0,0.05);
-        }
-        
         .message-sender {
             font-size: 13px;
             color: var(--text-secondary);
             margin-bottom: 4px;
             font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .message-type-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .message-type-text {
+            background: var(--info);
+            color: white;
+        }
+        
+        .message-type-image {
+            background: var(--warning);
+            color: white;
+        }
+        
+        .message-type-file {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .message-type-system {
+            background: var(--secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
         }
         
         .message-time {
@@ -331,82 +348,203 @@
             opacity: 0.8;
         }
         
-        /* Message type indicator */
-        .message-type-indicator {
-            position: absolute;
-            top: 0;
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            z-index: 1;
+        /* Message Type Indicators in Content */
+        .message-image-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 4px 8px;
+            border-radius: 6px;
+            margin: 4px 0;
+            font-size: 13px;
         }
         
-        .message.sent .message-type-indicator {
-            right: -8px;
-            top: -8px;
-            background: var(--primary);
-            color: white;
+        .message-file-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 6px 10px;
+            border-radius: 8px;
+            margin: 4px 0;
+            font-size: 13px;
         }
         
-        .message.received .message-type-indicator {
-            left: -8px;
-            top: -8px;
-            background: var(--success);
-            color: white;
+        .message-system-indicator {
+            font-style: italic;
+            opacity: 0.8;
+            font-size: 14px;
         }
         
-        .message.system .message-type-indicator {
-            display: none;
+        /* Message Actions */
+        .message-actions {
+            display: flex;
+            gap: 4px;
+            margin-top: 4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .message:hover .message-actions {
+            opacity: 1;
+        }
+        
+        .message-action-btn {
+            background: rgba(0, 0, 0, 0.1);
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+        
+        .message-action-btn:hover {
+            background: rgba(0, 0, 0, 0.2);
         }
         
         /* Debug Panel */
         .debug-panel {
             position: fixed;
-            bottom: 80px;
+            top: 80px;
             right: 20px;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.95);
             color: white;
-            padding: 12px;
-            border-radius: 8px;
+            padding: 16px;
+            border-radius: 12px;
             font-size: 12px;
-            max-width: 300px;
+            max-width: 320px;
+            width: 320px;
             display: none;
             z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
         }
         
-        .debug-toggle {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: var(--primary);
+        .debug-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .debug-title {
+            font-size: 14px;
+            font-weight: 600;
             color: white;
+        }
+        
+        .debug-close-btn {
+            background: none;
             border: none;
-            border-radius: 50%;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        
+        .debug-close-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .debug-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .debug-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+        }
+        
+        .debug-label {
+            font-weight: 500;
+            color: #aaa;
+            min-width: 140px;
+        }
+        
+        .debug-value {
+            font-weight: 600;
+            color: white;
+            text-align: right;
+            flex: 1;
+        }
+        
+        /* Debug Controls */
+        .debug-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+            z-index: 1001;
+        }
+        
+        .control-btn {
             width: 40px;
             height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: none;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            z-index: 1001;
+            color: white;
+            font-size: 18px;
             transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 132, 255, 0.3);
         }
         
-        .debug-toggle:focus {
+        .control-btn:focus {
             outline: none;
             box-shadow: 0 0 0 3px var(--focus-ring);
         }
         
-        .debug-toggle:hover {
+        .control-btn:hover {
             background: var(--primary-dark);
-            transform: scale(1.1);
+            transform: translateY(-2px);
         }
         
-        .debug-toggle:active {
+        .control-btn:active {
             transform: scale(0.95);
+        }
+        
+        .debug-toggle {
+            background: var(--warning);
+        }
+        
+        .debug-toggle:hover {
+            background: #e67e22;
+        }
+        
+        .fullscreen-toggle {
+            background: var(--success);
+        }
+        
+        .fullscreen-toggle:hover {
+            background: #2e7d32;
+        }
+        
+        .fullscreen-toggle.exit {
+            background: var(--error);
+        }
+        
+        .fullscreen-toggle.exit:hover {
+            background: #d32f2f;
         }
         
         /* Input Area */
@@ -661,7 +799,7 @@
             color: var(--text-primary);
         }
         
-        .confirmation-message {
+        .confirmation-micator {
             font-size: 14px;
             color: var(--text-secondary);
             margin-bottom: 20px;
@@ -785,61 +923,6 @@
             font-family: monospace;
         }
         
-        /* Message type selector */
-        .message-type-selector {
-            position: relative;
-            display: flex;
-            gap: 4px;
-        }
-        
-        .type-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border: 2px solid var(--border);
-            background: var(--white);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-        
-        .type-btn.active {
-            border-color: var(--primary);
-            background: var(--primary);
-            color: white;
-        }
-        
-        .type-btn:hover {
-            border-color: var(--primary);
-        }
-        
-        .type-btn:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px var(--focus-ring);
-        }
-        
-        .type-tooltip {
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            white-space: nowrap;
-            display: none;
-            margin-bottom: 4px;
-        }
-        
-        .type-btn:hover .type-tooltip {
-            display: block;
-        }
-        
         /* Focus styles for all interactive elements */
         button:focus,
         input:focus,
@@ -853,8 +936,6 @@
         @media (prefers-contrast: high) {
             :root {
                 --focus-ring: #000000;
-                --system-bg: #f0f0f0;
-                --system-color: #000000;
             }
             
             button:focus,
@@ -876,43 +957,74 @@
         }
         
         /* Fullscreen styles */
-        :fullscreen .chat-screen {
+        :fullscreen .app-container {
             height: 100vh;
         }
         
-        :-webkit-full-screen .chat-screen {
+        :-webkit-full-screen .app-container {
             height: 100vh;
         }
         
-        :-moz-full-screen .chat-screen {
+        :-moz-full-screen .app-container {
             height: 100vh;
         }
         
-        /* Fullscreen message */
-        .fullscreen-message {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
+        /* Message type selector */
+        .message-type-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            padding: 8px;
+            background: var(--secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        
+        .type-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-secondary);
             font-size: 12px;
-            z-index: 1000;
-            display: none;
-            backdrop-filter: blur(10px);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
         }
         
-        :fullscreen .fullscreen-message {
-            display: block;
+        .type-btn.active {
+            background: var(--white);
+            color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         
-        :-webkit-full-screen .fullscreen-message {
-            display: block;
+        .type-btn:hover:not(.active) {
+            background: rgba(255,255,255,0.5);
         }
         
-        :-moz-full-screen .fullscreen-message {
-            display: block;
+        /* File upload indicator */
+        .file-upload-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--info);
+            color: white;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-top: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
         }
     </style>
 </head>
@@ -922,11 +1034,6 @@
         Skip to messages
     </a>
     
-    <!-- Fullscreen message indicator -->
-    <div class="fullscreen-message" id="fullscreenMessage">
-        Press <span class="keyboard-shortcut">Esc</span> to exit fullscreen
-    </div>
-    
     <!-- Keyboard shortcuts hint -->
     <div class="keyboard-hint" id="keyboardHint">
         <div><strong>Keyboard Shortcuts:</strong></div>
@@ -934,52 +1041,91 @@
         <div>Send: <span class="keyboard-shortcut">Ctrl+Enter</span></div>
         <div>Focus input: <span class="keyboard-shortcut">/</span></div>
         <div>Debug: <span class="keyboard-shortcut">Ctrl+D</span></div>
-        <div>Fullscreen: <span class="keyboard-shortcut">F11</span> or <span class="keyboard-shortcut">Ctrl+F</span></div>
+        <div>Fullscreen: <span class="keyboard-shortcut">F11</span></div>
         <div>Logout: <span class="keyboard-shortcut">Esc</span></div>
     </div>
     
-    <!-- Debug Toggle -->
-    <button class="debug-toggle" onclick="toggleDebug()" aria-label="Toggle debug panel" id="debugToggle">
-        🐛
-    </button>
+    <!-- Debug Controls (Top Right) -->
+    <div class="debug-controls" id="debugControls">
+        <button class="control-btn debug-toggle" onclick="toggleDebug()" aria-label="Toggle debug panel" id="debugToggle">
+            🐛
+        </button>
+        <button class="control-btn fullscreen-toggle" onclick="toggleFullscreen()" aria-label="Toggle fullscreen" id="fullscreenToggle">
+            ⛶
+        </button>
+    </div>
     
     <!-- Debug Panel -->
     <div class="debug-panel" id="debugPanel" role="dialog" aria-labelledby="debugPanelTitle" aria-modal="true" hidden>
-        <div id="debugPanelTitle" hidden>Debug Information Panel</div>
-        <div><strong>Room:</strong> <span id="debugRoom">-</span></div>
-        <div><strong>User:</strong> <span id="debugUser">-</span></div>
-        <div><strong>Messages in App:</strong> <span id="debugAppCount">0</span></div>
-        <div><strong>Messages in Room:</strong> <span id="debugRoomCount">0/20</span></div>
-        <div><strong>Auto-cleanup:</strong> <span id="debugCleanupStatus">20 per room</span></div>
-        <div><strong>Connection:</strong> <span id="debugConnection">Checking...</span></div>
-        <div><strong>Message Type:</strong> <span id="debugMessageType">Normal</span></div>
-        <div><strong>Fullscreen:</strong> <span id="debugFullscreen">No</span></div>
-        <div><strong>Last Error:</strong> <span id="debugError">None</span></div>
-        
-        <div class="settings-group">
-            <div class="settings-info">
-                <strong>Room-based limit:</strong><br>
-                • 20 messages per room max<br>
-                • At 21st message, oldest deleted<br>
-                • Uses timestamp for ordering<br>
-                • Each room independently managed
-            </div>
+        <div class="debug-header">
+            <div class="debug-title">Debug Information</div>
+            <button class="debug-close-btn" onclick="toggleDebug()" aria-label="Close debug panel">
+                ×
+            </button>
         </div>
-        
-        <button class="cleanup-btn" onclick="showCleanupConfirmation()" id="cleanupBtn" aria-label="Cleanup old messages in current room">
-            🧹 Cleanup This Room
-        </button>
-        
-        <button class="delete-btn" onclick="showDeleteConfirmation()" id="deleteAllBtn" aria-label="Delete all messages from database">
-            🗑️ DELETE ALL DATA
-        </button>
+        <div class="debug-content">
+            <div class="debug-row">
+                <div class="debug-label">Room:</div>
+                <div class="debug-value" id="debugRoom">-</div>
+            </div>
+            <div class="debug-row">
+                <div class="debug-label">User:</div>
+                <div class="debug-value" id="debugUser">-</div>
+            </div>
+            <div class="debug-row">
+                <div class="debug-label">Messages in App:</div>
+                <div class="debug-value" id="debugAppCount">0</div>
+            </div>
+            <div class="debug-row">
+                <div class="debug-label">Messages in Room:</div>
+                <div class="debug-value" id="debugRoomCount">0/20</div>
+            </div>
+            <div class="debug-row">
+                <div class="debug-label">Auto-cleanup:</div>
+                <div class="debug-value" id="debugCleanupStatus">20 per room</div>
+            </div>
+            <div class="debug-row">
+                <div class="debug-label">Connection:</div>
+                <div class="debug-value" id="debugConnection">Checking...</span></div>
+            </div>
+            <div class="debug-row">
+                <div class="debug-label">Last Error:</div>
+                <div class="debug-value" id="debugError">None</div>
+            </div>
+            <div class="debug-row">
+                <div class="debug-label">Message Type:</div>
+                <div class="debug-value" id="debugMessageType">Text</div>
+            </div>
+            <div class="debug-row">
+                <div class="debug-label">Fullscreen:</div>
+                <div class="debug-value" id="debugFullscreen">No</div>
+            </div>
+            
+            <div class="settings-group">
+                <div class="settings-info">
+                    <strong>Room-based limit:</strong><br>
+                    • 20 messages per room max<br>
+                    • At 21st message, oldest deleted<br>
+                    • Uses timestamp for ordering<br>
+                    • Each room independently managed
+                </div>
+            </div>
+            
+            <button class="cleanup-btn" onclick="showCleanupConfirmation()" id="cleanupBtn" aria-label="Cleanup old messages in current room">
+                🧹 Cleanup This Room
+            </button>
+            
+            <button class="delete-btn" onclick="showDeleteConfirmation()" id="deleteAllBtn" aria-label="Delete all messages from database">
+                🗑️ DELETE ALL DATA
+            </button>
+        </div>
     </div>
     
     <!-- Confirmation Dialog -->
     <div class="confirmation-dialog" id="confirmationDialog" role="dialog" aria-labelledby="confirmationTitle" aria-modal="true" hidden>
         <div class="confirmation-content">
             <h2 class="confirmation-title" id="confirmationTitle">⚠️ Delete All Data</h2>
-            <div class="confirmation-message" id="confirmationMessage">
+            <div class="confirmation-micator" id="confirmationMessage">
                 This will permanently delete ALL messages from the Baserow table.<br><br>
                 This action cannot be undone. Are you sure you want to proceed?
             </div>
@@ -1027,37 +1173,39 @@
         <div class="chat-screen" id="chatScreen">
             <!-- Header -->
             <div class="chat-header">
-                <div class="room-info">
-                    <h2 id="roomTitle">#<span id="currentRoom">general</span></h2>
-                    <div class="connection-status">
-                        <span class="status-dot" id="statusDot" role="status" aria-label="Connection status"></span>
-                        <span id="connectionText">Connecting...</span>
-                    </div>
-                </div>
-                <div class="header-controls">
-                    <!-- Message type selector -->
-                    <div class="message-type-selector" id="messageTypeSelector">
-                        <button class="type-btn" data-type="normal" onclick="setMessageType('normal')" aria-label="Send normal message" id="normalTypeBtn">
-                            💬
-                            <span class="type-tooltip">Normal Message</span>
-                        </button>
-                        <button class="type-btn" data-type="system" onclick="setMessageType('system')" aria-label="Send system message" id="systemTypeBtn">
-                            ⚙️
-                            <span class="type-tooltip">System Message</span>
-                        </button>
-                    </div>
-                    
-                    <!-- Fullscreen toggle -->
-                    <button class="header-btn fullscreen-btn" onclick="toggleFullscreen()" id="fullscreenBtn" aria-label="Toggle fullscreen mode">
-                        <span class="enter-fullscreen">⛶</span>
-                        <span class="exit-fullscreen">🗗</span>
-                    </button>
-                    
-                    <!-- Logout button -->
+                <div class="header-left">
                     <button class="header-btn" onclick="logout()" id="logoutBtn" aria-label="Leave chat and return to login">
                         ←
                     </button>
+                    <div class="room-info">
+                        <h2 id="roomTitle">#<span id="currentRoom">general</span></h2>
+                        <div class="connection-status">
+                            <span class="status-dot" id="statusDot" role="status" aria-label="Connection status"></span>
+                            <span id="connectionText">Connecting...</span>
+                        </div>
+                    </div>
                 </div>
+                <div class="header-right">
+                    <button class="header-btn fullscreen-btn" onclick="toggleFullscreen()" id="headerFullscreenBtn" aria-label="Toggle fullscreen">
+                        ⛶
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Message Type Selector -->
+            <div class="message-type-selector" id="messageTypeSelector">
+                <button class="type-btn active" data-type="text" onclick="setMessageType('text')">
+                    📝 Text
+                </button>
+                <button class="type-btn" data-type="image" onclick="setMessageType('image')">
+                    🖼️ Image
+                </button>
+                <button class="type-btn" data-type="file" onclick="setMessageType('file')">
+                    📎 File
+                </button>
+                <button class="type-btn" data-type="system" onclick="setMessageType('system')">
+                    ⚙️ System
+                </button>
             </div>
             
             <!-- Messages Container -->
@@ -1114,11 +1262,77 @@
             pendingConfirmation: null, // {type: 'deleteAll' | 'cleanup', callback: function}
             keyboardHintTimeout: null,
             lastFocusedElement: null,
-            currentMessageType: 'normal', // 'normal' or 'system'
+            currentMessageType: 'text', // 'text', 'image', 'file', 'system'
             isFullscreen: false
         };
 
-        // ================= MESSAGE TYPE HANDLING =================
+        // ================= FULLSCREEN FUNCTIONS =================
+        function toggleFullscreen() {
+            const fullscreenToggle = document.getElementById('fullscreenToggle');
+            const headerFullscreenBtn = document.getElementById('headerFullscreenBtn');
+            
+            if (!document.fullscreenElement) {
+                // Enter fullscreen
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen();
+                } else if (document.documentElement.webkitRequestFullscreen) {
+                    document.documentElement.webkitRequestFullscreen();
+                } else if (document.documentElement.mozRequestFullScreen) {
+                    document.documentElement.mozRequestFullScreen();
+                } else if (document.documentElement.msRequestFullscreen) {
+                    document.documentElement.msRequestFullscreen();
+                }
+                state.isFullscreen = true;
+            } else {
+                // Exit fullscreen
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                state.isFullscreen = false;
+            }
+            
+            updateFullscreenButton();
+            updateDebugInfo();
+        }
+
+        function updateFullscreenButton() {
+            const fullscreenToggle = document.getElementById('fullscreenToggle');
+            const headerFullscreenBtn = document.getElementById('headerFullscreenBtn');
+            
+            if (state.isFullscreen) {
+                fullscreenToggle.textContent = '⛶';
+                fullscreenToggle.classList.add('exit');
+                headerFullscreenBtn.textContent = '⛶';
+                headerFullscreenBtn.classList.add('exit');
+                document.getElementById('debugFullscreen').textContent = 'Yes';
+            } else {
+                fullscreenToggle.textContent = '⛶';
+                fullscreenToggle.classList.remove('exit');
+                headerFullscreenBtn.textContent = '⛶';
+                headerFullscreenBtn.classList.remove('exit');
+                document.getElementById('debugFullscreen').textContent = 'No';
+            }
+        }
+
+        function handleFullscreenChange() {
+            state.isFullscreen = !!document.fullscreenElement;
+            updateFullscreenButton();
+            updateDebugInfo();
+            
+            if (state.isFullscreen) {
+                showToast('Entered fullscreen mode');
+            } else {
+                showToast('Exited fullscreen mode');
+            }
+        }
+
+        // ================= MESSAGE TYPE FUNCTIONS =================
         function setMessageType(type) {
             state.currentMessageType = type;
             
@@ -1126,97 +1340,78 @@
             document.querySelectorAll('.type-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
+            document.querySelector(`.type-btn[data-type="${type}"]`).classList.add('active');
             
-            const activeBtn = document.querySelector(`.type-btn[data-type="${type}"]`);
-            if (activeBtn) {
-                activeBtn.classList.add('active');
+            // Update placeholder based on type
+            const messageInput = document.getElementById('messageInput');
+            switch(type) {
+                case 'text':
+                    messageInput.placeholder = 'Type a message...';
+                    break;
+                case 'image':
+                    messageInput.placeholder = 'Describe the image or paste image URL...';
+                    break;
+                case 'file':
+                    messageInput.placeholder = 'Describe the file...';
+                    break;
+                case 'system':
+                    messageInput.placeholder = 'System message...';
+                    break;
             }
             
             // Update debug info
-            if (state.debugMode) {
-                document.getElementById('debugMessageType').textContent = 
-                    type === 'normal' ? 'Normal' : 'System';
-            }
+            document.getElementById('debugMessageType').textContent = type.charAt(0).toUpperCase() + type.slice(1);
             
-            // Update message input placeholder
-            const messageInput = document.getElementById('messageInput');
-            if (type === 'system') {
-                messageInput.placeholder = 'Type a system message...';
-                showToast('System message mode: Message will appear as system notification');
-            } else {
-                messageInput.placeholder = 'Type a message...';
-                showToast('Normal message mode');
-            }
+            showToast(`Message type set to: ${type}`);
             
             // Focus back on input
             messageInput.focus();
         }
 
-        function getMessageTypeDisplay(type) {
-            return type === 'system' ? 'System' : (type === 'sent' ? 'Sent' : 'Received');
-        }
-
-        // ================= FULLSCREEN HANDLING =================
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                enterFullscreen();
-            } else {
-                exitFullscreen();
+        function getMessageTypeBadge(type) {
+            switch(type) {
+                case 'text': return 'Text';
+                case 'image': return 'Image';
+                case 'file': return 'File';
+                case 'system': return 'System';
+                default: return 'Text';
             }
         }
 
-        function enterFullscreen() {
-            const elem = document.documentElement;
-            
-            if (elem.requestFullscreen) {
-                elem.requestFullscreen();
-            } else if (elem.webkitRequestFullscreen) { /* Safari */
-                elem.webkitRequestFullscreen();
-            } else if (elem.msRequestFullscreen) { /* IE11 */
-                elem.msRequestFullscreen();
-            }
-            
-            state.isFullscreen = true;
-            updateFullscreenState();
-            showToast('Entered fullscreen mode');
-        }
-
-        function exitFullscreen() {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            } else if (document.webkitExitFullscreen) { /* Safari */
-                document.webkitExitFullscreen();
-            } else if (document.msExitFullscreen) { /* IE11 */
-                document.msExitFullscreen();
-            }
-            
-            state.isFullscreen = false;
-            updateFullscreenState();
-            showToast('Exited fullscreen mode');
-        }
-
-        function updateFullscreenState() {
-            state.isFullscreen = !!document.fullscreenElement;
-            
-            if (state.debugMode) {
-                document.getElementById('debugFullscreen').textContent = 
-                    state.isFullscreen ? 'Yes' : 'No';
-            }
-            
-            // Update fullscreen button state
-            const fullscreenBtn = document.getElementById('fullscreenBtn');
-            if (fullscreenBtn) {
-                fullscreenBtn.setAttribute('aria-label', 
-                    state.isFullscreen ? 'Exit fullscreen mode' : 'Enter fullscreen mode'
-                );
+        function getMessageTypeClass(type) {
+            switch(type) {
+                case 'text': return 'message-type-text';
+                case 'image': return 'message-type-image';
+                case 'file': return 'message-type-file';
+                case 'system': return 'message-type-system';
+                default: return 'message-type-text';
             }
         }
 
-        // Listen for fullscreen changes
-        document.addEventListener('fullscreenchange', updateFullscreenState);
-        document.addEventListener('webkitfullscreenchange', updateFullscreenState);
-        document.addEventListener('mozfullscreenchange', updateFullscreenState);
-        document.addEventListener('MSFullscreenChange', updateFullscreenState);
+        function formatMessageContent(content, type) {
+            switch(type) {
+                case 'image':
+                    return `
+                        <div class="message-image-indicator">
+                            🖼️ <strong>Image:</strong> ${escapeHtml(content)}
+                        </div>
+                    `;
+                case 'file':
+                    return `
+                        <div class="message-file-indicator">
+                            📎 <strong>File:</strong> ${escapeHtml(content)}
+                        </div>
+                    `;
+                case 'system':
+                    return `
+                        <div class="message-system-indicator">
+                            ⚙️ ${escapeHtml(content)}
+                        </div>
+                    `;
+                default:
+                    return escapeHtml(content);
+            }
+        }
 
         // ================= KEYBOARD ACCESSIBILITY =================
         function showKeyboardHint() {
@@ -1249,17 +1444,6 @@
                             sendMessage();
                         }
                     }
-                    
-                    // Toggle message type with Ctrl+1 and Ctrl+2
-                    if (e.ctrlKey && e.key === '1') {
-                        e.preventDefault();
-                        setMessageType('normal');
-                    }
-                    if (e.ctrlKey && e.key === '2') {
-                        e.preventDefault();
-                        setMessageType('system');
-                    }
-                    
                     return;
                 }
                 
@@ -1276,14 +1460,14 @@
                     showToast('Message input focused');
                 }
                 
-                // Logout: Escape (but not in fullscreen)
-                if (e.key === 'Escape' && document.getElementById('chatScreen').classList.contains('active') && !state.isFullscreen) {
+                // Logout: Escape
+                if (e.key === 'Escape' && document.getElementById('chatScreen').classList.contains('active')) {
                     e.preventDefault();
                     logout();
                 }
                 
-                // Fullscreen: F11 or Ctrl+F
-                if ((e.key === 'F11' || (e.ctrlKey && e.key === 'f')) && document.getElementById('chatScreen').classList.contains('active')) {
+                // Fullscreen: F11
+                if (e.key === 'F11') {
                     e.preventDefault();
                     toggleFullscreen();
                 }
@@ -1299,10 +1483,14 @@
                     hideKeyboardHint();
                 }
                 
-                // Toggle message type: Ctrl+1 (normal), Ctrl+2 (system)
-                if (e.ctrlKey && (e.key === '1' || e.key === '2') && document.getElementById('chatScreen').classList.contains('active')) {
-                    e.preventDefault();
-                    setMessageType(e.key === '1' ? 'normal' : 'system');
+                // Message type shortcuts: 1-4
+                if (e.key >= '1' && e.key <= '4' && document.getElementById('chatScreen').classList.contains('active')) {
+                    const types = ['text', 'image', 'file', 'system'];
+                    const index = parseInt(e.key) - 1;
+                    if (types[index]) {
+                        e.preventDefault();
+                        setMessageType(types[index]);
+                    }
                 }
             });
             
@@ -1446,8 +1634,7 @@
             document.getElementById('debugAppCount').textContent = state.messages.length;
             document.getElementById('debugConnection').textContent = state.isConnected ? '✅ Connected' : '❌ Disconnected';
             document.getElementById('debugCleanupStatus').textContent = `${state.maxMessagesPerRoom} per room`;
-            document.getElementById('debugMessageType').textContent = 
-                state.currentMessageType === 'normal' ? 'Normal' : 'System';
+            document.getElementById('debugMessageType').textContent = state.currentMessageType.charAt(0).toUpperCase() + state.currentMessageType.slice(1);
             document.getElementById('debugFullscreen').textContent = state.isFullscreen ? 'Yes' : 'No';
             
             // Calculate room message count
@@ -1915,22 +2102,16 @@
             const container = document.getElementById('messagesContainer');
             const messageDiv = document.createElement('div');
             
-            // Determine message type
-            const isSystem = message.message_type === 'system' || message.isSystem;
-            const isSent = !isSystem && message.username === state.username;
-            
-            // Set message class based on type
-            if (isSystem) {
-                messageDiv.className = 'message system';
-            } else {
-                messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
-            }
-            
+            const isSent = message.username === state.username;
+            messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
             messageDiv.dataset.id = message.id;
             messageDiv.tabIndex = 0; // Make messages focusable
             messageDiv.setAttribute('role', 'article');
-            messageDiv.setAttribute('aria-label', isSystem ? `System message: ${message.encrypted_data ? 'System notification' : 'No content'}` : 
-                `${isSent ? 'You' : message.username} said: ${message.encrypted_data ? 'Message content' : 'No content'}`);
+            
+            // Get message type
+            const messageType = message.message_type || 'text';
+            const typeBadge = getMessageTypeBadge(messageType);
+            const typeClass = getMessageTypeClass(messageType);
             
             // Get timestamp
             let timeStr = 'Just now';
@@ -1953,16 +2134,25 @@
                 console.warn('Failed to decode message:', e);
             }
             
-            // Build message HTML
-            let messageTypeIndicator = '';
-            if (!isSystem) {
-                messageTypeIndicator = `<div class="message-type-indicator">${getMessageTypeDisplay(isSent ? 'sent' : 'received')}</div>`;
-            }
+            // Format content based on type
+            const formattedContent = formatMessageContent(content, messageType);
             
+            // Build message HTML
             messageDiv.innerHTML = `
-                ${messageTypeIndicator}
-                ${!isSent && !isSystem ? `<div class="message-sender">${escapeHtml(message.username || 'User')}</div>` : ''}
-                <div class="message-content">${escapeHtml(content)}</div>
+                ${!isSent ? `
+                    <div class="message-sender">
+                        ${escapeHtml(message.username || 'User')}
+                        <span class="message-type-badge ${typeClass}">${typeBadge}</span>
+                    </div>
+                ` : ''}
+                <div class="message-content">
+                    ${isSent ? `
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                            <span class="message-type-badge ${typeClass}" style="margin: 0;">${typeBadge}</span>
+                        </div>
+                    ` : ''}
+                    ${formattedContent}
+                </div>
                 <div class="message-time">${timeStr}</div>
             `;
             
@@ -1978,7 +2168,7 @@
             container.appendChild(messageDiv);
             state.displayedIds.add(message.id);
             
-            logDebug(`Added ${isSystem ? 'system' : isSent ? 'sent' : 'received'} message: ${content.substring(0, 50)}...`, 'info');
+            logDebug(`Added ${messageType} message: ${content.substring(0, 50)}...`, 'info');
         }
 
         // ================= MESSAGE FUNCTIONS =================
@@ -1999,10 +2189,9 @@
                 id: tempId,
                 username: state.username,
                 encrypted_data: btoa(unescape(encodeURIComponent(messageText))),
-                timestamp: new Date().toISOString(),
-                isTemp: true,
                 message_type: state.currentMessageType,
-                isSystem: state.currentMessageType === 'system'
+                timestamp: new Date().toISOString(),
+                isTemp: true
             };
             
             // Add to messages array
@@ -2018,7 +2207,7 @@
             try {
                 const data = {
                     room_id: state.room,
-                    username: state.currentMessageType === 'system' ? 'System' : state.username,
+                    username: state.username,
                     encrypted_data: btoa(unescape(encodeURIComponent(messageText))),
                     encryption_key: btoa('chat-' + Date.now()),
                     message_type: state.currentMessageType
@@ -2065,13 +2254,12 @@
                 // Add real message with the correct Baserow ID
                 const realMessage = {
                     id: result.id, // Use the Baserow ID
-                    username: data.username,
+                    username: state.username,
                     room_id: state.room,
                     encrypted_data: data.encrypted_data,
-                    timestamp: new Date().toISOString(),
-                    created_on: new Date().toISOString(),
                     message_type: state.currentMessageType,
-                    isSystem: state.currentMessageType === 'system'
+                    timestamp: new Date().toISOString(),
+                    created_on: new Date().toISOString()
                 };
                 
                 state.messages.push(realMessage);
@@ -2083,7 +2271,7 @@
                 }, 500);
                 
                 updateStatus('Sent ✓', true);
-                showToast(`${state.currentMessageType === 'system' ? 'System message' : 'Message'} sent and saved`);
+                showToast(`${state.currentMessageType.charAt(0).toUpperCase() + state.currentMessageType.slice(1)} message sent and saved`);
                 
                 // Scroll to bottom
                 const container = document.getElementById('messagesContainer');
@@ -2151,10 +2339,9 @@
                             username: msg.username,
                             room_id: msg.room_id,
                             encrypted_data: msg.encrypted_data,
+                            message_type: msg.message_type || 'text',
                             created_on: msg.created_on,
-                            timestamp: msg.created_on,
-                            message_type: msg.message_type || 'normal',
-                            isSystem: msg.message_type === 'system'
+                            timestamp: msg.created_on
                         });
                     }
                 });
@@ -2258,7 +2445,7 @@
             state.room = room.toLowerCase();
             state.messages = [];
             state.displayedIds.clear();
-            state.currentMessageType = 'normal'; // Reset to normal messages
+            state.currentMessageType = 'text';
             
             // Switch screens
             document.getElementById('loginScreen').classList.add('hidden');
@@ -2266,8 +2453,11 @@
             document.getElementById('currentRoom').textContent = room;
             document.getElementById('roomTitle').textContent = `#${room}`;
             
-            // Reset message type UI
-            setMessageType('normal');
+            // Reset message type selector
+            document.querySelectorAll('.type-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector('.type-btn[data-type="text"]').classList.add('active');
             
             // Test connection first
             updateStatus('Connecting...', true);
@@ -2299,7 +2489,7 @@
             // Reset state
             state.messages = [];
             state.displayedIds.clear();
-            state.currentMessageType = 'normal';
+            state.currentMessageType = 'text';
             
             // Switch back to login
             document.getElementById('chatScreen').classList.remove('active');
@@ -2324,6 +2514,12 @@
 
         // ================= INITIALIZATION =================
         document.addEventListener('DOMContentLoaded', function() {
+            // Setup fullscreen event listeners
+            document.addEventListener('fullscreenchange', handleFullscreenChange);
+            document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+            document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+            document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+            
             // Setup keyboard shortcuts
             setupKeyboardShortcuts();
             
@@ -2344,18 +2540,12 @@
             // Focus username on load
             document.getElementById('username').focus();
             
-            // Initialize message type selector
-            setMessageType('normal');
-            
             // Test connection on load
             document.getElementById('testStatus').textContent = 'Click "Start Chatting" to begin';
             
-            console.log('Chat app initialized');
-            console.log('Features:');
-            console.log('• Message type selection (normal/system)');
-            console.log('• Fullscreen mode toggle');
-            console.log('• Keyboard shortcuts enabled');
-            console.log('• Room-based 20 message limit');
+            console.log('Chat app initialized with message types and fullscreen support');
+            console.log('Press 1-4 to switch message types');
+            console.log('Press F11 for fullscreen');
         });
     </script>
 </body>
