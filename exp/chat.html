@@ -1,13 +1,9 @@
-jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw
-340628
-778590
-778592
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔐 Encrypted Chat - Baserow</title>
+    <title>🔐 Secure Chat - Room-Encrypted</title>
     <style>
         * {
             box-sizing: border-box;
@@ -17,21 +13,21 @@ jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw
         }
         
         body {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
             color: #e0e0e0;
             min-height: 100vh;
             padding: 20px;
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             display: flex;
             flex-direction: column;
             gap: 20px;
         }
         
-        /* Screenshot Blocker Styles */
+        /* Screenshot Blocker */
         .screenshot-blocker {
             position: fixed;
             top: 0;
@@ -43,12 +39,19 @@ jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw
             display: none;
             justify-content: center;
             align-items: center;
-            font-size: 2em;
-            color: #ff4757;
+            flex-direction: column;
+            gap: 20px;
         }
         
         .screenshot-blocker.show {
             display: flex;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { background: #000; }
+            50% { background: #111; }
+            100% { background: #000; }
         }
         
         /* Header */
@@ -56,69 +59,70 @@ jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
             border-radius: 15px;
-            padding: 20px;
+            padding: 20px 30px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
         
         .logo {
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 1.5em;
+            gap: 12px;
+            font-size: 1.6em;
             font-weight: bold;
-            color: #4cc9f0;
+            background: linear-gradient(135deg, #00b4d8 0%, #0077b6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         
-        .logo i {
-            font-size: 1.8em;
-        }
-        
-        .security-status {
+        .security-badge {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: rgba(76, 201, 240, 0.1);
-            border-radius: 20px;
-            border: 1px solid rgba(76, 201, 240, 0.3);
+            gap: 10px;
+            padding: 10px 20px;
+            background: rgba(0, 180, 216, 0.1);
+            border-radius: 25px;
+            border: 1px solid rgba(0, 180, 216, 0.3);
+            font-size: 0.9em;
         }
         
         /* Main Layout */
         .main-content {
             display: flex;
-            gap: 20px;
-            height: 70vh;
+            gap: 25px;
+            height: 75vh;
+            min-height: 600px;
         }
         
         /* Sidebar */
         .sidebar {
-            width: 300px;
+            width: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .panel {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
             border-radius: 15px;
-            padding: 20px;
+            padding: 25px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
         }
         
-        .section {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 10px;
-            padding: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        .section h3 {
-            color: #4cc9f0;
-            margin-bottom: 15px;
+        .panel h3 {
+            color: #00b4d8;
+            margin-bottom: 20px;
+            font-size: 1.2em;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 180, 216, 0.2);
         }
         
         /* Chat Area */
@@ -131,108 +135,188 @@ jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw
             border-radius: 15px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
         }
         
         .chat-header {
-            padding: 20px;
+            padding: 25px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             background: rgba(255, 255, 255, 0.03);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
-        .chat-header h2 {
-            color: #4cc9f0;
+        .room-info h2 {
+            color: #00b4d8;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            font-size: 1.4em;
         }
         
+        .room-encryption {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        /* Messages */
         .messages-container {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
+            padding: 25px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 20px;
+            background: rgba(0, 0, 0, 0.2);
         }
         
         .message {
-            max-width: 70%;
-            padding: 12px 16px;
-            border-radius: 15px;
+            max-width: 75%;
+            padding: 15px 20px;
+            border-radius: 18px;
             position: relative;
             word-wrap: break-word;
+            animation: messageAppear 0.3s ease;
+        }
+        
+        @keyframes messageAppear {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         .message.sent {
             align-self: flex-end;
-            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+            background: linear-gradient(135deg, #0077b6 0%, #0096c7 100%);
             border-bottom-right-radius: 5px;
         }
         
         .message.received {
             align-self: flex-start;
             background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             border-bottom-left-radius: 5px;
+        }
+        
+        .message.system {
+            align-self: center;
+            background: rgba(0, 180, 216, 0.1);
+            border: 1px solid rgba(0, 180, 216, 0.3);
+            max-width: 90%;
+            text-align: center;
+            font-size: 0.9em;
         }
         
         .message-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-size: 0.85em;
-            opacity: 0.8;
+            opacity: 0.9;
+        }
+        
+        .message-content {
+            line-height: 1.5;
         }
         
         /* Message Input */
         .message-input {
-            padding: 20px;
+            padding: 25px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             background: rgba(255, 255, 255, 0.03);
         }
         
         .input-group {
             display: flex;
-            gap: 10px;
+            gap: 15px;
+            margin-bottom: 15px;
         }
         
-        .input-group textarea {
+        .message-textarea {
             flex: 1;
             background: rgba(255, 255, 255, 0.07);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 15px;
+            border-radius: 12px;
+            padding: 18px;
             color: white;
             resize: none;
             font-size: 1em;
+            min-height: 60px;
+            transition: all 0.3s ease;
         }
         
-        .input-group textarea:focus {
+        .message-textarea:focus {
             outline: none;
-            border-color: #4cc9f0;
+            border-color: #00b4d8;
+            box-shadow: 0 0 0 2px rgba(0, 180, 216, 0.1);
+        }
+        
+        /* Forms */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #90e0ef;
+            font-size: 0.95em;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: white;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #00b4d8;
+            box-shadow: 0 0 0 2px rgba(0, 180, 216, 0.1);
+        }
+        
+        .form-hint {
+            font-size: 0.85em;
+            opacity: 0.7;
+            margin-top: 5px;
+            color: #90e0ef;
         }
         
         /* Buttons */
         .btn {
-            padding: 12px 24px;
+            padding: 14px 28px;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             justify-content: center;
+            font-size: 1em;
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+            background: linear-gradient(135deg, #0077b6 0%, #0096c7 100%);
             color: white;
         }
         
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(67, 97, 238, 0.3);
+            box-shadow: 0 8px 25px rgba(0, 119, 182, 0.4);
         }
         
         .btn-secondary {
@@ -241,33 +325,89 @@ jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
-        .btn-secondary:hover {
+        .btn-secondary:hover:not(:disabled) {
             background: rgba(255, 255, 255, 0.15);
         }
         
-        .btn-danger {
-            background: linear-gradient(135deg, #ff4757 0%, #b33939 100%);
+        .btn-success {
+            background: linear-gradient(135deg, #2d6a4f 0%, #40916c 100%);
             color: white;
         }
         
-        .btn-danger:hover {
+        .btn-success:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(255, 71, 87, 0.3);
+            box-shadow: 0 8px 25px rgba(45, 106, 79, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #d00000 0%, #dc2f02 100%);
+            color: white;
+        }
+        
+        .btn-danger:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(220, 47, 2, 0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        
+        /* Room List */
+        .room-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .room-item {
+            padding: 16px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .room-item:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(0, 180, 216, 0.3);
+        }
+        
+        .room-item.active {
+            background: rgba(0, 119, 182, 0.2);
+            border-color: #0077b6;
+        }
+        
+        .room-meta {
+            font-size: 0.85em;
+            opacity: 0.7;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
         
         /* User List */
         .user-list {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
         
         .user-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 10px;
-            border-radius: 8px;
+            gap: 15px;
+            padding: 14px;
+            border-radius: 12px;
             background: rgba(255, 255, 255, 0.03);
             transition: background 0.3s ease;
         }
@@ -277,85 +417,171 @@ jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw
         }
         
         .user-avatar {
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #4361ee 0%, #4cc9f0 100%);
+            background: linear-gradient(135deg, #0077b6 0%, #00b4d8 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
+            font-size: 1.2em;
         }
         
-        /* Room List */
-        .room-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .room-item {
-            padding: 12px;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.03);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 1px solid transparent;
-        }
-        
-        .room-item:hover {
-            background: rgba(255, 255, 255, 0.07);
-            border-color: rgba(76, 201, 240, 0.3);
-        }
-        
-        .room-item.active {
-            background: rgba(67, 97, 238, 0.2);
-            border-color: #4361ee;
+        .user-name {
+            flex: 1;
+            font-weight: 500;
         }
         
         /* Crypto Status */
         .crypto-status {
-            font-size: 0.9em;
-            color: #4cc9f0;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #00b4d8;
         }
         
-        .key-status {
+        .crypto-status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 8px 0;
+        }
+        
+        /* Key Strength */
+        .key-strength {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
             margin-top: 10px;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 8px;
-            font-size: 0.85em;
+            overflow: hidden;
         }
         
-        .key-status.good {
-            border-left: 4px solid #2ed573;
+        .key-strength-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #ffd93d, #6bcf7f);
+            width: 0%;
+            transition: width 0.5s ease;
         }
         
-        .key-status.warning {
-            border-left: 4px solid #ffa502;
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: rgba(26, 26, 46, 0.95);
+            border: 1px solid rgba(0, 180, 216, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            animation: modalAppear 0.3s ease;
+        }
+        
+        @keyframes modalAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .modal-title {
+            color: #00b4d8;
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5em;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+        
+        .modal-close:hover {
+            opacity: 1;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 15px 25px;
+            background: rgba(0, 119, 182, 0.9);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 1001;
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
         
         /* Scrollbar */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 10px;
         }
         
         ::-webkit-scrollbar-track {
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 4px;
+            border-radius: 5px;
         }
         
         ::-webkit-scrollbar-thumb {
-            background: rgba(76, 201, 240, 0.3);
-            border-radius: 4px;
+            background: rgba(0, 180, 216, 0.3);
+            border-radius: 5px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: rgba(76, 201, 240, 0.5);
+            background: rgba(0, 180, 216, 0.5);
         }
         
         /* Responsive */
-        @media (max-width: 768px) {
+        @media (max-width: 1024px) {
             .main-content {
                 flex-direction: column;
                 height: auto;
@@ -365,21 +591,93 @@ jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw
                 width: 100%;
             }
             
+            .chat-area {
+                min-height: 70vh;
+            }
+        }
+        
+        @media (max-width: 768px) {
             .message {
-                max-width: 85%;
+                max-width: 90%;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .chat-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
             }
         }
     </style>
-    <!-- Font Awesome for icons -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <!-- Screenshot Blocker -->
     <div id="screenshotBlocker" class="screenshot-blocker">
-        <div class="blocker-content">
-            <i class="fas fa-shield-alt fa-3x"></i>
-            <p style="margin-top: 20px;">🔒 Screenshot Blocked</p>
+        <i class="fas fa-shield-alt fa-4x" style="color: #ff6b6b;"></i>
+        <h2 style="color: #ff6b6b;">SCREENSHOT PROTECTION</h2>
+        <p style="opacity: 0.8;">This action has been blocked for security</p>
+    </div>
+    
+    <!-- Create Room Modal -->
+    <div id="createRoomModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-door-closed"></i> Create Secure Room</h3>
+                <button class="modal-close" onclick="closeCreateRoomModal()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Room Name</label>
+                <input type="text" id="newRoomNameInput" class="form-input" placeholder="Enter room name">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Room Encryption Key</label>
+                <input type="password" id="newRoomKeyInput" class="form-input" placeholder="Enter room encryption key">
+                <div class="form-hint">
+                    <i class="fas fa-info-circle"></i> This key encrypts all messages in this room. Share it securely with room members.
+                </div>
+                <div class="key-strength">
+                    <div id="roomKeyStrength" class="key-strength-bar"></div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Confirm Key</label>
+                <input type="password" id="newRoomKeyConfirm" class="form-input" placeholder="Confirm encryption key">
+            </div>
+            <button class="btn btn-success" onclick="createRoom()" style="width: 100%; margin-top: 20px;">
+                <i class="fas fa-lock"></i> Create Encrypted Room
+            </button>
         </div>
+    </div>
+    
+    <!-- Join Room Modal -->
+    <div id="joinRoomModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-key"></i> Enter Room Key</h3>
+                <button class="modal-close" onclick="closeJoinRoomModal()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label" id="joinRoomNameLabel">Room Name</label>
+                <input type="text" id="joinRoomKeyInput" class="form-input" placeholder="Enter room encryption key">
+                <div class="form-hint">
+                    <i class="fas fa-info-circle"></i> Enter the encryption key for this room to decrypt messages.
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="joinRoomWithKey()" style="width: 100%; margin-top: 20px;">
+                <i class="fas fa-unlock"></i> Join Room
+            </button>
+        </div>
+    </div>
+    
+    <!-- Toast -->
+    <div id="toast" class="toast" style="display: none;">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage"></span>
     </div>
     
     <div class="container">
@@ -387,11 +685,15 @@ jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw
         <header>
             <div class="logo">
                 <i class="fas fa-lock"></i>
-                <span>SecureChat</span>
+                <span>SecureRoom Chat</span>
             </div>
-            <div class="security-status">
+            <div class="security-badge">
                 <i class="fas fa-shield-alt"></i>
                 <span>End-to-End Encrypted</span>
+                <div id="connectionStatus" style="margin-left: 10px; display: flex; align-items: center; gap: 5px;">
+                    <div style="width: 8px; height: 8px; border-radius: 50%; background: #6bcf7f;"></div>
+                    <span>Connected</span>
+                </div>
             </div>
         </header>
         
@@ -399,57 +701,65 @@ jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw
         <div class="main-content">
             <!-- Sidebar -->
             <div class="sidebar">
-                <!-- Authentication Section -->
-                <div class="section" id="authSection">
-                    <h3><i class="fas fa-key"></i> Authentication</h3>
-                    <div class="input-group" style="flex-direction: column; gap: 10px;">
-                        <input type="text" id="username" placeholder="Your Name" class="input-field" 
-                               style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; color: white;">
-                        <input type="password" id="password" placeholder="Encryption Password" class="input-field"
-                               style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; color: white;">
-                        <button class="btn btn-primary" onclick="login()">
-                            <i class="fas fa-sign-in-alt"></i> Start Secure Session
-                        </button>
+                <!-- Authentication Panel -->
+                <div class="panel" id="authPanel">
+                    <h3><i class="fas fa-user-lock"></i> User Authentication</h3>
+                    <div class="form-group">
+                        <label class="form-label">Your Name</label>
+                        <input type="text" id="usernameInput" class="form-input" placeholder="Enter your name">
                     </div>
-                    <div class="key-status warning" id="keyStatus" style="display: none;">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <span>No encryption key loaded</span>
+                    <div class="form-group">
+                        <label class="form-label">Master Password</label>
+                        <input type="password" id="masterPasswordInput" class="form-input" placeholder="Enter master password">
+                        <div class="form-hint">
+                            <i class="fas fa-info-circle"></i> This password protects your local session.
+                        </div>
                     </div>
+                    <button class="btn btn-primary" onclick="login()" style="width: 100%;">
+                        <i class="fas fa-sign-in-alt"></i> Start Secure Session
+                    </button>
                 </div>
                 
-                <!-- Rooms Section -->
-                <div class="section" id="roomsSection" style="display: none;">
-                    <h3><i class="fas fa-door-closed"></i> Rooms</h3>
+                <!-- Rooms Panel -->
+                <div class="panel" id="roomsPanel" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3><i class="fas fa-door-closed"></i> Rooms</h3>
+                        <button class="btn btn-secondary" onclick="showCreateRoomModal()" style="padding: 8px 16px;">
+                            <i class="fas fa-plus"></i> New
+                        </button>
+                    </div>
                     <div class="room-list" id="roomList">
-                        <!-- Rooms will be populated here -->
-                    </div>
-                    <div style="margin-top: 15px;">
-                        <input type="text" id="newRoomName" placeholder="New room name" 
-                               style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; color: white; width: 100%; margin-bottom: 10px;">
-                        <button class="btn btn-secondary" onclick="createRoom()" style="width: 100%;">
-                            <i class="fas fa-plus"></i> Create Room
-                        </button>
+                        <!-- Rooms will load here -->
                     </div>
                 </div>
                 
-                <!-- Users Section -->
-                <div class="section" id="usersSection" style="display: none;">
+                <!-- Users Panel -->
+                <div class="panel" id="usersPanel" style="display: none;">
                     <h3><i class="fas fa-users"></i> Online Users</h3>
                     <div class="user-list" id="userList">
-                        <!-- Users will be populated here -->
+                        <!-- Users will load here -->
                     </div>
                 </div>
                 
-                <!-- Crypto Info -->
-                <div class="section" id="cryptoSection" style="display: none;">
+                <!-- Encryption Panel -->
+                <div class="panel" id="encryptionPanel" style="display: none;">
                     <h3><i class="fas fa-lock"></i> Encryption Status</h3>
-                    <div class="crypto-status" id="cryptoStatus">
-                        <p><i class="fas fa-check-circle"></i> AES-256-CBC Active</p>
-                        <p><i class="fas fa-check-circle"></i> Client-side Encryption</p>
-                        <p><i class="fas fa-times-circle"></i> No Screenshot Protection</p>
+                    <div class="crypto-status">
+                        <div class="crypto-status-item">
+                            <i class="fas fa-check-circle" style="color: #6bcf7f;"></i>
+                            <span>AES-256-CBC Active</span>
+                        </div>
+                        <div class="crypto-status-item">
+                            <i class="fas fa-user-secret" style="color: #6bcf7f;"></i>
+                            <span>Client-Side Encryption</span>
+                        </div>
+                        <div class="crypto-status-item">
+                            <i class="fas fa-key" id="roomKeyStatusIcon"></i>
+                            <span id="roomKeyStatusText">No Room Key Loaded</span>
+                        </div>
                     </div>
-                    <button class="btn btn-danger" onclick="logout()" style="width: 100%; margin-top: 15px;">
-                        <i class="fas fa-sign-out-alt"></i> Clear Keys & Logout
+                    <button class="btn btn-danger" onclick="logout()" style="width: 100%; margin-top: 20px;">
+                        <i class="fas fa-sign-out-alt"></i> Clear All Keys & Logout
                     </button>
                 </div>
             </div>
@@ -457,40 +767,53 @@ jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw
             <!-- Chat Area -->
             <div class="chat-area" id="chatArea" style="display: none;">
                 <div class="chat-header">
-                    <h2><i class="fas fa-hashtag"></i> <span id="currentRoom">general</span></h2>
-                    <p style="opacity: 0.7; margin-top: 5px;" id="roomStatus">End-to-end encrypted room</p>
+                    <div class="room-info">
+                        <h2><i class="fas fa-hashtag" id="roomIcon"></i> <span id="currentRoomName">Select a Room</span></h2>
+                        <div class="room-encryption" id="roomEncryptionStatus">
+                            Click a room to start chatting
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-secondary" onclick="loadMessages()" id="refreshBtn">
+                            <i class="fas fa-sync"></i> Refresh
+                        </button>
+                        <button class="btn btn-secondary" onclick="clearChat()">
+                            <i class="fas fa-trash"></i> Clear
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="messages-container" id="messagesContainer">
-                    <!-- Messages will appear here -->
-                    <div class="message received">
+                    <div class="message system">
                         <div class="message-header">
-                            <span class="sender">System</span>
-                            <span class="time">Just now</span>
+                            <span class="sender">SecureRoom System</span>
+                            <span class="time">Welcome</span>
                         </div>
-                        <div class="message-content">Welcome to encrypted chat! All messages are encrypted before sending to Baserow.</div>
+                        <div class="message-content">
+                            Welcome to SecureRoom Chat! All messages are encrypted with room-specific keys before being sent to Baserow.
+                            <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">
+                                <i class="fas fa-shield-alt"></i> Select a room and enter its encryption key to start chatting.
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="message-input">
                     <div class="input-group">
-                        <textarea id="messageInput" placeholder="Type your encrypted message..." rows="2" 
-                                  onkeydown="handleKeyPress(event)"></textarea>
-                        <button class="btn btn-primary" onclick="sendMessage()">
+                        <textarea id="messageInput" class="message-textarea" 
+                                  placeholder="Type your encrypted message..." 
+                                  rows="3" disabled></textarea>
+                        <button class="btn btn-primary" onclick="sendMessage()" id="sendBtn" disabled>
                             <i class="fas fa-paper-plane"></i> Send
                         </button>
                     </div>
-                    <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
-                        <div style="font-size: 0.85em; opacity: 0.7;">
-                            <i class="fas fa-info-circle"></i> Messages encrypted with AES-256
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                        <div style="font-size: 0.85em; opacity: 0.7; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-info-circle"></i>
+                            <span id="encryptionInfo">Select a room to enable messaging</span>
                         </div>
-                        <div style="display: flex; gap: 10px;">
-                            <button class="btn btn-secondary" onclick="clearChat()">
-                                <i class="fas fa-trash"></i> Clear
-                            </button>
-                            <button class="btn btn-secondary" onclick="loadMessages()">
-                                <i class="fas fa-sync"></i> Refresh
-                            </button>
+                        <div id="messageCounter" style="font-size: 0.85em; opacity: 0.7;">
+                            0 characters
                         </div>
                     </div>
                 </div>
@@ -501,27 +824,27 @@ jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw
     <script>
         // ================= CONFIGURATION =================
         const BASEROW_CONFIG = {
-            // Replace with your actual Baserow details
             TOKEN: "jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw",
             BASE_URL: "https://api.baserow.io/api",
             DATABASE_ID: "340628",
-            ROOMS_TABLE_ID: "778590",  // Your Rooms table ID
-            MESSAGES_TABLE_ID: "778592" // Your Messages table ID
+            ROOMS_TABLE_ID: "778590",
+            MESSAGES_TABLE_ID: "778592"
         };
 
         // ================= STATE =================
         let state = {
             currentUser: null,
-            encryptionKey: null,
+            masterKey: null,
             currentRoom: null,
+            currentRoomKey: null,
             rooms: [],
+            roomKeys: new Map(), // Store room-specific keys
             users: new Set(),
-            isEncrypted: false,
-            screenshotBlocked: false
+            isAuthenticated: false,
+            messagePollInterval: null
         };
 
-        // ================= SECURITY FEATURES =================
-        // Screenshot blocking (best-effort)
+        // ================= SECURITY =================
         document.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.metaKey) && (e.key === 'PrintScreen' || e.key === 's' || e.key === 'p')) {
                 e.preventDefault();
@@ -529,22 +852,12 @@ jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw
             }
         });
 
-        // Prevent right-click
-        document.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            showScreenshotBlocker();
-        });
-
-        // Prevent drag/drop
-        document.addEventListener('dragstart', (e) => e.preventDefault());
-        document.addEventListener('drop', (e) => e.preventDefault());
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
 
         function showScreenshotBlocker() {
             const blocker = document.getElementById('screenshotBlocker');
             blocker.classList.add('show');
-            setTimeout(() => {
-                blocker.classList.remove('show');
-            }, 2000);
+            setTimeout(() => blocker.classList.remove('show'), 2000);
         }
 
         // ================= ENCRYPTION FUNCTIONS =================
@@ -562,18 +875,18 @@ jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw
                 {
                     name: "PBKDF2",
                     salt: encoder.encode(salt),
-                    iterations: 100000,
+                    iterations: 310000,
                     hash: "SHA-256"
                 },
                 keyMaterial,
                 { name: "AES-CBC", length: 256 },
-                false,
+                true,
                 ["encrypt", "decrypt"]
             );
         }
 
-        async function encryptMessage(text) {
-            if (!state.encryptionKey) throw new Error("No encryption key");
+        async function encryptMessage(text, roomKey) {
+            if (!roomKey) throw new Error("No room encryption key");
             
             const iv = window.crypto.getRandomValues(new Uint8Array(16));
             const encoder = new TextEncoder();
@@ -581,32 +894,67 @@ jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw
             
             const encrypted = await window.crypto.subtle.encrypt(
                 { name: "AES-CBC", iv },
-                state.encryptionKey,
+                roomKey,
                 data
             );
             
             return {
-                cipher: btoa(String.fromCharCode(...new Uint8Array(encrypted))),
-                iv: btoa(String.fromCharCode(...iv))
+                cipher: arrayBufferToBase64(encrypted),
+                iv: arrayBufferToBase64(iv)
             };
         }
 
-        async function decryptMessage(cipherBase64, ivBase64) {
-            if (!state.encryptionKey) throw new Error("No encryption key");
+        async function decryptMessage(cipherBase64, ivBase64, roomKey) {
+            if (!roomKey) throw new Error("No room encryption key");
             
-            const cipher = Uint8Array.from(atob(cipherBase64), c => c.charCodeAt(0));
-            const iv = Uint8Array.from(atob(ivBase64), c => c.charCodeAt(0));
+            const cipher = base64ToArrayBuffer(cipherBase64);
+            const iv = base64ToArrayBuffer(ivBase64);
             
             const decrypted = await window.crypto.subtle.decrypt(
                 { name: "AES-CBC", iv },
-                state.encryptionKey,
+                roomKey,
                 cipher
             );
             
             return new TextDecoder().decode(decrypted);
         }
 
-        // ================= BASEROW API FUNCTIONS =================
+        // ================= UTILITY FUNCTIONS =================
+        function arrayBufferToBase64(buffer) {
+            return btoa(String.fromCharCode(...new Uint8Array(buffer)));
+        }
+
+        function base64ToArrayBuffer(base64) {
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            
+            // Set color based on type
+            if (type === 'success') {
+                toast.style.background = 'rgba(107, 207, 127, 0.9)';
+            } else if (type === 'error') {
+                toast.style.background = 'rgba(255, 107, 107, 0.9)';
+            } else {
+                toast.style.background = 'rgba(0, 119, 182, 0.9)';
+            }
+            
+            toast.style.display = 'flex';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        // ================= BASEROW API =================
         async function baserowRequest(endpoint, method = 'GET', data = null) {
             const headers = {
                 'Authorization': `Token ${BASEROW_CONFIG.TOKEN}`,
@@ -621,7 +969,9 @@ jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw
 
             try {
                 const response = await fetch(`${BASEROW_CONFIG.BASE_URL}${endpoint}`, options);
-                if (!response.ok) throw new Error(`Baserow API error: ${response.status}`);
+                if (!response.ok) {
+                    throw new Error(`Baserow error ${response.status}: ${response.statusText}`);
+                }
                 return await response.json();
             } catch (error) {
                 console.error('Baserow request failed:', error);
@@ -631,77 +981,234 @@ jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw
 
         async function loadRooms() {
             try {
-                const data = await baserowRequest(`/database/rows/table/${BASEROW_CONFIG.ROOMS_TABLE_ID}/?user_field_names=true`);
+                const data = await baserowRequest(
+                    `/database/rows/table/${BASEROW_CONFIG.ROOMS_TABLE_ID}/?user_field_names=true`
+                );
                 state.rooms = data.results || [];
                 displayRooms();
             } catch (error) {
                 console.error('Failed to load rooms:', error);
+                showToast('Failed to load rooms', 'error');
             }
         }
 
         async function createRoom() {
-            const roomName = document.getElementById('newRoomName').value;
-            if (!roomName) return;
-
+            const roomName = document.getElementById('newRoomNameInput').value.trim();
+            const roomKey = document.getElementById('newRoomKeyInput').value;
+            const confirmKey = document.getElementById('newRoomKeyConfirm').value;
+            
+            if (!roomName) {
+                showToast('Please enter a room name', 'error');
+                return;
+            }
+            
+            if (!roomKey) {
+                showToast('Please enter an encryption key', 'error');
+                return;
+            }
+            
+            if (roomKey !== confirmKey) {
+                showToast('Encryption keys do not match', 'error');
+                return;
+            }
+            
+            if (roomKey.length < 8) {
+                showToast('Encryption key must be at least 8 characters', 'error');
+                return;
+            }
+            
             try {
-                const data = await baserowRequest(
+                // Create room in Baserow
+                const roomData = {
+                    room_name: roomName,
+                    room_id: `room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+                };
+                
+                const response = await baserowRequest(
                     `/database/rows/table/${BASEROW_CONFIG.ROOMS_TABLE_ID}/?user_field_names=true`,
                     'POST',
-                    { room_name: roomName }
+                    roomData
                 );
                 
-                state.rooms.push(data);
+                // Store room key locally
+                const salt = `room_${roomData.room_id}_${state.currentUser}`;
+                const derivedKey = await deriveKey(roomKey, salt);
+                state.roomKeys.set(roomData.room_id, derivedKey);
+                
+                // Add to local rooms list
+                state.rooms.push({
+                    ...roomData,
+                    id: response.id
+                });
+                
+                // Update UI
                 displayRooms();
-                document.getElementById('newRoomName').value = '';
+                closeCreateRoomModal();
+                showToast(`Room "${roomName}" created successfully`, 'success');
                 
                 // Join the new room
-                joinRoom(data.room_id, data.room_name);
+                joinRoom(roomData.room_id, roomName, derivedKey);
+                
             } catch (error) {
                 console.error('Failed to create room:', error);
-                alert('Failed to create room. Check your Baserow configuration.');
+                showToast('Failed to create room', 'error');
+            }
+        }
+
+        async function joinRoom(roomId, roomName, roomKey = null) {
+            state.currentRoom = roomId;
+            state.currentRoomKey = roomKey;
+            
+            // Update UI
+            document.getElementById('currentRoomName').textContent = roomName;
+            document.getElementById('roomIcon').className = roomKey ? 'fas fa-lock' : 'fas fa-lock-open';
+            
+            if (roomKey) {
+                document.getElementById('roomEncryptionStatus').innerHTML = `
+                    <i class="fas fa-check-circle" style="color: #6bcf7f;"></i>
+                    <span>Room key loaded - Messages are encrypted</span>
+                `;
+                document.getElementById('messageInput').disabled = false;
+                document.getElementById('sendBtn').disabled = false;
+                document.getElementById('encryptionInfo').innerHTML = `
+                    <i class="fas fa-check-circle" style="color: #6bcf7f;"></i>
+                    AES-256 encryption active for this room
+                `;
+                document.getElementById('roomKeyStatusIcon').className = 'fas fa-check-circle';
+                document.getElementById('roomKeyStatusIcon').style.color = '#6bcf7f';
+                document.getElementById('roomKeyStatusText').textContent = 'Room Key: Loaded';
+            } else {
+                document.getElementById('roomEncryptionStatus').innerHTML = `
+                    <i class="fas fa-exclamation-triangle" style="color: #ffd93d;"></i>
+                    <span>Room key required - Enter key to decrypt messages</span>
+                `;
+                document.getElementById('messageInput').disabled = true;
+                document.getElementById('sendBtn').disabled = true;
+                document.getElementById('encryptionInfo').textContent = 'Enter room key to enable messaging';
+                document.getElementById('roomKeyStatusIcon').className = 'fas fa-exclamation-triangle';
+                document.getElementById('roomKeyStatusIcon').style.color = '#ffd93d';
+                document.getElementById('roomKeyStatusText').textContent = 'Room Key: Required';
+                
+                // Show join modal
+                document.getElementById('joinRoomNameLabel').textContent = `Enter key for "${roomName}"`;
+                document.getElementById('joinRoomModal').classList.add('show');
+            }
+            
+            // Update room list highlight
+            document.querySelectorAll('.room-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.roomId === roomId) {
+                    item.classList.add('active');
+                }
+            });
+            
+            // Load messages for this room
+            await loadMessages();
+        }
+
+        async function joinRoomWithKey() {
+            const roomKey = document.getElementById('joinRoomKeyInput').value;
+            if (!roomKey) {
+                showToast('Please enter room encryption key', 'error');
+                return;
+            }
+            
+            try {
+                const salt = `room_${state.currentRoom}_${state.currentUser}`;
+                const derivedKey = await deriveKey(roomKey, salt);
+                state.currentRoomKey = derivedKey;
+                state.roomKeys.set(state.currentRoom, derivedKey);
+                
+                closeJoinRoomModal();
+                showToast('Room key accepted!', 'success');
+                
+                // Refresh room with key
+                const roomName = document.getElementById('currentRoomName').textContent;
+                joinRoom(state.currentRoom, roomName, derivedKey);
+                
+            } catch (error) {
+                console.error('Failed to derive room key:', error);
+                showToast('Invalid room key', 'error');
             }
         }
 
         async function loadMessages() {
             if (!state.currentRoom) return;
-
+            
             try {
                 const data = await baserowRequest(
-                    `/database/rows/table/${BASEROW_CONFIG.MESSAGES_TABLE_ID}/?user_field_names=true&filters={"room":"${state.currentRoom}"}&order_by="-created_at"&size=50`
+                    `/database/rows/table/${BASEROW_CONFIG.MESSAGES_TABLE_ID}/?user_field_names=true&filters={"room":"${state.currentRoom}"}&order_by="created_at"&size=100`
                 );
                 
                 const messagesContainer = document.getElementById('messagesContainer');
                 messagesContainer.innerHTML = '';
                 
                 // Add welcome message
-                addMessageToUI('System', 'Welcome to encrypted chat! All messages are encrypted before sending to Baserow.', 'received', true);
+                addSystemMessage('SecureRoom System', 
+                    state.currentRoomKey 
+                    ? `Joined room "${document.getElementById('currentRoomName').textContent}" - Messages are encrypted`
+                    : `Joined room "${document.getElementById('currentRoomName').textContent}" - Enter room key to decrypt messages`);
                 
-                // Decrypt and display messages
-                for (const message of (data.results || []).reverse()) {
+                // Process messages
+                let decryptedCount = 0;
+                let failedCount = 0;
+                
+                for (const message of (data.results || [])) {
                     try {
-                        const decrypted = await decryptMessage(message.cipher, message.iv);
+                        let content;
+                        let isSystem = false;
+                        
+                        if (message.type === 'system') {
+                            content = message.cipher;
+                            isSystem = true;
+                        } else if (state.currentRoomKey) {
+                            content = await decryptMessage(message.cipher, message.iv, state.currentRoomKey);
+                            decryptedCount++;
+                        } else {
+                            content = '[ENCRYPTED - Enter room key to decrypt]';
+                            isSystem = true;
+                        }
+                        
                         const isSent = message.user === state.currentUser;
-                        addMessageToUI(message.user, decrypted, isSent ? 'sent' : 'received', true);
+                        addMessageToUI(
+                            message.user,
+                            content,
+                            isSent ? 'sent' : (isSystem ? 'system' : 'received'),
+                            message.created_at
+                        );
+                        
                     } catch (error) {
-                        console.error('Failed to decrypt message:', error);
-                        addMessageToUI('System', `[Encrypted message - decryption failed]`, 'received', true);
+                        console.error('Failed to process message:', error);
+                        failedCount++;
+                        addSystemMessage('System', `[Failed to decrypt message]`);
                     }
                 }
                 
+                // Add stats if we have a key
+                if (state.currentRoomKey && data.results?.length > 0) {
+                    addSystemMessage('System', 
+                        `Loaded ${decryptedCount} encrypted messages${failedCount > 0 ? ` (${failedCount} failed)` : ''}`);
+                }
+                
                 scrollToBottom();
+                
             } catch (error) {
                 console.error('Failed to load messages:', error);
+                addSystemMessage('System', 'Failed to load messages from server');
             }
         }
 
         async function sendMessage() {
             const input = document.getElementById('messageInput');
             const message = input.value.trim();
-            if (!message || !state.currentRoom || !state.currentUser) return;
-
+            
+            if (!message || !state.currentRoom || !state.currentUser || !state.currentRoomKey) {
+                return;
+            }
+            
             try {
                 // Encrypt the message
-                const encrypted = await encryptMessage(message);
+                const encrypted = await encryptMessage(message, state.currentRoomKey);
                 
                 // Prepare data for Baserow
                 const rowData = {
@@ -711,100 +1218,85 @@ jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw
                     cipher: encrypted.cipher,
                     iv: encrypted.iv
                 };
-
+                
                 // Send to Baserow
                 await baserowRequest(
                     `/database/rows/table/${BASEROW_CONFIG.MESSAGES_TABLE_ID}/?user_field_names=true`,
                     'POST',
                     rowData
                 );
-
+                
                 // Add to UI
-                addMessageToUI(state.currentUser, message, 'sent');
+                addMessageToUI(state.currentUser, message, 'sent', new Date().toISOString());
                 input.value = '';
+                updateMessageCounter();
                 scrollToBottom();
+                
+                showToast('Message sent and encrypted', 'success');
+                
             } catch (error) {
                 console.error('Failed to send message:', error);
-                alert('Failed to send message. Check your encryption key and connection.');
+                showToast('Failed to send message', 'error');
             }
         }
 
         // ================= UI FUNCTIONS =================
-        async function login() {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
+        function displayRooms() {
+            const roomList = document.getElementById('roomList');
+            roomList.innerHTML = '';
             
-            if (!username || !password) {
-                alert('Please enter both username and password');
-                return;
-            }
-
-            try {
-                // Derive encryption key from password
-                const salt = `securechat-${username}-${state.currentRoom || 'general'}`;
-                state.encryptionKey = await deriveKey(password, salt);
-                state.currentUser = username;
-                state.isEncrypted = true;
-
-                // Update UI
-                document.getElementById('authSection').style.display = 'none';
-                document.getElementById('roomsSection').style.display = 'block';
-                document.getElementById('usersSection').style.display = 'block';
-                document.getElementById('cryptoSection').style.display = 'block';
-                document.getElementById('chatArea').style.display = 'flex';
-                document.getElementById('keyStatus').style.display = 'block';
-                document.getElementById('keyStatus').className = 'key-status good';
-                document.getElementById('keyStatus').innerHTML = `
-                    <i class="fas fa-check-circle"></i>
-                    <span>Encryption key loaded in memory</span>
-                `;
-
-                // Load rooms
-                await loadRooms();
-                
-                // Join default room
-                joinRoom('general', 'General Chat');
-                
-                // Add user to online list
-                state.users.add(username);
-                updateUserList();
-                
-                // Start polling for new messages
-                setInterval(loadMessages, 5000);
-                
-            } catch (error) {
-                console.error('Login failed:', error);
-                alert('Failed to initialize encryption. Please try again.');
-            }
-        }
-
-        function joinRoom(roomId, roomName) {
-            state.currentRoom = roomId;
-            document.getElementById('currentRoom').textContent = roomName;
-            document.getElementById('roomStatus').textContent = `End-to-end encrypted room - ${roomName}`;
+            // Add default room
+            addRoomItem('general', 'General Chat');
             
-            // Update room list UI
-            document.querySelectorAll('.room-item').forEach(item => {
-                item.classList.remove('active');
-                if (item.dataset.roomId === roomId) {
-                    item.classList.add('active');
-                }
+            // Add rooms from Baserow
+            state.rooms.forEach(room => {
+                addRoomItem(room.room_id, room.room_name);
             });
-            
-            // Load messages for this room
-            loadMessages();
         }
-
-        function addMessageToUI(sender, content, type, isSystem = false) {
+        
+        function addRoomItem(roomId, roomName) {
+            const roomList = document.getElementById('roomList');
+            const roomItem = document.createElement('div');
+            roomItem.className = `room-item ${state.currentRoom === roomId ? 'active' : ''}`;
+            roomItem.dataset.roomId = roomId;
+            
+            const hasKey = state.roomKeys.has(roomId);
+            
+            roomItem.innerHTML = `
+                <div>
+                    <div style="font-weight: 500; margin-bottom: 4px;">${escapeHtml(roomName)}</div>
+                    <div class="room-meta">
+                        <i class="fas ${hasKey ? 'fa-lock' : 'fa-lock-open'}"></i>
+                        <span>${hasKey ? 'Key loaded' : 'Key required'}</span>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right" style="opacity: 0.5;"></i>
+            `;
+            
+            roomItem.onclick = () => {
+                const roomKey = state.roomKeys.get(roomId);
+                joinRoom(roomId, roomName, roomKey);
+            };
+            
+            roomList.appendChild(roomItem);
+        }
+        
+        function addMessageToUI(sender, content, type, timestamp) {
             const messagesContainer = document.getElementById('messagesContainer');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${type}`;
             
-            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const time = timestamp ? new Date(timestamp).toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            }) : new Date().toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
             
             messageDiv.innerHTML = `
                 <div class="message-header">
-                    <span class="sender">${isSystem ? 'System' : sender}</span>
+                    <span class="sender">${escapeHtml(sender)}</span>
                     <span class="time">${time}</span>
                 </div>
                 <div class="message-content">${escapeHtml(content)}</div>
@@ -812,30 +1304,23 @@ jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw
             
             messagesContainer.appendChild(messageDiv);
         }
-
-        function displayRooms() {
-            const roomList = document.getElementById('roomList');
-            roomList.innerHTML = '';
+        
+        function addSystemMessage(sender, content) {
+            const messagesContainer = document.getElementById('messagesContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message system';
             
-            // Add default room
-            const defaultRoom = document.createElement('div');
-            defaultRoom.className = `room-item ${state.currentRoom === 'general' ? 'active' : ''}`;
-            defaultRoom.dataset.roomId = 'general';
-            defaultRoom.innerHTML = `<i class="fas fa-hashtag"></i> General Chat`;
-            defaultRoom.onclick = () => joinRoom('general', 'General Chat');
-            roomList.appendChild(defaultRoom);
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <span class="sender">${escapeHtml(sender)}</span>
+                    <span class="time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+                <div class="message-content">${escapeHtml(content)}</div>
+            `;
             
-            // Add rooms from Baserow
-            state.rooms.forEach(room => {
-                const roomItem = document.createElement('div');
-                roomItem.className = `room-item ${state.currentRoom === room.room_id ? 'active' : ''}`;
-                roomItem.dataset.roomId = room.room_id;
-                roomItem.innerHTML = `<i class="fas fa-door-closed"></i> ${escapeHtml(room.room_name)}`;
-                roomItem.onclick = () => joinRoom(room.room_id, room.room_name);
-                roomList.appendChild(roomItem);
-            });
+            messagesContainer.appendChild(messageDiv);
         }
-
+        
         function updateUserList() {
             const userList = document.getElementById('userList');
             userList.innerHTML = '';
@@ -845,105 +1330,221 @@ jXXkrUUqrQK3RlESaDPs2gq0Eu0SK4Sw
                 userItem.className = 'user-item';
                 userItem.innerHTML = `
                     <div class="user-avatar">${username.charAt(0).toUpperCase()}</div>
-                    <div>${escapeHtml(username)}</div>
-                    ${username === state.currentUser ? '<span style="font-size: 0.8em; opacity: 0.7;">(You)</span>' : ''}
+                    <div class="user-name">${escapeHtml(username)}</div>
+                    ${username === state.currentUser ? 
+                        '<span style="font-size: 0.8em; opacity: 0.7; background: rgba(0, 180, 216, 0.2); padding: 2px 8px; border-radius: 10px;">You</span>' : ''}
                 `;
                 userList.appendChild(userItem);
             });
         }
-
+        
+        // ================= MODAL FUNCTIONS =================
+        function showCreateRoomModal() {
+            document.getElementById('createRoomModal').classList.add('show');
+            document.getElementById('newRoomNameInput').focus();
+        }
+        
+        function closeCreateRoomModal() {
+            document.getElementById('createRoomModal').classList.remove('show');
+            document.getElementById('newRoomNameInput').value = '';
+            document.getElementById('newRoomKeyInput').value = '';
+            document.getElementById('newRoomKeyConfirm').value = '';
+            document.getElementById('roomKeyStrength').style.width = '0%';
+        }
+        
+        function closeJoinRoomModal() {
+            document.getElementById('joinRoomModal').classList.remove('show');
+            document.getElementById('joinRoomKeyInput').value = '';
+        }
+        
+        // ================= MAIN FUNCTIONS =================
+        async function login() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const password = document.getElementById('masterPasswordInput').value;
+            
+            if (!username || !password) {
+                showToast('Please enter both name and password', 'error');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showToast('Password must be at least 6 characters', 'error');
+                return;
+            }
+            
+            try {
+                // Derive master key from password
+                const salt = `master_${username}`;
+                state.masterKey = await deriveKey(password, salt);
+                state.currentUser = username;
+                state.isAuthenticated = true;
+                
+                // Update UI
+                document.getElementById('authPanel').style.display = 'none';
+                document.getElementById('roomsPanel').style.display = 'block';
+                document.getElementById('usersPanel').style.display = 'block';
+                document.getElementById('encryptionPanel').style.display = 'block';
+                document.getElementById('chatArea').style.display = 'flex';
+                
+                // Add user to list
+                state.users.add(username);
+                updateUserList();
+                
+                // Load rooms
+                await loadRooms();
+                
+                // Start polling for messages
+                if (state.messagePollInterval) {
+                    clearInterval(state.messagePollInterval);
+                }
+                state.messagePollInterval = setInterval(loadMessages, 3000);
+                
+                showToast(`Welcome ${username}! Session encrypted.`, 'success');
+                
+                // Setup message input counter
+                document.getElementById('messageInput').addEventListener('input', updateMessageCounter);
+                
+            } catch (error) {
+                console.error('Login failed:', error);
+                showToast('Failed to initialize encryption', 'error');
+            }
+        }
+        
         function logout() {
-            // Clear all sensitive data from memory
-            state.encryptionKey = null;
-            state.currentUser = null;
-            state.isEncrypted = false;
+            if (!confirm('Clear all encryption keys and logout?')) {
+                return;
+            }
+            
+            // Clear all state
+            state = {
+                currentUser: null,
+                masterKey: null,
+                currentRoom: null,
+                currentRoomKey: null,
+                rooms: [],
+                roomKeys: new Map(),
+                users: new Set(),
+                isAuthenticated: false,
+                messagePollInterval: null
+            };
             
             // Clear password field
-            document.getElementById('password').value = '';
+            document.getElementById('masterPasswordInput').value = '';
             
             // Reset UI
-            document.getElementById('authSection').style.display = 'block';
-            document.getElementById('roomsSection').style.display = 'none';
-            document.getElementById('usersSection').style.display = 'none';
-            document.getElementById('cryptoSection').style.display = 'none';
+            document.getElementById('authPanel').style.display = 'block';
+            document.getElementById('roomsPanel').style.display = 'none';
+            document.getElementById('usersPanel').style.display = 'none';
+            document.getElementById('encryptionPanel').style.display = 'none';
             document.getElementById('chatArea').style.display = 'none';
-            document.getElementById('keyStatus').className = 'key-status warning';
-            document.getElementById('keyStatus').innerHTML = `
-                <i class="fas fa-exclamation-triangle"></i>
-                <span>No encryption key loaded</span>
-            `;
             
-            // Clear messages
+            // Clear chat
             document.getElementById('messagesContainer').innerHTML = `
-                <div class="message received">
+                <div class="message system">
                     <div class="message-header">
-                        <span class="sender">System</span>
-                        <span class="time">Just now</span>
+                        <span class="sender">SecureRoom System</span>
+                        <span class="time">Welcome</span>
                     </div>
-                    <div class="message-content">Welcome to encrypted chat! All messages are encrypted before sending to Baserow.</div>
+                    <div class="message-content">
+                        Welcome to SecureRoom Chat! All messages are encrypted with room-specific keys before being sent to Baserow.
+                        <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">
+                            <i class="fas fa-shield-alt"></i> Select a room and enter its encryption key to start chatting.
+                        </div>
+                    </div>
                 </div>
             `;
             
-            alert('Encryption keys cleared from memory. Re-login required.');
+            // Clear message input
+            document.getElementById('messageInput').value = '';
+            document.getElementById('messageInput').disabled = true;
+            document.getElementById('sendBtn').disabled = true;
+            
+            // Stop polling
+            if (state.messagePollInterval) {
+                clearInterval(state.messagePollInterval);
+                state.messagePollInterval = null;
+            }
+            
+            showToast('All keys cleared from memory. Re-login required.', 'success');
         }
-
+        
         function clearChat() {
             if (confirm('Clear all messages from this view?')) {
                 const messagesContainer = document.getElementById('messagesContainer');
                 messagesContainer.innerHTML = `
-                    <div class="message received">
+                    <div class="message system">
                         <div class="message-header">
                             <span class="sender">System</span>
                             <span class="time">Just now</span>
                         </div>
-                        <div class="message-content">Chat cleared. Loading messages from Baserow...</div>
+                        <div class="message-content">Chat cleared. Loading messages...</div>
                     </div>
                 `;
                 loadMessages();
             }
         }
-
-        function handleKeyPress(event) {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                sendMessage();
+        
+        function updateMessageCounter() {
+            const input = document.getElementById('messageInput');
+            const counter = document.getElementById('messageCounter');
+            const length = input.value.length;
+            counter.textContent = `${length} characters`;
+            
+            if (length > 1000) {
+                counter.style.color = '#ff6b6b';
+            } else if (length > 500) {
+                counter.style.color = '#ffd93d';
+            } else {
+                counter.style.color = '';
             }
         }
-
+        
         function scrollToBottom() {
             const container = document.getElementById('messagesContainer');
             container.scrollTop = container.scrollHeight;
         }
-
+        
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
-
+        
         // ================= INITIALIZATION =================
         document.addEventListener('DOMContentLoaded', () => {
             // Check for Web Crypto API
             if (!window.crypto || !window.crypto.subtle) {
-                alert('Web Crypto API not supported. Please use a modern browser.');
+                alert('Web Crypto API not supported. Please use a modern browser (Chrome 60+, Firefox 63+, Safari 14+).');
                 return;
             }
             
-            // Set up event listeners
-            document.getElementById('password').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') login();
+            // Setup room key strength indicator
+            document.getElementById('newRoomKeyInput').addEventListener('input', function(e) {
+                const strength = Math.min(100, Math.pow(e.target.value.length, 2) / 2);
+                document.getElementById('roomKeyStrength').style.width = `${strength}%`;
             });
             
-            // Initial UI state
-            document.getElementById('keyStatus').innerHTML = `
-                <i class="fas fa-exclamation-triangle"></i>
-                <span>Enter password to load encryption key</span>
-            `;
+            // Setup enter key for message input
+            document.getElementById('messageInput').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
             
-            console.log('🔐 Secure Chat initialized');
-            console.log('⚠️  REMEMBER: Replace BASEROW_CONFIG values with your actual Baserow credentials');
+            // Setup enter key for modals
+            document.getElementById('newRoomKeyInput').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') createRoom();
+            });
+            
+            document.getElementById('joinRoomKeyInput').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') joinRoomWithKey();
+            });
+            
+            console.log('🔐 SecureRoom Chat initialized');
+            console.log('📊 Database ID:', BASEROW_CONFIG.DATABASE_ID);
+            console.log('🔑 Token configured');
         });
     </script>
 </body>
 </html>
-
