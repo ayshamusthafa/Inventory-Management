@@ -335,16 +335,6 @@
             color: white;
         }
         
-        .message-type-image {
-            background: var(--warning);
-            color: white;
-        }
-        
-        .message-type-file {
-            background: var(--primary);
-            color: white;
-        }
-        
         .message-type-system {
             background: var(--secondary);
             color: var(--text-secondary);
@@ -359,35 +349,13 @@
         }
         
         /* Message Type Indicators in Content */
-        .message-image-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(0, 0, 0, 0.1);
-            padding: 4px 8px;
-            border-radius: 6px;
-            margin: 4px 0;
-            font-size: 13px;
-        }
-        
-        .message-file-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(0, 0, 0, 0.1);
-            padding: 6px 10px;
-            border-radius: 8px;
-            margin: 4px 0;
-            font-size: 13px;
-        }
-        
         .message-system-indicator {
             font-style: italic;
             opacity: 0.8;
             font-size: 14px;
         }
         
-        /* Input Area - POSITIONED ABOVE KEYBOARD */
+        /* Input Area - ALWAYS VISIBLE */
         .input-area {
             position: fixed;
             bottom: 0;
@@ -399,10 +367,9 @@
             z-index: 1000;
             transition: transform 0.3s ease;
             padding-bottom: calc(12px + var(--safe-area-inset-bottom));
-        }
-        
-        .input-area.hidden {
-            transform: translateY(100%);
+            transform: none !important;
+            opacity: 1 !important;
+            pointer-events: all !important;
         }
         
         .input-container {
@@ -468,7 +435,7 @@
             transform: none;
         }
         
-        /* Message Type Selector */
+        /* Message Type Selector - SIMPLIFIED */
         .message-type-selector {
             display: flex;
             gap: 8px;
@@ -1103,15 +1070,6 @@
                 font-size: 16px !important;
             }
         }
-        
-        /* Hide input area when keyboard is closed on mobile */
-        @media (max-width: 768px) {
-            .input-area.hidden {
-                transform: translateY(100%);
-                opacity: 0;
-                pointer-events: none;
-            }
-        }
     </style>
 </head>
 <body>
@@ -1278,16 +1236,10 @@
                 </div>
             </div>
             
-            <!-- Message Type Selector -->
+            <!-- Message Type Selector - SIMPLIFIED -->
             <div class="message-type-selector" id="messageTypeSelector">
                 <button class="type-btn active" data-type="text" onclick="setMessageType('text')">
                     📝 Text
-                </button>
-                <button class="type-btn" data-type="image" onclick="setMessageType('image')">
-                    🖼️ Image
-                </button>
-                <button class="type-btn" data-type="file" onclick="setMessageType('file')">
-                    📎 File
                 </button>
                 <button class="type-btn" data-type="system" onclick="setMessageType('system')">
                     ⚙️ System
@@ -1299,7 +1251,7 @@
                 <!-- Messages will be added here -->
             </div>
             
-            <!-- Input Area - POSITIONED ABOVE KEYBOARD -->
+            <!-- Input Area - ALWAYS VISIBLE -->
             <div class="input-area" id="inputArea">
                 <div class="input-container">
                     <textarea 
@@ -1350,7 +1302,7 @@
             pendingConfirmation: null, // {type: 'deleteAll' | 'cleanup', callback: function}
             keyboardHintTimeout: null,
             lastFocusedElement: null,
-            currentMessageType: 'text', // 'text', 'image', 'file', 'system'
+            currentMessageType: 'text', // 'text' or 'system'
             isFullscreen: false,
             isMobile: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent),
             keyboardVisible: false,
@@ -1429,7 +1381,6 @@
                 if (isKeyboardVisible) {
                     // Keyboard opened
                     document.body.classList.add('keyboard-open');
-                    inputArea.classList.remove('hidden');
                     
                     // Adjust messages container padding
                     messagesContainer.style.paddingBottom = (keyboardHeight + 100) + 'px';
@@ -1442,24 +1393,11 @@
                     // Keyboard closed
                     document.body.classList.remove('keyboard-open');
                     messagesContainer.style.paddingBottom = '80px';
-                    
-                    // Only hide input area on small screens
-                    if (window.innerWidth < 768) {
-                        setTimeout(() => {
-                            if (!document.activeElement || document.activeElement !== document.getElementById('messageInput')) {
-                                inputArea.classList.add('hidden');
-                            }
-                        }, 300);
-                    }
                 }
             }
             
-            // Adjust input area position
-            if (isKeyboardVisible) {
-                inputArea.style.bottom = keyboardHeight + 'px';
-            } else {
-                inputArea.style.bottom = '0';
-            }
+            // Adjust input area position (always visible at bottom)
+            inputArea.style.bottom = '0';
         }
         
         function handleViewportScroll() {
@@ -1470,16 +1408,11 @@
             
             // Keep input area visible when scrolling
             const inputArea = document.getElementById('inputArea');
-            if (state.keyboardVisible) {
-                inputArea.style.transform = `translateY(${visualViewport.offsetTop}px)`;
-            }
+            inputArea.style.transform = 'none';
         }
         
         function handleInputFocus() {
             if (!state.isMobile) return;
-            
-            const inputArea = document.getElementById('inputArea');
-            inputArea.classList.remove('hidden');
             
             // Force show keyboard on iOS
             setTimeout(() => {
@@ -1488,17 +1421,11 @@
         }
         
         function handleInputBlur() {
-            if (!state.isMobile) return;
-            
-            // Only hide input area on small screens when keyboard is closed
-            if (window.innerWidth < 768 && !state.keyboardVisible) {
-                setTimeout(() => {
-                    const inputArea = document.getElementById('inputArea');
-                    if (!document.activeElement || document.activeElement !== document.getElementById('messageInput')) {
-                        inputArea.classList.add('hidden');
-                    }
-                }, 300);
-            }
+            // Input stays visible, no need to hide it
+            // Just ensure it's at the bottom
+            const inputArea = document.getElementById('inputArea');
+            inputArea.style.bottom = '0';
+            inputArea.style.transform = 'none';
         }
         
         function handleWindowResize() {
@@ -1516,11 +1443,6 @@
             messagesContainer.style.paddingBottom = '80px';
             inputArea.style.bottom = '0';
             inputArea.style.transform = 'none';
-            
-            // Show input area on larger screens
-            if (window.innerWidth >= 768) {
-                inputArea.classList.remove('hidden');
-            }
         }
         
         function scrollMessagesToBottom() {
@@ -1610,12 +1532,6 @@
                 case 'text':
                     messageInput.placeholder = 'Type a message...';
                     break;
-                case 'image':
-                    messageInput.placeholder = 'Describe the image or paste image URL...';
-                    break;
-                case 'file':
-                    messageInput.placeholder = 'Describe the file...';
-                    break;
                 case 'system':
                     messageInput.placeholder = 'System message...';
                     break;
@@ -1635,8 +1551,6 @@
         function getMessageTypeBadge(type) {
             switch(type) {
                 case 'text': return 'Text';
-                case 'image': return 'Image';
-                case 'file': return 'File';
                 case 'system': return 'System';
                 default: return 'Text';
             }
@@ -1645,8 +1559,6 @@
         function getMessageTypeClass(type) {
             switch(type) {
                 case 'text': return 'message-type-text';
-                case 'image': return 'message-type-image';
-                case 'file': return 'message-type-file';
                 case 'system': return 'message-type-system';
                 default: return 'message-type-text';
             }
@@ -1654,18 +1566,6 @@
 
         function formatMessageContent(content, type) {
             switch(type) {
-                case 'image':
-                    return `
-                        <div class="message-image-indicator">
-                            🖼️ <strong>Image:</strong> ${escapeHtml(content)}
-                        </div>
-                    `;
-                case 'file':
-                    return `
-                        <div class="message-file-indicator">
-                            📎 <strong>File:</strong> ${escapeHtml(content)}
-                        </div>
-                    `;
                 case 'system':
                     return `
                         <div class="message-system-indicator">
@@ -1747,9 +1647,9 @@
                     hideKeyboardHint();
                 }
                 
-                // Message type shortcuts: 1-4
-                if (e.key >= '1' && e.key <= '4' && document.getElementById('chatScreen').classList.contains('active')) {
-                    const types = ['text', 'image', 'file', 'system'];
+                // Message type shortcuts: 1-2
+                if (e.key >= '1' && e.key <= '2' && document.getElementById('chatScreen').classList.contains('active')) {
+                    const types = ['text', 'system'];
                     const index = parseInt(e.key) - 1;
                     if (types[index]) {
                         e.preventDefault();
@@ -2540,12 +2440,10 @@
                 // Scroll to bottom
                 scrollMessagesToBottom();
                 
-                // On mobile, blur input to hide keyboard after sending
-                if (state.isMobile) {
-                    setTimeout(() => {
-                        input.blur();
-                    }, 100);
-                }
+                // Input stays focused after sending (doesn't blur on mobile)
+                setTimeout(() => {
+                    input.focus();
+                }, 100);
                 
             } catch (error) {
                 console.error('Failed to send message:', error);
@@ -2729,11 +2627,6 @@
             });
             document.querySelector('.type-btn[data-type="text"]').classList.add('active');
             
-            // Show input area on mobile
-            if (state.isMobile) {
-                document.getElementById('inputArea').classList.remove('hidden');
-            }
-            
             // Test connection first
             updateStatus('Connecting...', true);
             await testConnection();
@@ -2816,24 +2709,14 @@
                 this.style.height = Math.min(this.scrollHeight, 120) + 'px';
             });
             
-            // Show input area when clicking on messages container (mobile)
-            document.getElementById('messagesContainer').addEventListener('click', function() {
-                if (state.isMobile && window.innerWidth < 768) {
-                    document.getElementById('inputArea').classList.remove('hidden');
-                    setTimeout(() => {
-                        document.getElementById('messageInput').focus();
-                    }, 100);
-                }
-            });
-            
             // Focus username on load
             document.getElementById('username').focus();
             
             // Test connection on load
             document.getElementById('testStatus').textContent = 'Click "Start Chatting" to begin';
             
-            console.log('Chat app initialized with mobile keyboard support');
-            console.log('Message input positioned above keyboard on mobile devices');
+            console.log('Chat app initialized with simplified message types');
+            console.log('Input area stays visible at all times');
         });
     </script>
 </body>
