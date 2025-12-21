@@ -701,12 +701,14 @@
                     tempElement.remove();
                 }
                 
-                // Add real message
+                // Add real message with the correct Baserow ID
                 const realMessage = {
-                    ...result,
-                    encrypted_data: data.encrypted_data,
+                    id: result.id, // Use the Baserow ID
                     username: state.username,
-                    timestamp: new Date().toISOString()
+                    room_id: state.room,
+                    encrypted_data: data.encrypted_data,
+                    timestamp: new Date().toISOString(),
+                    created_on: new Date().toISOString()
                 };
                 
                 state.messages.push(realMessage);
@@ -761,21 +763,30 @@
                 
                 logDebug(`Found ${roomMessages.length} messages in room "${state.room}"`, 'info');
                 
-                // Clear current messages (except temp messages)
+                // Keep temp messages
                 const tempMessages = state.messages.filter(m => m.isTemp);
+                
+                // Clear and rebuild messages array
                 state.messages = [...tempMessages];
                 
-                // Add room messages
+                // Add all room messages from Baserow
                 roomMessages.forEach(msg => {
-                    // Check if message already exists
+                    // Check if message already exists (compare by Baserow ID)
                     const exists = state.messages.some(m => m.id === msg.id);
                     if (!exists) {
-                        state.messages.push(msg);
+                        state.messages.push({
+                            id: msg.id,
+                            username: msg.username,
+                            room_id: msg.room_id,
+                            encrypted_data: msg.encrypted_data,
+                            created_on: msg.created_on,
+                            timestamp: msg.created_on
+                        });
                     }
                 });
                 
-                // Update display
-                displayAllMessages();
+                // Update display - but don't clear the DOM, just add new messages
+                updateMessageDisplay();
                 
                 // Update debug info
                 if (state.debugMode) {
@@ -789,6 +800,38 @@
                 document.getElementById('debugError').textContent = error.message;
                 updateStatus('Failed to load messages', false);
             }
+        }
+
+        function updateMessageDisplay() {
+            const container = document.getElementById('messagesContainer');
+            
+            // Remove empty state if it exists
+            const emptyState = container.querySelector('.empty-state');
+            if (emptyState && state.messages.length > 0) {
+                emptyState.remove();
+            }
+            
+            // Sort messages by timestamp (oldest first)
+            const sortedMessages = [...state.messages].sort((a, b) => {
+                const timeA = new Date(a.timestamp || a.created_on).getTime();
+                const timeB = new Date(b.timestamp || b.created_on).getTime();
+                return timeA - timeB;
+            });
+            
+            // Add only new messages to DOM
+            sortedMessages.forEach(msg => {
+                addMessageToDOM(msg);
+            });
+            
+            // Scroll to bottom if we're near the bottom
+            const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+            if (isNearBottom) {
+                setTimeout(() => {
+                    container.scrollTop = container.scrollHeight;
+                }, 100);
+            }
+            
+            logDebug(`Updated display with ${state.messages.length} messages`, 'success');
         }
 
         // ================= CONNECTION TEST =================
@@ -851,11 +894,11 @@
             updateStatus('Connecting...', true);
             await testConnection();
             
-            // Start auto-refresh (every 5 seconds)
+            // Start auto-refresh (every 3 seconds - more frequent)
             if (state.autoRefresh) {
                 clearInterval(state.autoRefresh);
             }
-            state.autoRefresh = setInterval(loadMessages, 5000);
+            state.autoRefresh = setInterval(loadMessages, 3000);
             
             // Focus input
             document.getElementById('messageInput').focus();
