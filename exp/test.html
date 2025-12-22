@@ -284,8 +284,14 @@
             color: white;
         }
         
-        .delete-room-btn:hover {
-            background: #d32f2f;
+        .debug-toggle-btn {
+            background: var(--warning);
+            color: white;
+        }
+        
+        .fullscreen-toggle-btn {
+            background: var(--info);
+            color: white;
         }
         
         /* Message Type Selector - FIXED BELOW HEADER */
@@ -528,7 +534,7 @@
             background: var(--secondary);
         }
         
-        /* Debug Panel - FIXED POSITION */
+        /* Debug Panel */
         .debug-panel {
             position: fixed;
             top: 80px;
@@ -604,37 +610,6 @@
             color: white;
             text-align: right;
             flex: 1;
-        }
-        
-        /* Debug Controls - FIXED TO HEADER */
-        .debug-controls {
-            position: fixed;
-            top: 12px;
-            right: 12px;
-            display: flex;
-            gap: 8px;
-            z-index: 1001;
-            padding-top: env(safe-area-inset-top, 0px);
-        }
-        
-        .control-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: var(--primary);
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: white;
-            font-size: 16px;
-            transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(0, 132, 255, 0.3);
-        }
-        
-        .control-btn:active {
-            transform: scale(0.95);
         }
         
         /* Toast */
@@ -849,24 +824,12 @@
                 --input-height: 56px;
             }
             
-            .debug-controls {
-                top: 8px;
-                right: 8px;
-                gap: 6px;
-            }
-            
             .debug-panel {
                 top: 60px;
                 right: 10px;
                 left: 10px;
                 width: auto;
                 max-width: none;
-            }
-            
-            .control-btn {
-                width: 32px;
-                height: 32px;
-                font-size: 14px;
             }
             
             .chat-header {
@@ -876,6 +839,7 @@
             .header-btn {
                 width: 36px;
                 height: 36px;
+                font-size: 16px;
             }
             
             .room-info h2 {
@@ -941,6 +905,11 @@
                 padding: 12px;
                 font-size: 15px;
             }
+            
+            /* Adjust header buttons for mobile */
+            .header-right {
+                gap: 6px;
+            }
         }
         
         /* Small phones */
@@ -961,7 +930,7 @@
             .header-btn {
                 width: 32px;
                 height: 32px;
-                font-size: 16px;
+                font-size: 14px;
             }
             
             .room-info h2 {
@@ -969,18 +938,7 @@
             }
             
             .theme-toggle-btn {
-                font-size: 18px;
-            }
-            
-            .debug-controls {
-                top: 6px;
-                right: 6px;
-            }
-            
-            .control-btn {
-                width: 28px;
-                height: 28px;
-                font-size: 12px;
+                font-size: 16px;
             }
             
             .message-type-selector {
@@ -990,6 +948,11 @@
             .type-btn {
                 padding: 4px 8px;
                 font-size: 10px;
+            }
+            
+            /* Hide some buttons on very small screens */
+            .header-right .header-btn:nth-child(n+4) {
+                display: none;
             }
         }
         
@@ -1038,11 +1001,6 @@
                 padding-left: max(16px, env(safe-area-inset-left));
                 padding-right: max(16px, env(safe-area-inset-right));
             }
-            
-            .debug-controls {
-                padding-top: env(safe-area-inset-top, 0px);
-                right: max(12px, env(safe-area-inset-right));
-            }
         }
         
         /* Prevent zoom on input focus iOS */
@@ -1057,7 +1015,6 @@
         /* Touch-friendly improvements */
         @media (hover: none) and (pointer: coarse) {
             .header-btn,
-            .control-btn,
             .send-btn,
             .type-btn,
             .confirm-btn,
@@ -1098,16 +1055,6 @@
     </style>
 </head>
 <body>
-    <!-- Debug Controls - FIXED TO HEADER AREA -->
-    <div class="debug-controls" id="debugControls">
-        <button class="control-btn debug-toggle" onclick="toggleDebug()" aria-label="Toggle debug panel" id="debugToggle">
-            🐛
-        </button>
-        <button class="control-btn fullscreen-toggle" onclick="toggleFullscreen()" aria-label="Toggle fullscreen" id="fullscreenToggle">
-            ⛶
-        </button>
-    </div>
-    
     <!-- Debug Panel -->
     <div class="debug-panel" id="debugPanel" role="dialog" aria-labelledby="debugPanelTitle" aria-modal="true" hidden>
         <div class="debug-header">
@@ -1229,9 +1176,19 @@
                     </div>
                 </div>
                 <div class="header-right">
+                    <!-- Debug toggle button -->
+                    <button class="header-btn debug-toggle-btn" onclick="toggleDebug()" id="debugToggleBtn" aria-label="Toggle debug panel">
+                        🐛
+                    </button>
+                    <!-- Fullscreen toggle button -->
+                    <button class="header-btn fullscreen-toggle-btn" onclick="toggleFullscreen()" id="fullscreenToggleBtn" aria-label="Toggle fullscreen">
+                        ⛶
+                    </button>
+                    <!-- Theme toggle button -->
                     <button class="header-btn theme-toggle-btn" onclick="toggleTheme()" id="themeToggleBtn" aria-label="Toggle dark/light mode">
                         🌙
                     </button>
+                    <!-- Delete room button -->
                     <button class="header-btn delete-room-btn" onclick="showDeleteRoomConfirmation()" id="deleteRoomBtnHeader" aria-label="Delete all messages in current room">
                         🗑️
                     </button>
@@ -1331,6 +1288,97 @@
 
         function saveThemePreference() {
             localStorage.setItem('darkMode', state.isDarkMode);
+        }
+
+        // ================= DEBUG FUNCTIONS =================
+        function toggleDebug() {
+            state.debugMode = !state.debugMode;
+            const debugPanel = document.getElementById('debugPanel');
+            const debugBtn = document.getElementById('debugToggleBtn');
+            
+            if (state.debugMode) {
+                debugPanel.style.display = 'block';
+                debugPanel.removeAttribute('hidden');
+                debugBtn.style.backgroundColor = 'var(--warning)';
+                updateDebugInfo();
+                showToast('Debug panel opened');
+            } else {
+                debugPanel.style.display = 'none';
+                debugPanel.setAttribute('hidden', 'true');
+                debugBtn.style.backgroundColor = 'var(--secondary)';
+                showToast('Debug panel closed');
+            }
+        }
+
+        function updateDebugInfo() {
+            if (!state.debugMode) return;
+            
+            document.getElementById('debugRoom').textContent = state.room;
+            document.getElementById('debugUser').textContent = state.username;
+            document.getElementById('debugAppCount').textContent = state.messages.length;
+            document.getElementById('debugConnection').textContent = state.isConnected ? '✅ Connected' : '❌ Disconnected';
+            document.getElementById('debugMessageType').textContent = state.currentMessageType.charAt(0).toUpperCase() + state.currentMessageType.slice(1);
+            
+            const roomMessageCount = state.messages.filter(m => 
+                m.room_id && m.room_id.toLowerCase() === state.room.toLowerCase()
+            ).length;
+            document.getElementById('debugRoomCount').textContent = `${roomMessageCount}/${state.maxMessagesPerRoom}`;
+            
+            const deleteBtn = document.getElementById('deleteAllBtn');
+            const deleteRoomBtn = document.getElementById('deleteRoomBtn');
+            const cleanupBtn = document.getElementById('cleanupBtn');
+            
+            if (deleteBtn) {
+                deleteBtn.disabled = state.isDeleting || state.isCleaning;
+                deleteBtn.textContent = state.isDeleting ? '🗑️ DELETING...' : '🗑️ DELETE ALL DATA';
+            }
+            
+            if (deleteRoomBtn) {
+                deleteRoomBtn.disabled = state.isDeleting || state.isCleaning;
+                deleteRoomBtn.textContent = state.isDeleting ? '🗑️ DELETING...' : '🗑️ DELETE ROOM MESSAGES';
+            }
+            
+            if (cleanupBtn) {
+                cleanupBtn.disabled = state.isDeleting || state.isCleaning;
+                cleanupBtn.textContent = state.isCleaning ? '🧹 CLEANING...' : '🧹 Cleanup This Room';
+            }
+        }
+
+        // ================= FULLSCREEN =================
+        function toggleFullscreen() {
+            const fullscreenBtn = document.getElementById('fullscreenToggleBtn');
+            
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log('Fullscreen error:', err);
+                    showToast('Failed to enter fullscreen');
+                });
+                fullscreenBtn.textContent = '🗕';
+                fullscreenBtn.style.backgroundColor = 'var(--success)';
+                showToast('Fullscreen enabled');
+            } else {
+                document.exitFullscreen();
+                fullscreenBtn.textContent = '⛶';
+                fullscreenBtn.style.backgroundColor = 'var(--info)';
+                showToast('Fullscreen disabled');
+            }
+        }
+
+        // Handle fullscreen change events
+        document.addEventListener('fullscreenchange', updateFullscreenButton);
+        document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
+        document.addEventListener('mozfullscreenchange', updateFullscreenButton);
+        document.addEventListener('MSFullscreenChange', updateFullscreenButton);
+
+        function updateFullscreenButton() {
+            const fullscreenBtn = document.getElementById('fullscreenToggleBtn');
+            if (document.fullscreenElement) {
+                fullscreenBtn.textContent = '🗕';
+                fullscreenBtn.style.backgroundColor = 'var(--success)';
+            } else {
+                fullscreenBtn.textContent = '⛶';
+                fullscreenBtn.style.backgroundColor = 'var(--info)';
+            }
         }
 
         // ================= SIMPLIFIED MESSAGING =================
@@ -1617,44 +1665,6 @@
             }, 50);
         }
 
-        // ================= DEBUG FUNCTIONS =================
-        function toggleDebug() {
-            state.debugMode = !state.debugMode;
-            const debugPanel = document.getElementById('debugPanel');
-            
-            if (state.debugMode) {
-                debugPanel.style.display = 'block';
-                debugPanel.removeAttribute('hidden');
-                updateDebugInfo();
-            } else {
-                debugPanel.style.display = 'none';
-                debugPanel.setAttribute('hidden', 'true');
-            }
-        }
-
-        function updateDebugInfo() {
-            if (!state.debugMode) return;
-            
-            document.getElementById('debugRoom').textContent = state.room;
-            document.getElementById('debugUser').textContent = state.username;
-            document.getElementById('debugAppCount').textContent = state.messages.length;
-            document.getElementById('debugConnection').textContent = state.isConnected ? '✅ Connected' : '❌ Disconnected';
-            document.getElementById('debugMessageType').textContent = state.currentMessageType.charAt(0).toUpperCase() + state.currentMessageType.slice(1);
-        }
-
-        // ================= FULLSCREEN =================
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.log('Fullscreen error:', err);
-                });
-                showToast('Fullscreen enabled');
-            } else {
-                document.exitFullscreen();
-                showToast('Fullscreen disabled');
-            }
-        }
-
         // ================= APP FLOW - SIMPLIFIED =================
         async function startChat() {
             const username = document.getElementById('username').value.trim();
@@ -1747,6 +1757,39 @@
             }
         }
 
+        // ================= CONFIRMATION DIALOGS =================
+        function showDeleteRoomConfirmation() {
+            state.pendingConfirmation = {
+                type: 'deleteRoom',
+                callback: deleteRoomMessages
+            };
+            
+            document.getElementById('confirmationTitle').textContent = '⚠️ Delete Room Messages';
+            document.getElementById('confirmationMessage').innerHTML = 
+                `This will permanently delete ALL messages in room "<strong>${state.room}</strong>".<br><br>` +
+                'This action cannot be undone. Are you sure you want to proceed?';
+            
+            document.getElementById('confirmActionBtn').textContent = 'Delete Room';
+            
+            const dialog = document.getElementById('confirmationDialog');
+            dialog.classList.add('show');
+            dialog.removeAttribute('hidden');
+        }
+
+        function hideConfirmation() {
+            state.pendingConfirmation = null;
+            const dialog = document.getElementById('confirmationDialog');
+            dialog.classList.remove('show');
+            dialog.setAttribute('hidden', 'true');
+        }
+
+        function confirmAction() {
+            if (state.pendingConfirmation && state.pendingConfirmation.callback) {
+                state.pendingConfirmation.callback();
+            }
+            hideConfirmation();
+        }
+
         // ================= INITIALIZATION =================
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize theme
@@ -1789,6 +1832,24 @@
                 if (e.key === 'Escape' && document.getElementById('chatScreen').classList.contains('active')) {
                     logout();
                 }
+                
+                // Ctrl+D for debug
+                if (e.ctrlKey && e.key === 'd' && document.getElementById('chatScreen').classList.contains('active')) {
+                    e.preventDefault();
+                    toggleDebug();
+                }
+                
+                // Ctrl+F for fullscreen
+                if (e.ctrlKey && e.key === 'f' && document.getElementById('chatScreen').classList.contains('active')) {
+                    e.preventDefault();
+                    toggleFullscreen();
+                }
+                
+                // Ctrl+T for theme
+                if (e.ctrlKey && e.key === 't' && document.getElementById('chatScreen').classList.contains('active')) {
+                    e.preventDefault();
+                    toggleTheme();
+                }
             });
             
             // Focus username on load
@@ -1800,17 +1861,19 @@
                 messageInput.addEventListener('touchstart', function() {
                     this.style.fontSize = '16px';
                 });
-            }
-            
-            // Adjust debug controls position on scroll
-            window.addEventListener('scroll', function() {
-                const debugControls = document.getElementById('debugControls');
-                if (window.scrollY > 50) {
-                    debugControls.style.opacity = '0.7';
-                } else {
-                    debugControls.style.opacity = '1';
+                
+                // Adjust header buttons for mobile
+                const headerRight = document.querySelector('.header-right');
+                if (window.innerWidth < 400) {
+                    // Hide some buttons on very small screens
+                    const buttons = headerRight.querySelectorAll('.header-btn');
+                    if (buttons.length > 4) {
+                        for (let i = 3; i < buttons.length; i++) {
+                            buttons[i].style.display = 'none';
+                        }
+                    }
                 }
-            });
+            }
         });
     </script>
 </body>
