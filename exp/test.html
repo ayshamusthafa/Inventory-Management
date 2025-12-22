@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>💬 Easy Chat</title>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --primary: #0084ff;
@@ -322,7 +324,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 4px;
+            gap: 6px;
+        }
+        
+        .type-btn i {
+            font-size: 14px;
         }
         
         .type-btn.active {
@@ -528,6 +534,9 @@
             padding: 4px 8px;
             border-radius: 4px;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
         
         .test-btn:active {
@@ -615,16 +624,20 @@
         /* Delete Buttons */
         .delete-btn {
             margin-top: 10px;
-            padding: 8px 12px;
+            padding: 10px 12px;
             background: var(--error);
             color: white;
             border: none;
             border-radius: 6px;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
             cursor: pointer;
             width: 100%;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
         
         .delete-btn:active {
@@ -636,21 +649,25 @@
             background: #ffb3b3;
             cursor: not-allowed;
             transform: none;
-            opacity: 0.5;
+            opacity: 0.7;
         }
         
         .cleanup-btn {
             margin-top: 8px;
-            padding: 6px 10px;
+            padding: 10px 12px;
             background: var(--warning);
             color: white;
             border: none;
             border-radius: 6px;
-            font-size: 10px;
+            font-size: 12px;
             font-weight: 600;
             cursor: pointer;
             width: 100%;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
         
         .cleanup-btn:active {
@@ -662,7 +679,22 @@
             background: #ffcc80;
             cursor: not-allowed;
             transform: none;
-            opacity: 0.5;
+            opacity: 0.7;
+        }
+        
+        /* Spinner Animation */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
         
         /* Toast */
@@ -682,6 +714,9 @@
             pointer-events: none;
             max-width: 90%;
             text-align: center;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
         .toast.show {
@@ -751,6 +786,9 @@
             margin-bottom: 12px;
             color: var(--text-primary);
             transition: color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
         .confirmation-message {
@@ -775,6 +813,10 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
         
         .confirm-btn:active {
@@ -788,6 +830,11 @@
         
         .confirm-btn.delete {
             background: var(--error);
+            color: white;
+        }
+        
+        .confirm-btn.cleanup {
+            background: var(--warning);
             color: white;
         }
         
@@ -996,7 +1043,7 @@
         <div class="debug-header">
             <div class="debug-title">Debug Information</div>
             <button class="debug-close-btn" onclick="toggleDebug()" aria-label="Close debug panel">
-                ×
+                <i class="fas fa-times"></i>
             </button>
         </div>
         <div class="debug-content">
@@ -1034,15 +1081,18 @@
             </div>
             
             <button class="cleanup-btn" onclick="showCleanupConfirmation()" id="cleanupBtn" aria-label="Cleanup old messages in current room">
-                🧹 Cleanup This Room
+                <i class="fas fa-broom"></i>
+                <span id="cleanupBtnText">Cleanup This Room</span>
             </button>
             
             <button class="delete-btn" onclick="showDeleteRoomConfirmation()" id="deleteRoomBtn" aria-label="Delete all messages in current room">
-                🗑️ DELETE ROOM MESSAGES
+                <i class="fas fa-trash"></i>
+                <span id="deleteRoomBtnText">DELETE ROOM MESSAGES</span>
             </button>
             
             <button class="delete-btn" onclick="showDeleteAllConfirmation()" id="deleteAllBtn" aria-label="Delete all messages from database">
-                🗑️ DELETE ALL DATA
+                <i class="fas fa-database"></i>
+                <span id="deleteAllBtnText">DELETE ALL DATA</span>
             </button>
         </div>
     </div>
@@ -1050,17 +1100,22 @@
     <!-- Confirmation Dialog -->
     <div class="confirmation-dialog" id="confirmationDialog" role="dialog" aria-labelledby="confirmationTitle" aria-modal="true" hidden>
         <div class="confirmation-content">
-            <h2 class="confirmation-title" id="confirmationTitle">⚠️ Delete Room Messages</h2>
+            <h2 class="confirmation-title" id="confirmationTitle">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span id="confirmationTitleText">Delete Room Messages</span>
+            </h2>
             <div class="confirmation-message" id="confirmationMessage">
                 This will permanently delete ALL messages from the current room.<br><br>
                 This action cannot be undone. Are you sure you want to proceed?
             </div>
             <div class="confirmation-buttons">
                 <button class="confirm-btn cancel" onclick="hideConfirmation()" id="cancelBtn">
+                    <i class="fas fa-times"></i>
                     Cancel
                 </button>
                 <button class="confirm-btn delete" onclick="confirmAction()" id="confirmActionBtn">
-                    Delete
+                    <i class="fas fa-trash"></i>
+                    <span id="confirmActionBtnText">Delete</span>
                 </button>
             </div>
         </div>
@@ -1070,27 +1125,33 @@
         <!-- Login Screen -->
         <div class="login-screen" id="loginScreen">
             <div class="app-logo" role="img" aria-label="Chat App Logo">
-                💬
+                <i class="fas fa-comments"></i>
             </div>
             <div class="login-card">
                 <h1 class="login-title">Easy Chat</h1>
                 
                 <div class="input-group">
-                    <label class="input-label" for="username">Your Name</label>
+                    <label class="input-label" for="username">
+                        <i class="fas fa-user"></i> Your Name
+                    </label>
                     <input type="text" class="input-field" id="username" placeholder="Enter your name" value="Alex" aria-required="true">
                 </div>
                 
                 <div class="input-group">
-                    <label class="input-label" for="room">Room Name</label>
+                    <label class="input-label" for="room">
+                        <i class="fas fa-door-open"></i> Room Name
+                    </label>
                     <input type="text" class="input-field" id="room" placeholder="Enter room name" value="general" aria-required="true">
                 </div>
                 
                 <button class="btn" onclick="startChat()" id="startChatBtn" aria-label="Start chatting">
-                    Start Chatting
+                    <i class="fas fa-comment-dots"></i> Start Chatting
                 </button>
                 
                 <div style="margin-top: 16px; font-size: 12px; color: var(--text-secondary); text-align: center;">
-                    <div id="testStatus">Click "Start Chatting" to begin</div>
+                    <div id="testStatus">
+                        <i class="fas fa-mouse-pointer"></i> Click "Start Chatting" to begin
+                    </div>
                 </div>
             </div>
         </div>
@@ -1101,7 +1162,7 @@
             <div class="chat-header">
                 <div class="header-left">
                     <button class="header-btn" onclick="logout()" id="logoutBtn" aria-label="Leave chat and return to login">
-                        ←
+                        <i class="fas fa-arrow-left"></i>
                     </button>
                     <div class="room-info">
                         <h2 id="roomTitle">#<span id="currentRoom">general</span></h2>
@@ -1113,16 +1174,16 @@
                 </div>
                 <div class="header-right">
                     <button class="header-btn debug-toggle-btn" onclick="toggleDebug()" id="debugToggleBtn" aria-label="Toggle debug panel">
-                        🐛
+                        <i class="fas fa-bug"></i>
                     </button>
                     <button class="header-btn fullscreen-toggle-btn" onclick="toggleFullscreen()" id="fullscreenToggleBtn" aria-label="Toggle fullscreen">
-                        ⛶
+                        <i class="fas fa-expand"></i>
                     </button>
                     <button class="header-btn theme-toggle-btn" onclick="toggleTheme()" id="themeToggleBtn" aria-label="Toggle dark/light mode">
-                        🌙
+                        <i class="fas fa-moon"></i>
                     </button>
                     <button class="header-btn delete-room-btn" onclick="showDeleteRoomConfirmation()" id="deleteRoomBtnHeader" aria-label="Delete all messages in current room">
-                        🗑️
+                        <i class="fas fa-trash"></i>
                     </button>
                 </div>
             </div>
@@ -1130,10 +1191,10 @@
             <!-- Message Type Selector - FIXED BELOW HEADER -->
             <div class="message-type-selector" id="messageTypeSelector">
                 <button class="type-btn active" data-type="text" onclick="setMessageType('text')">
-                    📝 Text
+                    <i class="fas fa-font"></i> Text
                 </button>
                 <button class="type-btn" data-type="system" onclick="setMessageType('system')">
-                    ⚙️ System
+                    <i class="fas fa-cog"></i> System
                 </button>
             </div>
             
@@ -1153,16 +1214,18 @@
                         aria-label="Type your message"
                     ></textarea>
                     <button class="send-btn" onclick="sendMessage()" id="sendBtn" aria-label="Send message" disabled>
-                        →
+                        <i class="fas fa-paper-plane"></i>
                     </button>
                 </div>
             </div>
             
             <!-- Status Bar -->
             <div class="status-bar">
-                <div id="statusText" role="status" aria-live="polite">Ready</div>
+                <div id="statusText" role="status" aria-live="polite">
+                    <i class="fas fa-circle" style="color: var(--success); font-size: 8px;"></i> Ready
+                </div>
                 <button class="test-btn" onclick="testConnection()" id="testConnectionBtn" aria-label="Test connection to server">
-                    Test Connection
+                    <i class="fas fa-wifi"></i> Test Connection
                 </button>
             </div>
         </div>
@@ -1203,17 +1266,18 @@
             state.isDarkMode = !state.isDarkMode;
             updateTheme();
             saveThemePreference();
-            showToast(state.isDarkMode ? 'Dark mode enabled' : 'Light mode enabled');
+            showToast(state.isDarkMode ? 'Dark mode enabled' : 'Light mode enabled', 'info');
         }
 
         function updateTheme() {
+            const themeBtn = document.getElementById('themeToggleBtn');
             if (state.isDarkMode) {
                 document.body.classList.add('dark-mode');
-                document.getElementById('themeToggleBtn').textContent = '☀️';
+                themeBtn.innerHTML = '<i class="fas fa-sun"></i>';
                 document.getElementById('debugTheme').textContent = 'Dark';
             } else {
                 document.body.classList.remove('dark-mode');
-                document.getElementById('themeToggleBtn').textContent = '🌙';
+                themeBtn.innerHTML = '<i class="fas fa-moon"></i>';
                 document.getElementById('debugTheme').textContent = 'Light';
             }
         }
@@ -1233,6 +1297,7 @@
                 debugPanel.removeAttribute('hidden');
                 debugBtn.style.backgroundColor = 'var(--warning)';
                 updateDebugInfo();
+                showToast('Debug panel opened', 'info');
             } else {
                 debugPanel.style.display = 'none';
                 debugPanel.setAttribute('hidden', 'true');
@@ -1253,25 +1318,6 @@
                 m.room_id && m.room_id.toLowerCase() === state.room.toLowerCase()
             ).length;
             document.getElementById('debugRoomCount').textContent = `${roomMessageCount}/${state.maxMessagesPerRoom}`;
-            
-            const deleteBtn = document.getElementById('deleteAllBtn');
-            const deleteRoomBtn = document.getElementById('deleteRoomBtn');
-            const cleanupBtn = document.getElementById('cleanupBtn');
-            
-            if (deleteBtn) {
-                deleteBtn.disabled = state.isDeleting || state.isCleaning;
-                deleteBtn.textContent = state.isDeleting ? '🗑️ DELETING...' : '🗑️ DELETE ALL DATA';
-            }
-            
-            if (deleteRoomBtn) {
-                deleteRoomBtn.disabled = state.isDeleting || state.isCleaning;
-                deleteRoomBtn.textContent = state.isDeleting ? '🗑️ DELETING...' : '🗑️ DELETE ROOM MESSAGES';
-            }
-            
-            if (cleanupBtn) {
-                cleanupBtn.disabled = state.isDeleting || state.isCleaning;
-                cleanupBtn.textContent = state.isCleaning ? '🧹 CLEANING...' : '🧹 Cleanup This Room';
-            }
         }
 
         // ================= FULLSCREEN =================
@@ -1281,13 +1327,16 @@
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
                     console.log('Fullscreen error:', err);
+                    showToast('Failed to enter fullscreen', 'error');
                 });
-                fullscreenBtn.textContent = '🗕';
+                fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
                 fullscreenBtn.style.backgroundColor = 'var(--success)';
+                showToast('Fullscreen enabled', 'success');
             } else {
                 document.exitFullscreen();
-                fullscreenBtn.textContent = '⛶';
+                fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
                 fullscreenBtn.style.backgroundColor = 'var(--info)';
+                showToast('Fullscreen disabled', 'info');
             }
         }
 
@@ -1300,20 +1349,33 @@
         function updateFullscreenButton() {
             const fullscreenBtn = document.getElementById('fullscreenToggleBtn');
             if (document.fullscreenElement) {
-                fullscreenBtn.textContent = '🗕';
+                fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
                 fullscreenBtn.style.backgroundColor = 'var(--success)';
             } else {
-                fullscreenBtn.textContent = '⛶';
+                fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
                 fullscreenBtn.style.backgroundColor = 'var(--info)';
             }
         }
 
-        // ================= DELETE FUNCTIONS =================
+        // ================= DELETE FUNCTIONS WITH SPINNERS =================
         async function deleteAllData() {
             state.isDeleting = true;
-            updateDebugInfo();
+            updateButtonStates();
             
-            showToast('Deleting all data...', 3000);
+            // Show loading state in button
+            const deleteBtn = document.getElementById('deleteAllBtn');
+            const originalHTML = deleteBtn.innerHTML;
+            deleteBtn.innerHTML = '<div class="spinner"></div> Deleting...';
+            deleteBtn.disabled = true;
+            
+            // Update confirmation button if still open
+            const confirmBtn = document.getElementById('confirmActionBtn');
+            if (confirmBtn) {
+                confirmBtn.innerHTML = '<div class="spinner"></div> Deleting...';
+                confirmBtn.disabled = true;
+            }
+            
+            showToast('Deleting all data...', 'info');
             updateStatus('Deleting all data...', true);
             
             try {
@@ -1335,15 +1397,16 @@
                 const allMessages = data.results || [];
                 
                 if (allMessages.length === 0) {
-                    showToast('No data to delete', 2000);
+                    showToast('No data to delete', 'info');
                     state.isDeleting = false;
-                    updateDebugInfo();
+                    updateButtonStates();
                     updateStatus('No data to delete', true);
                     return;
                 }
                 
                 // Delete messages one by one
                 let deletedCount = 0;
+                const totalMessages = allMessages.length;
                 
                 for (const message of allMessages) {
                     try {
@@ -1359,6 +1422,8 @@
                         
                         if (deleteResponse.ok) {
                             deletedCount++;
+                            // Update status during deletion
+                            updateStatus(`Deleting... ${deletedCount}/${totalMessages}`, true);
                         }
                     } catch (error) {
                         console.error('Error deleting message:', error);
@@ -1370,24 +1435,52 @@
                 state.displayedIds.clear();
                 displayAllMessages();
                 
-                showToast(`✅ Deleted ${deletedCount} messages`, 3000);
+                showToast(`✅ Successfully deleted ${deletedCount} messages`, 'success');
                 updateStatus(`Deleted ${deletedCount} messages`, true);
                 
             } catch (error) {
                 console.error('Failed to delete all data:', error);
-                showToast(`❌ Delete failed: ${error.message}`, 3000);
+                showToast(`❌ Delete failed: ${error.message}`, 'error');
                 updateStatus('Delete failed', false);
             } finally {
                 state.isDeleting = false;
-                updateDebugInfo();
+                updateButtonStates();
+                
+                // Restore button text
+                setTimeout(() => {
+                    deleteBtn.innerHTML = originalHTML;
+                    deleteBtn.disabled = false;
+                    if (confirmBtn) {
+                        confirmBtn.innerHTML = '<i class="fas fa-trash"></i> Delete All';
+                        confirmBtn.disabled = false;
+                    }
+                }, 500);
             }
         }
 
         async function deleteRoomMessages() {
             state.isDeleting = true;
-            updateDebugInfo();
+            updateButtonStates();
             
-            showToast(`Deleting messages in room "${state.room}"...`, 3000);
+            // Show loading state in buttons
+            const deleteRoomBtn = document.getElementById('deleteRoomBtn');
+            const deleteRoomHeaderBtn = document.getElementById('deleteRoomBtnHeader');
+            const originalBtnHTML = deleteRoomBtn.innerHTML;
+            const originalHeaderBtnHTML = deleteRoomHeaderBtn.innerHTML;
+            
+            deleteRoomBtn.innerHTML = '<div class="spinner"></div> Deleting...';
+            deleteRoomBtn.disabled = true;
+            deleteRoomHeaderBtn.innerHTML = '<div class="spinner"></div>';
+            deleteRoomHeaderBtn.disabled = true;
+            
+            // Update confirmation button if still open
+            const confirmBtn = document.getElementById('confirmActionBtn');
+            if (confirmBtn) {
+                confirmBtn.innerHTML = '<div class="spinner"></div> Deleting...';
+                confirmBtn.disabled = true;
+            }
+            
+            showToast(`Deleting messages in room "${state.room}"...`, 'info');
             updateStatus(`Deleting room messages...`, true);
             
             try {
@@ -1415,15 +1508,16 @@
                 });
                 
                 if (roomMessages.length === 0) {
-                    showToast('No messages in this room to delete', 2000);
+                    showToast('No messages in this room to delete', 'info');
                     state.isDeleting = false;
-                    updateDebugInfo();
+                    updateButtonStates();
                     updateStatus('No messages to delete', true);
                     return;
                 }
                 
                 // Delete messages one by one
                 let deletedCount = 0;
+                const totalMessages = roomMessages.length;
                 
                 for (const message of roomMessages) {
                     try {
@@ -1439,6 +1533,8 @@
                         
                         if (deleteResponse.ok) {
                             deletedCount++;
+                            // Update status during deletion
+                            updateStatus(`Deleting... ${deletedCount}/${totalMessages}`, true);
                         }
                     } catch (error) {
                         console.error('Error deleting message:', error);
@@ -1452,25 +1548,50 @@
                 
                 displayAllMessages();
                 
-                showToast(`✅ Deleted ${deletedCount} messages from room`, 3000);
+                showToast(`✅ Deleted ${deletedCount} messages from room`, 'success');
                 updateStatus(`Deleted ${deletedCount} messages`, true);
                 
             } catch (error) {
                 console.error('Failed to delete room messages:', error);
-                showToast(`❌ Delete failed: ${error.message}`, 3000);
+                showToast(`❌ Delete failed: ${error.message}`, 'error');
                 updateStatus('Delete failed', false);
             } finally {
                 state.isDeleting = false;
-                updateDebugInfo();
+                updateButtonStates();
+                
+                // Restore button text
+                setTimeout(() => {
+                    deleteRoomBtn.innerHTML = originalBtnHTML;
+                    deleteRoomBtn.disabled = false;
+                    deleteRoomHeaderBtn.innerHTML = originalHeaderBtnHTML;
+                    deleteRoomHeaderBtn.disabled = false;
+                    if (confirmBtn) {
+                        confirmBtn.innerHTML = '<i class="fas fa-trash"></i> Delete Room';
+                        confirmBtn.disabled = false;
+                    }
+                }, 500);
             }
         }
 
-        // ================= CLEANUP FUNCTIONS =================
+        // ================= CLEANUP FUNCTIONS WITH SPINNERS =================
         async function cleanupCurrentRoom() {
             state.isCleaning = true;
-            updateDebugInfo();
+            updateButtonStates();
             
-            showToast(`Cleaning up room "${state.room}"...`, 3000);
+            // Show loading state in button
+            const cleanupBtn = document.getElementById('cleanupBtn');
+            const originalHTML = cleanupBtn.innerHTML;
+            cleanupBtn.innerHTML = '<div class="spinner"></div> Cleaning...';
+            cleanupBtn.disabled = true;
+            
+            // Update confirmation button if still open
+            const confirmBtn = document.getElementById('confirmActionBtn');
+            if (confirmBtn) {
+                confirmBtn.innerHTML = '<div class="spinner"></div> Cleaning...';
+                confirmBtn.disabled = true;
+            }
+            
+            showToast(`Cleaning up room "${state.room}"...`, 'info');
             updateStatus(`Cleaning up room...`, true);
             
             try {
@@ -1509,15 +1630,16 @@
                 const messagesToDelete = sortedRoomMessages.slice(0, -20);
                 
                 if (messagesToDelete.length === 0) {
-                    showToast(`Room already at 20 messages or less`, 2000);
+                    showToast(`Room already at 20 messages or less`, 'info');
                     state.isCleaning = false;
-                    updateDebugInfo();
+                    updateButtonStates();
                     updateStatus(`Room at ${roomMessages.length} messages`, true);
                     return;
                 }
                 
                 // Delete old messages
                 let deletedCount = 0;
+                const totalToDelete = messagesToDelete.length;
                 
                 for (const message of messagesToDelete) {
                     try {
@@ -1533,6 +1655,8 @@
                         
                         if (deleteResponse.ok) {
                             deletedCount++;
+                            // Update status during cleanup
+                            updateStatus(`Cleaning... ${deletedCount}/${totalToDelete}`, true);
                         }
                     } catch (error) {
                         console.error('Error deleting message:', error);
@@ -1547,16 +1671,26 @@
                 // Reload messages to refresh display
                 await loadMessages();
                 
-                showToast(`✅ Cleanup complete! Deleted ${deletedCount} old messages`, 3000);
+                showToast(`✅ Cleanup complete! Deleted ${deletedCount} old messages`, 'success');
                 updateStatus(`Cleaned room to 20 messages`, true);
                 
             } catch (error) {
                 console.error('Failed to cleanup room:', error);
-                showToast(`❌ Cleanup failed: ${error.message}`, 3000);
+                showToast(`❌ Cleanup failed: ${error.message}`, 'error');
                 updateStatus('Cleanup failed', false);
             } finally {
                 state.isCleaning = false;
-                updateDebugInfo();
+                updateButtonStates();
+                
+                // Restore button text
+                setTimeout(() => {
+                    cleanupBtn.innerHTML = originalHTML;
+                    cleanupBtn.disabled = false;
+                    if (confirmBtn) {
+                        confirmBtn.innerHTML = '<i class="fas fa-broom"></i> Cleanup Now';
+                        confirmBtn.disabled = false;
+                    }
+                }, 500);
             }
         }
 
@@ -1614,6 +1748,32 @@
             }
         }
 
+        // ================= BUTTON STATE MANAGEMENT =================
+        function updateButtonStates() {
+            const deleteAllBtn = document.getElementById('deleteAllBtn');
+            const deleteRoomBtn = document.getElementById('deleteRoomBtn');
+            const cleanupBtn = document.getElementById('cleanupBtn');
+            const deleteRoomHeaderBtn = document.getElementById('deleteRoomBtnHeader');
+            
+            if (deleteAllBtn) {
+                deleteAllBtn.disabled = state.isDeleting || state.isCleaning;
+            }
+            
+            if (deleteRoomBtn) {
+                deleteRoomBtn.disabled = state.isDeleting || state.isCleaning;
+            }
+            
+            if (cleanupBtn) {
+                cleanupBtn.disabled = state.isDeleting || state.isCleaning;
+            }
+            
+            if (deleteRoomHeaderBtn) {
+                deleteRoomHeaderBtn.disabled = state.isDeleting || state.isCleaning;
+            }
+            
+            updateDebugInfo();
+        }
+
         // ================= CONFIRMATION DIALOGS =================
         function showDeleteAllConfirmation() {
             state.pendingConfirmation = {
@@ -1621,12 +1781,15 @@
                 callback: deleteAllData
             };
             
-            document.getElementById('confirmationTitle').textContent = '⚠️ Delete All Data';
+            document.getElementById('confirmationTitleText').textContent = 'Delete All Data';
+            document.getElementById('confirmationTitle').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Delete All Data';
             document.getElementById('confirmationMessage').innerHTML = 
                 'This will permanently delete ALL messages from the Baserow table.<br><br>' +
                 'This action cannot be undone. Are you sure you want to proceed?';
             
-            document.getElementById('confirmActionBtn').textContent = 'Delete All';
+            document.getElementById('confirmActionBtn').className = 'confirm-btn delete';
+            document.getElementById('confirmActionBtnText').textContent = 'Delete All';
+            document.getElementById('confirmActionBtn').innerHTML = '<i class="fas fa-trash"></i> Delete All';
             
             const dialog = document.getElementById('confirmationDialog');
             dialog.classList.add('show');
@@ -1639,12 +1802,15 @@
                 callback: deleteRoomMessages
             };
             
-            document.getElementById('confirmationTitle').textContent = '⚠️ Delete Room Messages';
+            document.getElementById('confirmationTitleText').textContent = 'Delete Room Messages';
+            document.getElementById('confirmationTitle').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Delete Room Messages';
             document.getElementById('confirmationMessage').innerHTML = 
                 `This will permanently delete ALL messages in room "<strong>${state.room}</strong>".<br><br>` +
                 'This action cannot be undone. Are you sure you want to proceed?';
             
-            document.getElementById('confirmActionBtn').textContent = 'Delete Room';
+            document.getElementById('confirmActionBtn').className = 'confirm-btn delete';
+            document.getElementById('confirmActionBtnText').textContent = 'Delete Room';
+            document.getElementById('confirmActionBtn').innerHTML = '<i class="fas fa-trash"></i> Delete Room';
             
             const dialog = document.getElementById('confirmationDialog');
             dialog.classList.add('show');
@@ -1657,13 +1823,16 @@
                 callback: cleanupCurrentRoom
             };
             
-            document.getElementById('confirmationTitle').textContent = '🧹 Cleanup This Room';
+            document.getElementById('confirmationTitleText').textContent = 'Cleanup This Room';
+            document.getElementById('confirmationTitle').innerHTML = '<i class="fas fa-broom"></i> Cleanup This Room';
             document.getElementById('confirmationMessage').innerHTML = 
                 `This will delete older messages in room "<strong>${state.room}</strong>",<br>` +
                 `keeping only the <strong>20 most recent</strong> messages.<br><br>` +
                 'This action cannot be undone. Proceed with cleanup?';
             
-            document.getElementById('confirmActionBtn').textContent = 'Cleanup Now';
+            document.getElementById('confirmActionBtn').className = 'confirm-btn cleanup';
+            document.getElementById('confirmActionBtnText').textContent = 'Cleanup Now';
+            document.getElementById('confirmActionBtn').innerHTML = '<i class="fas fa-broom"></i> Cleanup Now';
             
             const dialog = document.getElementById('confirmationDialog');
             dialog.classList.add('show');
@@ -1779,7 +1948,7 @@
                     tempElement.querySelector('.message-time').textContent = 'Failed';
                 }
                 updateStatus('Failed to send', false);
-                showToast('Failed to send: ' + error.message, 3000);
+                showToast('Failed to send: ' + error.message, 'error');
             }
         }
 
@@ -1807,7 +1976,7 @@
             
             // Format system messages
             if (messageType === 'system') {
-                content = `<div style="font-style: italic; opacity: 0.8;">⚙️ ${content}</div>`;
+                content = `<div style="font-style: italic; opacity: 0.8;"><i class="fas fa-cog"></i> ${content}</div>`;
             }
             
             // Time
@@ -1919,9 +2088,10 @@
             const container = document.getElementById('messagesContainer');
             container.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-icon">💬</div>
+                    <div class="empty-icon"><i class="fas fa-comments"></i></div>
                     <div class="empty-title">No messages yet</div>
                     <div style="color: var(--text-secondary); font-size: 14px;">Send a message to start!</div>
+                </div>
             `;
         }
 
@@ -1932,18 +2102,39 @@
             return div.innerHTML;
         }
 
-        function showToast(message, duration = 2000) {
+        function showToast(message, type = 'info') {
             const toast = document.getElementById('toast');
-            toast.textContent = message;
+            let icon = '';
+            
+            switch(type) {
+                case 'success':
+                    icon = '<i class="fas fa-check-circle"></i>';
+                    toast.style.background = 'var(--success)';
+                    break;
+                case 'error':
+                    icon = '<i class="fas fa-exclamation-circle"></i>';
+                    toast.style.background = 'var(--error)';
+                    break;
+                case 'warning':
+                    icon = '<i class="fas fa-exclamation-triangle"></i>';
+                    toast.style.background = 'var(--warning)';
+                    break;
+                default:
+                    icon = '<i class="fas fa-info-circle"></i>';
+                    toast.style.background = 'var(--text-primary)';
+            }
+            
+            toast.innerHTML = `${icon} ${message}`;
             toast.classList.add('show');
             
             setTimeout(() => {
                 toast.classList.remove('show');
-            }, duration);
+            }, 3000);
         }
 
         function updateStatus(text, isConnected = true) {
-            document.getElementById('statusText').textContent = text;
+            document.getElementById('statusText').innerHTML = 
+                `<i class="fas fa-circle" style="color: ${isConnected ? 'var(--success)' : 'var(--error)'}; font-size: 8px;"></i> ${text}`;
             document.getElementById('connectionText').textContent = isConnected ? 'Connected' : 'Disconnected';
             document.getElementById('statusDot').className = `status-dot ${isConnected ? '' : 'offline'}`;
             state.isConnected = isConnected;
@@ -1973,13 +2164,13 @@
             const room = document.getElementById('room').value.trim();
             
             if (!username) {
-                showToast('Please enter your name', 2000);
+                showToast('Please enter your name', 'warning');
                 document.getElementById('username').focus();
                 return;
             }
             
             if (!room) {
-                showToast('Please enter a room name', 2000);
+                showToast('Please enter a room name', 'warning');
                 document.getElementById('room').focus();
                 return;
             }
@@ -2008,7 +2199,7 @@
             }
             state.autoRefresh = setInterval(loadMessages, 3000);
             
-            showToast(`Welcome ${username}!`);
+            showToast(`Welcome ${username}!`, 'success');
         }
 
         function logout() {
@@ -2030,11 +2221,18 @@
             setTimeout(() => {
                 document.getElementById('username').focus();
             }, 100);
+            
+            showToast('Goodbye!', 'info');
         }
 
         // ================= CONNECTION TEST =================
         async function testConnection() {
             updateStatus('Testing...', true);
+            
+            const testBtn = document.getElementById('testConnectionBtn');
+            const originalHTML = testBtn.innerHTML;
+            testBtn.innerHTML = '<div class="spinner" style="border-top-color: var(--primary);"></div> Testing...';
+            testBtn.disabled = true;
             
             try {
                 const response = await fetch(
@@ -2047,15 +2245,21 @@
                 );
                 
                 if (response.ok) {
-                    showToast('✅ Connected!');
+                    const data = await response.json();
+                    showToast(`✅ Connected! Table has ${data.count || 0} rows`, 'success');
                     updateStatus('Connected', true);
                     await loadMessages();
                 } else {
                     throw new Error(`HTTP ${response.status}`);
                 }
             } catch (error) {
-                showToast('❌ Connection failed', 3000);
+                showToast('❌ Connection failed', 'error');
                 updateStatus('Disconnected', false);
+            } finally {
+                setTimeout(() => {
+                    testBtn.innerHTML = originalHTML;
+                    testBtn.disabled = false;
+                }, 1000);
             }
         }
 
