@@ -281,6 +281,11 @@
             background: var(--secondary);
         }
         
+        .delete-room-btn {
+            background: var(--error);
+            color: white;
+        }
+        
         .fullscreen-toggle-btn {
             background: var(--info);
             color: white;
@@ -721,6 +726,67 @@
             color: white;
         }
         
+        /* Delete Buttons */
+        .delete-btn {
+            margin-top: 10px;
+            padding: 10px 12px;
+            background: var(--error);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .delete-btn:active {
+            background: #c62828;
+            transform: scale(0.98);
+        }
+        
+        .delete-btn:disabled {
+            background: #ffb3b3;
+            cursor: not-allowed;
+            transform: none;
+            opacity: 0.7;
+        }
+        
+        .cleanup-btn {
+            margin-top: 8px;
+            padding: 10px 12px;
+            background: var(--warning);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .cleanup-btn:active {
+            background: #d35400;
+            transform: scale(0.98);
+        }
+        
+        .cleanup-btn:disabled {
+            background: #ffcc80;
+            cursor: not-allowed;
+            transform: none;
+            opacity: 0.7;
+        }
+        
         /* Spinner Animation */
         .spinner {
             display: inline-block;
@@ -1058,8 +1124,10 @@
             .send-btn,
             .type-btn,
             .confirm-btn,
-            .settings-btn,
-            .test-btn {
+            .delete-btn,
+            .cleanup-btn,
+            .test-btn,
+            .settings-btn {
                 min-height: 44px;
                 min-width: 44px;
             }
@@ -1133,13 +1201,13 @@
                 <i class="fas fa-bug"></i>
                 Debug Panel
             </button>
-            <button class="settings-btn cleanup" onclick="showCleanupConfirmation(); toggleSettings();">
-                <i class="fas fa-broom"></i>
-                Cleanup This Room
-            </button>
             <button class="settings-btn delete-room" onclick="showDeleteRoomConfirmation(); toggleSettings();">
                 <i class="fas fa-trash"></i>
                 Delete Room Messages
+            </button>
+            <button class="settings-btn cleanup" onclick="showCleanupConfirmation(); toggleSettings();">
+                <i class="fas fa-broom"></i>
+                Cleanup This Room
             </button>
             <button class="settings-btn delete-all" onclick="showDeleteAllConfirmation(); toggleSettings();">
                 <i class="fas fa-database"></i>
@@ -1384,12 +1452,10 @@
                 settingsPanel.style.display = 'block';
                 settingsPanel.removeAttribute('hidden');
                 settingsBtn.style.backgroundColor = 'var(--primary)';
-                settingsBtn.style.color = 'white';
             } else {
                 settingsPanel.style.display = 'none';
                 settingsPanel.setAttribute('hidden', 'true');
                 settingsBtn.style.backgroundColor = 'var(--secondary)';
-                settingsBtn.style.color = 'var(--text-primary)';
             }
         }
 
@@ -1799,7 +1865,7 @@
             
             const dialog = document.getElementById('confirmationDialog');
             dialog.classList.add('show');
-            dialog.removeAttribute('hidden');
+            dialog.setAttribute('hidden', 'false');
         }
 
         function hideConfirmation() {
@@ -1816,7 +1882,7 @@
             hideConfirmation();
         }
 
-        // ================= MESSAGING FUNCTIONS =================
+        // ================= MESSAGING FUNCTIONS - FIXED =================
         function sendMessage() {
             const input = document.getElementById('messageInput');
             const messageText = input.value.trim();
@@ -1845,10 +1911,20 @@
 
         async function sendToServer(messageText, tempId) {
             try {
+                // Fix the encoding issue
+                let encodedData;
+                try {
+                    // Try UTF-8 encoding
+                    encodedData = btoa(unescape(encodeURIComponent(messageText)));
+                } catch (e) {
+                    // Fallback to simple btoa
+                    encodedData = btoa(messageText);
+                }
+                
                 const data = {
                     room_id: state.room,
                     username: state.username,
-                    encrypted_data: btoa(unescape(encodeURIComponent(messageText))),
+                    encrypted_data: encodedData,
                     encryption_key: btoa('chat-' + Date.now()),
                     message_type: state.currentMessageType,
                     timestamp: new Date().toISOString()
@@ -1923,8 +1999,14 @@
                 content = escapeHtml(message.message);
             } else if (message.encrypted_data) {
                 try {
+                    // Try to decode the message
                     const decoded = atob(message.encrypted_data);
-                    content = escapeHtml(decodeURIComponent(escape(decoded)));
+                    try {
+                        content = escapeHtml(decodeURIComponent(escape(decoded)));
+                    } catch (e) {
+                        // If UTF-8 decoding fails, use the raw decoded string
+                        content = escapeHtml(decoded);
+                    }
                 } catch (e) {
                     content = '[Cannot decode]';
                 }
@@ -1934,12 +2016,14 @@
                 content = `<div style="font-style: italic; opacity: 0.8;"><i class="fas fa-cog"></i> ${content}</div>`;
             }
             
+            // Get timestamp - FIXED: Use timestamp field from Baserow
             let timeStr = 'Just now';
             if (message.timestamp) {
                 try {
                     const date = new Date(message.timestamp);
                     timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 } catch (e) {
+                    // If timestamp is invalid, try created_on
                     if (message.created_on) {
                         try {
                             const date = new Date(message.created_on);
@@ -2012,6 +2096,7 @@
                     return msgRoom === state.room.toLowerCase();
                 });
                 
+                // FIXED: Use timestamp field from Baserow
                 state.messages = roomMessages.map(msg => ({
                     id: msg.id,
                     username: msg.username,
@@ -2326,9 +2411,11 @@
             document.addEventListener('click', function(e) {
                 const debugPanel = document.getElementById('debugPanel');
                 const settingsPanel = document.getElementById('settingsPanel');
+                const debugBtn = document.querySelector('.settings-btn.debug');
                 const settingsBtn = document.getElementById('settingsBtn');
                 
-                if (state.debugMode && debugPanel && !debugPanel.contains(e.target)) {
+                if (state.debugMode && debugPanel && !debugPanel.contains(e.target) && 
+                    debugBtn && !debugBtn.contains(e.target)) {
                     toggleDebug();
                 }
                 
