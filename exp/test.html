@@ -1600,11 +1600,11 @@
             TABLE_ID: "778927"
         };
 
-        // ================= ENCRYPTION FUNCTIONS =================
-        class EncryptionService {
+        // ================= SIMPLIFIED ENCRYPTION FUNCTIONS =================
+        // We'll use a simpler approach that's easier to debug
+        class SimpleEncryptionService {
             constructor() {
                 this.algorithm = 'AES-GCM';
-                this.keyLength = 256;
             }
 
             async deriveKey(password, salt) {
@@ -1627,7 +1627,7 @@
                         hash: 'SHA-256'
                     },
                     keyMaterial,
-                    { name: this.algorithm, length: this.keyLength },
+                    { name: this.algorithm, length: 256 },
                     false,
                     ['encrypt', 'decrypt']
                 );
@@ -1651,13 +1651,16 @@
                         encoder.encode(text)
                     );
 
+                    // Combine salt + iv + encrypted data
                     const encryptedArray = new Uint8Array(encryptedContent);
-                    const result = new Uint8Array(salt.length + iv.length + encryptedArray.length);
-                    result.set(salt);
-                    result.set(iv, salt.length);
-                    result.set(encryptedArray, salt.length + iv.length);
+                    const combined = new Uint8Array(salt.length + iv.length + encryptedArray.length);
+                    combined.set(salt);
+                    combined.set(iv, salt.length);
+                    combined.set(encryptedArray, salt.length + iv.length);
 
-                    return 'ENCRYPTED:' + btoa(String.fromCharCode.apply(null, result));
+                    // Convert to base64 and add prefix
+                    const base64 = btoa(String.fromCharCode.apply(null, combined));
+                    return 'ENCRYPTED:' + base64;
                 } catch (error) {
                     console.error('Encryption failed:', error);
                     throw error;
@@ -1670,12 +1673,14 @@
                 }
                 
                 try {
-                    const encryptedData = encryptedText.substring(10); // Remove "ENCRYPTED:" prefix
-                    const encryptedBytes = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
+                    // Remove prefix and decode from base64
+                    const base64Data = encryptedText.substring(10); // Remove "ENCRYPTED:"
+                    const combined = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
                     
-                    const salt = encryptedBytes.slice(0, 16);
-                    const iv = encryptedBytes.slice(16, 28);
-                    const encryptedContent = encryptedBytes.slice(28);
+                    // Extract salt, iv, and encrypted data
+                    const salt = combined.slice(0, 16);
+                    const iv = combined.slice(16, 28); // 12 bytes for IV
+                    const encryptedData = combined.slice(28);
                     
                     const key = await this.deriveKey(password, salt);
                     
@@ -1685,18 +1690,17 @@
                             iv: iv
                         },
                         key,
-                        encryptedContent
+                        encryptedData
                     );
 
                     return new TextDecoder().decode(decryptedContent);
                 } catch (error) {
                     console.error('Decryption failed:', error);
-                    throw new Error('Failed to decrypt message. Incorrect password or corrupted data.');
+                    return '[Encrypted message - decryption failed]';
                 }
             }
 
             createPasswordHash(password) {
-                // Simple hash for password display verification
                 if (!password) return '';
                 let hash = 0;
                 for (let i = 0; i < password.length; i++) {
@@ -1730,7 +1734,7 @@
             keyboardVisible: false,
             viewportHeight: window.innerHeight,
             viewportWidth: window.innerWidth,
-            encryptionService: new EncryptionService(),
+            encryptionService: new SimpleEncryptionService(),
             roomHistory: [],
             isPasswordProtected: false
         };
@@ -1775,7 +1779,6 @@
                 const roomKey = `chat_room_${room.toLowerCase()}`;
                 const roomHash = state.encryptionService.createPasswordHash(password);
                 
-                // Store password securely using localStorage
                 localStorage.setItem(roomKey, JSON.stringify({
                     password: btoa(password),
                     hash: roomHash,
@@ -1824,13 +1827,10 @@
                 const historyKey = 'chat_room_history';
                 const roomLower = room.toLowerCase();
                 
-                // Get existing history
                 let history = JSON.parse(localStorage.getItem(historyKey) || '[]');
                 
-                // Remove existing entry for this room
                 history = history.filter(item => item.room !== roomLower);
                 
-                // Add new entry at the beginning
                 history.unshift({
                     room: roomLower,
                     displayName: room,
@@ -1838,10 +1838,8 @@
                     timestamp: Date.now()
                 });
                 
-                // Keep only last 10 rooms
                 history = history.slice(0, 10);
                 
-                // Save back to localStorage
                 localStorage.setItem(historyKey, JSON.stringify(history));
                 
                 state.roomHistory = history;
@@ -1947,7 +1945,6 @@
                 updatePasswordIndicator();
                 showToast('Password updated successfully', 2000);
                 
-                // Reload messages with new password
                 setTimeout(() => {
                     loadMessages();
                 }, 500);
@@ -1979,30 +1976,43 @@
             }
         }
 
-        // ================= MESSAGE ENCRYPTION =================
-        async function encryptMessageContent(content, type) {
+        // ================= MESSAGE PROCESSING =================
+        async function processMessageForDisplay(message) {
             try {
-                if (type === 'encrypted' && state.roomPassword) {
-                    const encrypted = await state.encryptionService.encrypt(content, state.roomPassword);
-                    return encrypted;
+                // Get raw content from Baserow
+                let rawContent = '';
+                if (message.encrypted_data) {
+                    // Decode from base64 first
+                    const base64Decoded = atob(message.encrypted_data);
+                    rawContent = decodeURIComponent(escape(base64Decoded));
+                } else {
+                    rawContent = message.content || '[No content]';
                 }
-                return content;
-            } catch (error) {
-                console.error('Failed to encrypt message:', error);
-                throw error;
-            }
-        }
-
-        async function decryptMessageContent(content, type) {
-            try {
-                if (type === 'encrypted' && state.roomPassword && content.startsWith('ENCRYPTED:')) {
-                    const decrypted = await state.encryptionService.decrypt(content, state.roomPassword);
-                    return decrypted;
+                
+                // If it's an encrypted message and we have password, decrypt it
+                if (message.message_type === 'encrypted' && state.roomPassword) {
+                    console.log('Attempting to decrypt message:', rawContent.substring(0, 50) + '...');
+                    
+                    if (rawContent.startsWith('ENCRYPTED:')) {
+                        const decrypted = await state.encryptionService.decrypt(rawContent, state.roomPassword);
+                        console.log('Decryption successful:', decrypted);
+                        return {
+                            content: decrypted,
+                            isDecrypted: true
+                        };
+                    }
                 }
-                return content;
+                
+                return {
+                    content: rawContent,
+                    isDecrypted: false
+                };
             } catch (error) {
-                console.error('Failed to decrypt message:', error);
-                return `🔒 [Encrypted message - wrong password?]`;
+                console.error('Error processing message:', error);
+                return {
+                    content: '[Error processing message]',
+                    isDecrypted: false
+                };
             }
         }
 
@@ -2012,11 +2022,9 @@
             
             const messageInput = document.getElementById('messageInput');
             
-            // Store original viewport height
             state.viewportHeight = window.innerHeight;
             state.viewportWidth = window.innerWidth;
             
-            // Handle viewport changes (keyboard show/hide)
             let visualViewport = window.visualViewport;
             
             if (visualViewport) {
@@ -2024,28 +2032,23 @@
                 visualViewport.addEventListener('scroll', handleViewportScroll);
             }
             
-            // Handle focus/blur events
             messageInput.addEventListener('focus', handleInputFocus);
             messageInput.addEventListener('blur', handleInputBlur);
             
-            // Handle window resize (orientation change)
             window.addEventListener('resize', handleWindowResize);
             
-            // Prevent default behavior on touch events
             document.addEventListener('touchstart', function(e) {
                 if (e.target === messageInput || e.target.closest('.input-area')) {
                     e.stopPropagation();
                 }
             }, { passive: true });
             
-            // Scroll to bottom when input is focused
             messageInput.addEventListener('focus', function() {
                 setTimeout(() => {
                     scrollMessagesToBottom();
                 }, 300);
             });
             
-            // Handle iOS form submission
             messageInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     if (state.isMobile) {
@@ -2065,7 +2068,6 @@
             const messagesContainer = document.getElementById('messagesContainer');
             const inputArea = document.getElementById('inputArea');
             
-            // Calculate keyboard height
             const keyboardHeight = state.viewportHeight - visualViewport.height;
             const isKeyboardVisible = keyboardHeight > 100;
             
@@ -2073,24 +2075,18 @@
                 state.keyboardVisible = isKeyboardVisible;
                 
                 if (isKeyboardVisible) {
-                    // Keyboard opened
                     document.body.classList.add('keyboard-open');
-                    
-                    // Adjust messages container padding
                     messagesContainer.style.paddingBottom = (keyboardHeight + 100) + 'px';
                     
-                    // Scroll to bottom
                     setTimeout(() => {
                         scrollMessagesToBottom();
                     }, 100);
                 } else {
-                    // Keyboard closed
                     document.body.classList.remove('keyboard-open');
                     messagesContainer.style.paddingBottom = '80px';
                 }
             }
             
-            // Adjust input area position (always visible at bottom)
             inputArea.style.bottom = '0';
         }
         
@@ -2100,7 +2096,6 @@
             const visualViewport = window.visualViewport;
             if (!visualViewport) return;
             
-            // Keep input area visible when scrolling
             const inputArea = document.getElementById('inputArea');
             inputArea.style.transform = 'none';
         }
@@ -2108,26 +2103,21 @@
         function handleInputFocus() {
             if (!state.isMobile) return;
             
-            // Force show keyboard on iOS
             setTimeout(() => {
                 document.getElementById('messageInput').focus();
             }, 100);
         }
         
         function handleInputBlur() {
-            // Input stays visible, no need to hide it
-            // Just ensure it's at the bottom
             const inputArea = document.getElementById('inputArea');
             inputArea.style.bottom = '0';
             inputArea.style.transform = 'none';
         }
         
         function handleWindowResize() {
-            // Update viewport dimensions
             state.viewportHeight = window.innerHeight;
             state.viewportWidth = window.innerWidth;
             
-            // Reset keyboard state on orientation change
             state.keyboardVisible = false;
             document.body.classList.remove('keyboard-open');
             
@@ -2150,7 +2140,6 @@
             const headerFullscreenBtn = document.getElementById('headerFullscreenBtn');
             
             if (!document.fullscreenElement) {
-                // Enter fullscreen
                 if (document.documentElement.requestFullscreen) {
                     document.documentElement.requestFullscreen();
                 } else if (document.documentElement.webkitRequestFullscreen) {
@@ -2162,7 +2151,6 @@
                 }
                 state.isFullscreen = true;
             } else {
-                // Exit fullscreen
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
                 } else if (document.webkitExitFullscreen) {
@@ -2212,7 +2200,6 @@
 
         // ================= MESSAGE TYPE FUNCTIONS =================
         function setMessageType(type) {
-            // Don't allow encrypted if no password
             if (type === 'encrypted' && !state.roomPassword) {
                 showToast('Set a room password first to use encrypted messages', 3000);
                 return;
@@ -2220,13 +2207,11 @@
             
             state.currentMessageType = type;
             
-            // Update UI
             document.querySelectorAll('.type-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             document.querySelector(`.type-btn[data-type="${type}"]`).classList.add('active');
             
-            // Update placeholder based on type
             const messageInput = document.getElementById('messageInput');
             switch(type) {
                 case 'text':
@@ -2240,12 +2225,10 @@
                     break;
             }
             
-            // Update debug info
             document.getElementById('debugMessageType').textContent = type.charAt(0).toUpperCase() + type.slice(1);
             
             showToast(`Message type set to: ${type}`);
             
-            // Focus back on input
             setTimeout(() => {
                 messageInput.focus();
             }, 100);
@@ -2269,7 +2252,7 @@
             }
         }
 
-        async function formatMessageContent(content, type) {
+        async function formatMessageContent(content, type, isDecrypted) {
             switch(type) {
                 case 'system':
                     return `
@@ -2278,28 +2261,18 @@
                         </div>
                     `;
                 case 'encrypted':
-                    try {
-                        if (content.startsWith('ENCRYPTED:')) {
-                            const decrypted = await decryptMessageContent(content, type);
-                            return `
-                                ${escapeHtml(decrypted)}
-                                <div class="message-encrypted-indicator">
-                                    🔐 End-to-end encrypted
-                                </div>
-                            `;
-                        } else {
-                            return `
-                                ${escapeHtml(content)}
-                                <div class="message-encrypted-indicator">
-                                    🔐 End-to-end encrypted
-                                </div>
-                            `;
-                        }
-                    } catch (error) {
+                    if (isDecrypted) {
                         return `
-                            🔒 [Encrypted message - decryption failed]
+                            ${escapeHtml(content)}
                             <div class="message-encrypted-indicator">
-                                ❌ Decryption failed
+                                🔐 End-to-end encrypted
+                            </div>
+                        `;
+                    } else {
+                        return `
+                            ${escapeHtml(content)}
+                            <div class="message-encrypted-indicator">
+                                🔒 Encrypted message (password required)
                             </div>
                         `;
                     }
@@ -2328,11 +2301,8 @@
         }
 
         function setupKeyboardShortcuts() {
-            // Global keyboard shortcuts
             document.addEventListener('keydown', function(e) {
-                // Don't trigger shortcuts when user is typing in inputs
                 if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') {
-                    // Allow Ctrl+Enter to send message even when typing
                     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                         e.preventDefault();
                         if (document.getElementById('chatScreen').classList.contains('active')) {
@@ -2342,43 +2312,36 @@
                     return;
                 }
                 
-                // Debug panel toggle: Ctrl+D
                 if (e.ctrlKey && e.key === 'd') {
                     e.preventDefault();
                     toggleDebug();
                 }
                 
-                // Focus message input: /
                 if (e.key === '/' && document.getElementById('chatScreen').classList.contains('active')) {
                     e.preventDefault();
                     document.getElementById('messageInput').focus();
                     showToast('Message input focused');
                 }
                 
-                // Logout: Escape
                 if (e.key === 'Escape' && document.getElementById('chatScreen').classList.contains('active')) {
                     e.preventDefault();
                     logout();
                 }
                 
-                // Fullscreen: F11
                 if (e.key === 'F11') {
                     e.preventDefault();
                     toggleFullscreen();
                 }
                 
-                // Show keyboard hints: Ctrl+Shift+/
                 if (e.ctrlKey && e.shiftKey && e.key === '/') {
                     e.preventDefault();
                     showKeyboardHint();
                 }
                 
-                // Hide keyboard hints: Escape
                 if (e.key === 'Escape' && document.getElementById('keyboardHint').classList.contains('show')) {
                     hideKeyboardHint();
                 }
                 
-                // Message type shortcuts: 1-3
                 if (e.key >= '1' && e.key <= '3' && document.getElementById('chatScreen').classList.contains('active')) {
                     const types = ['text', 'system', 'encrypted'];
                     const index = parseInt(e.key) - 1;
@@ -2389,7 +2352,6 @@
                 }
             });
             
-            // Login screen shortcuts
             document.getElementById('username').addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -2418,16 +2380,13 @@
                 }
             });
             
-            // Chat screen shortcuts
             const messageInput = document.getElementById('messageInput');
             messageInput.addEventListener('keydown', function(e) {
-                // Send message: Ctrl+Enter or Cmd+Enter
                 if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                     e.preventDefault();
                     sendMessage();
                 }
                 
-                // Clear message: Escape
                 if (e.key === 'Escape' && this.value.trim()) {
                     e.preventDefault();
                     this.value = '';
@@ -2436,10 +2395,8 @@
                 }
             });
             
-            // Messages container navigation
             const messagesContainer = document.getElementById('messagesContainer');
             messagesContainer.addEventListener('keydown', function(e) {
-                // Navigate messages with arrow keys
                 if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
                     e.preventDefault();
                     const messages = Array.from(this.querySelectorAll('.message'));
@@ -2462,7 +2419,6 @@
                     }
                 }
                 
-                // Jump to input: Tab when at last message
                 if (e.key === 'Tab' && !e.shiftKey) {
                     const messages = Array.from(this.querySelectorAll('.message'));
                     const lastMessage = messages[messages.length - 1];
@@ -2474,7 +2430,6 @@
                 }
             });
             
-            // Trap focus in modals
             document.addEventListener('focus', function(e) {
                 const debugPanel = document.getElementById('debugPanel');
                 const confirmationDialog = document.getElementById('confirmationDialog');
@@ -2546,20 +2501,17 @@
             document.getElementById('debugMessageType').textContent = state.currentMessageType.charAt(0).toUpperCase() + state.currentMessageType.slice(1);
             document.getElementById('debugFullscreen').textContent = state.isFullscreen ? 'Yes' : 'No';
             
-            // Update encryption status
             if (state.isPasswordProtected) {
                 document.getElementById('debugEncryption').innerHTML = '🔐 Password protected';
             } else {
                 document.getElementById('debugEncryption').innerHTML = 'No password';
             }
             
-            // Calculate room message count
             const roomMessageCount = state.messages.filter(m => 
                 m.room_id && m.room_id.toLowerCase() === state.room.toLowerCase()
             ).length;
             document.getElementById('debugRoomCount').textContent = `${roomMessageCount}/${state.maxMessagesPerRoom}`;
             
-            // Update button states
             const deleteBtn = document.getElementById('deleteAllBtn');
             const cleanupBtn = document.getElementById('cleanupBtn');
             
@@ -2659,8 +2611,6 @@
             updateStatus('Deleting all data...', true);
             
             try {
-                // First, get all message IDs from the table
-                logDebug('Fetching all messages to delete...', 'info');
                 const response = await fetch(
                     `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true`,
                     {
@@ -2687,7 +2637,6 @@
                     return;
                 }
                 
-                // Delete messages one by one
                 let deletedCount = 0;
                 let failedCount = 0;
                 
@@ -2711,7 +2660,6 @@
                             logDebug(`Failed to delete message ${message.id}: ${deleteResponse.status}`, 'error');
                         }
                         
-                        // Update status during deletion
                         updateStatus(`Deleting... ${deletedCount}/${allMessages.length}`, true);
                         
                     } catch (error) {
@@ -2720,12 +2668,10 @@
                     }
                 }
                 
-                // Clear local messages
                 state.messages = [];
                 state.displayedIds.clear();
                 displayAllMessages();
                 
-                // Show result
                 if (failedCount === 0) {
                     showToast(`✅ Successfully deleted ${deletedCount} messages`, 3000);
                     logDebug(`Successfully deleted ${deletedCount} messages`, 'success');
@@ -2745,7 +2691,6 @@
                 state.isDeleting = false;
                 updateDebugInfo();
                 
-                // Reload messages to refresh the view
                 await loadMessages();
             }
         }
@@ -2758,7 +2703,6 @@
             updateStatus(`Cleaning up room "${state.room}"...`, true);
             
             try {
-                // Get all messages from the table, ordered by newest first
                 const response = await fetch(
                     `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true`,
                     {
@@ -2775,7 +2719,6 @@
                 const data = await response.json();
                 const allMessages = data.results || [];
                 
-                // Filter messages for current room
                 const roomMessages = allMessages.filter(msg => {
                     const msgRoom = String(msg.room_id || '').toLowerCase();
                     return msgRoom === state.room.toLowerCase();
@@ -2783,16 +2726,14 @@
                 
                 logDebug(`Found ${roomMessages.length} messages in room "${state.room}"`, 'info');
                 
-                // Sort by timestamp (oldest first) to delete oldest
                 const sortedRoomMessages = [...roomMessages].sort((a, b) => {
                     const timeA = new Date(a.created_on || a.timestamp || 0).getTime();
                     const timeB = new Date(b.created_on || b.timestamp || 0).getTime();
                     return timeA - timeB;
                 });
                 
-                // Keep only the 20 most recent messages
-                const messagesToKeep = sortedRoomMessages.slice(-20); // Last 20 messages
-                const messagesToDelete = sortedRoomMessages.slice(0, -20); // All except last 20
+                const messagesToKeep = sortedRoomMessages.slice(-20);
+                const messagesToDelete = sortedRoomMessages.slice(0, -20);
                 
                 logDebug(`Will delete ${messagesToDelete.length} oldest messages in room`, 'warning');
                 
@@ -2804,7 +2745,6 @@
                     return;
                 }
                 
-                // Delete old messages
                 let deletedCount = 0;
                 let failedCount = 0;
                 
@@ -2827,7 +2767,6 @@
                             logDebug(`Failed to delete message ${message.id}: ${deleteResponse.status}`, 'error');
                         }
                         
-                        // Update status during cleanup
                         updateStatus(`Cleaning... ${deletedCount}/${messagesToDelete.length}`, true);
                         
                     } catch (error) {
@@ -2836,7 +2775,6 @@
                     }
                 }
                 
-                // Show result
                 if (failedCount === 0) {
                     showToast(`✅ Cleanup complete! Room now at 20 messages`, 3000);
                     logDebug(`Cleanup complete! Deleted ${deletedCount} old messages`, 'success');
@@ -2856,14 +2794,12 @@
                 state.isCleaning = false;
                 updateDebugInfo();
                 
-                // Reload messages to refresh the view
                 await loadMessages();
             }
         }
 
         async function autoCleanupRoomIfNeeded() {
             try {
-                // Get all messages for the current room
                 const response = await fetch(
                     `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true`,
                     {
@@ -2878,29 +2814,24 @@
                 const data = await response.json();
                 const allMessages = data.results || [];
                 
-                // Filter messages for current room
                 const roomMessages = allMessages.filter(msg => {
                     const msgRoom = String(msg.room_id || '').toLowerCase();
                     return msgRoom === state.room.toLowerCase();
                 });
                 
-                // Check if we need to cleanup (more than 20 messages in this room)
                 if (roomMessages.length > state.maxMessagesPerRoom) {
                     const excess = roomMessages.length - state.maxMessagesPerRoom;
                     
                     logDebug(`Auto-cleanup triggered for room "${state.room}": ${roomMessages.length} > ${state.maxMessagesPerRoom} (delete ${excess})`, 'warning');
                     
-                    // Sort by timestamp (oldest first) to find oldest messages
                     const sortedRoomMessages = [...roomMessages].sort((a, b) => {
                         const timeA = new Date(a.created_on || a.timestamp || 0).getTime();
                         const timeB = new Date(b.created_on || b.timestamp || 0).getTime();
                         return timeA - timeB;
                     });
                     
-                    // Get oldest messages to delete
                     const messagesToDelete = sortedRoomMessages.slice(0, excess);
                     
-                    // Delete the oldest messages
                     let deletedCount = 0;
                     for (const message of messagesToDelete) {
                         try {
@@ -2928,12 +2859,10 @@
                     if (deletedCount > 0) {
                         logDebug(`Auto-cleanup: deleted ${deletedCount} old messages from room ${state.room}`, 'success');
                         
-                        // Remove from local state if they exist
                         state.messages = state.messages.filter(msg => 
                             !messagesToDelete.some(oldMsg => oldMsg.id === msg.id)
                         );
                         
-                        // Remove from DOM
                         messagesToDelete.forEach(oldMsg => {
                             const element = document.querySelector(`[data-id="${oldMsg.id}"]`);
                             if (element) {
@@ -2941,13 +2870,11 @@
                             }
                         });
                         
-                        // Update room count in debug
                         updateDebugInfo();
                     }
                 }
                 
             } catch (error) {
-                // Silent fail for auto-cleanup
                 console.debug('Auto-cleanup check failed:', error);
             }
         }
@@ -2985,23 +2912,19 @@
                 return;
             }
             
-            // Clear container
             container.innerHTML = '';
             state.displayedIds.clear();
             
-            // Sort messages by timestamp (oldest first)
             const sortedMessages = [...state.messages].sort((a, b) => {
                 const timeA = new Date(a.timestamp || a.created_on).getTime();
                 const timeB = new Date(b.timestamp || b.created_on).getTime();
                 return timeA - timeB;
             });
             
-            // Display all messages
             for (const msg of sortedMessages) {
                 await addMessageToDOM(msg);
             }
             
-            // Scroll to bottom
             setTimeout(() => {
                 scrollMessagesToBottom();
             }, 100);
@@ -3010,7 +2933,6 @@
         }
 
         async function addMessageToDOM(message) {
-            // Skip if already displayed
             if (state.displayedIds.has(message.id)) {
                 return;
             }
@@ -3024,50 +2946,32 @@
             
             messageDiv.className = `message ${isSent ? 'sent' : 'received'} ${isEncrypted ? 'encrypted' : ''}`;
             messageDiv.dataset.id = message.id;
-            messageDiv.tabIndex = 0; // Make messages focusable
+            messageDiv.tabIndex = 0;
             messageDiv.setAttribute('role', 'article');
             
-            // Get message type badge
             const typeBadge = getMessageTypeBadge(messageType);
             const typeClass = getMessageTypeClass(messageType);
             
-            // Get timestamp
             let timeStr = 'Just now';
             if (message.timestamp || message.created_on) {
                 const date = new Date(message.timestamp || message.created_on);
                 timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             }
             
-            // Decode message from Baserow
-            let content = '';
-            try {
-                if (message.encrypted_data) {
-                    // First decode from base64
-                    const base64Decoded = atob(message.encrypted_data);
-                    content = decodeURIComponent(escape(base64Decoded));
-                    
-                    // If it's encrypted type, decrypt it
-                    if (messageType === 'encrypted' && state.roomPassword) {
-                        content = await decryptMessageContent(content, messageType);
-                    }
-                } else {
-                    content = '[No content]';
-                }
-            } catch (e) {
-                console.warn('Failed to process message:', e);
-                content = message.encrypted_data || '[Cannot decode]';
-            }
+            // Process the message content
+            const processed = await processMessageForDisplay(message);
+            const displayContent = processed.content;
+            const isDecrypted = processed.isDecrypted;
             
-            // Build message HTML
             messageDiv.innerHTML = `
                 ${!isSent ? `
                     <div class="message-sender">
                         ${escapeHtml(message.username || 'User')}
                         <span class="message-type-badge ${typeClass}">${typeBadge}</span>
-                        ${isEncrypted && content && !content.includes('[Encrypted message') ? 
-                            `<span class="decryption-status success">🔓</span>` : 
-                            isEncrypted && content.includes('[Encrypted message') ?
-                            `<span class="decryption-status failed">🔒</span>` : ''
+                        ${isEncrypted ? 
+                            `<span class="decryption-status ${isDecrypted ? 'success' : 'failed'}">
+                                ${isDecrypted ? '🔓' : '🔒'}
+                            </span>` : ''
                         }
                     </div>
                 ` : ''}
@@ -3075,19 +2979,18 @@
                     ${isSent ? `
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
                             <span class="message-type-badge ${typeClass}" style="margin: 0;">${typeBadge}</span>
-                            ${isEncrypted && content && !content.includes('[Encrypted message') ? 
-                                `<span class="decryption-status success">🔓</span>` : 
-                                isEncrypted && content.includes('[Encrypted message') ?
-                                `<span class="decryption-status failed">🔒</span>` : ''
+                            ${isEncrypted ? 
+                                `<span class="decryption-status ${isDecrypted ? 'success' : 'failed'}">
+                                    ${isDecrypted ? '🔓' : '🔒'}
+                                </span>` : ''
                             }
                         </div>
                     ` : ''}
-                    ${await formatMessageContent(content, messageType)}
+                    ${await formatMessageContent(displayContent, messageType, isDecrypted)}
                 </div>
                 <div class="message-time">${timeStr}</div>
             `;
             
-            // Add keyboard navigation
             messageDiv.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
@@ -3095,7 +2998,6 @@
                 }
             });
             
-            // Add to container
             container.appendChild(messageDiv);
             state.displayedIds.add(message.id);
             
@@ -3109,12 +3011,10 @@
             
             if (!messageText) return;
             
-            // Clear input
             input.value = '';
             input.style.height = 'auto';
             document.getElementById('sendBtn').disabled = true;
             
-            // Prepare content based on message type
             let finalContent = messageText;
             let messageType = state.currentMessageType;
             
@@ -3124,12 +3024,11 @@
                 }
             } catch (error) {
                 showToast('Failed to encrypt message: ' + error.message, 3000);
-                input.value = messageText; // Restore original text
+                input.value = messageText;
                 document.getElementById('sendBtn').disabled = false;
                 return;
             }
             
-            // Create temporary message
             const tempId = 'temp-' + Date.now();
             const tempMessage = {
                 id: tempId,
@@ -3140,16 +3039,13 @@
                 isTemp: true
             };
             
-            // Add to messages array
             state.messages.push(tempMessage);
             
-            // Display immediately
             await addMessageToDOM(tempMessage);
             updateStatus('Sending...', true);
             
             logDebug(`Sending ${messageType} message`, 'info');
             
-            // Send to Baserow
             try {
                 const data = {
                     room_id: state.room,
@@ -3181,19 +3077,16 @@
                 const result = await response.json();
                 logDebug(`Message saved to Baserow! ID: ${result.id}`, 'success');
                 
-                // Remove temp message from array
                 const tempIndex = state.messages.findIndex(m => m.id === tempId);
                 if (tempIndex !== -1) {
                     state.messages.splice(tempIndex, 1);
                 }
                 
-                // Remove from DOM
                 const tempElement = document.querySelector(`[data-id="${tempId}"]`);
                 if (tempElement) {
                     tempElement.remove();
                 }
                 
-                // Add real message with the correct Baserow ID
                 const realMessage = {
                     id: result.id,
                     username: state.username,
@@ -3207,7 +3100,6 @@
                 state.messages.push(realMessage);
                 await addMessageToDOM(realMessage);
                 
-                // Trigger auto-cleanup for this room after sending message
                 setTimeout(() => {
                     autoCleanupRoomIfNeeded();
                 }, 500);
@@ -3215,10 +3107,8 @@
                 updateStatus('Sent ✓', true);
                 showToast(`${messageType.charAt(0).toUpperCase() + messageType.slice(1)} message sent and saved`);
                 
-                // Scroll to bottom
                 scrollMessagesToBottom();
                 
-                // Input stays focused after sending
                 setTimeout(() => {
                     input.focus();
                 }, 100);
@@ -3226,7 +3116,6 @@
             } catch (error) {
                 console.error('Failed to send message:', error);
                 
-                // Mark temp message as failed
                 const tempElement = document.querySelector(`[data-id="${tempId}"]`);
                 if (tempElement) {
                     tempElement.querySelector('.message-time').textContent = 'Failed';
@@ -3261,7 +3150,6 @@
                 
                 logDebug(`Loaded ${allMessages.length} total messages from Baserow`, 'success');
                 
-                // Filter for current room (case insensitive)
                 const roomMessages = allMessages.filter(msg => {
                     const msgRoom = String(msg.room_id || '').toLowerCase();
                     return msgRoom === state.room.toLowerCase();
@@ -3269,15 +3157,11 @@
                 
                 logDebug(`Found ${roomMessages.length} messages in room "${state.room}"`, 'info');
                 
-                // Keep temp messages
                 const tempMessages = state.messages.filter(m => m.isTemp);
                 
-                // Clear and rebuild messages array
                 state.messages = [...tempMessages];
                 
-                // Add all room messages from Baserow
                 for (const msg of roomMessages) {
-                    // Check if message already exists (compare by Baserow ID)
                     const exists = state.messages.some(m => m.id === msg.id);
                     if (!exists) {
                         state.messages.push({
@@ -3292,12 +3176,10 @@
                     }
                 }
                 
-                // Update display
                 await updateMessageDisplay();
                 
                 updateStatus(`${roomMessages.length} messages in room`, true);
                 
-                // Check if auto-cleanup is needed for this room
                 autoCleanupRoomIfNeeded();
                 
             } catch (error) {
@@ -3310,29 +3192,24 @@
         async function updateMessageDisplay() {
             const container = document.getElementById('messagesContainer');
             
-            // Remove empty state if it exists
             const emptyState = container.querySelector('.empty-state');
             if (emptyState && state.messages.length > 0) {
                 emptyState.remove();
             }
             
-            // Sort messages by timestamp (oldest first)
             const sortedMessages = [...state.messages].sort((a, b) => {
                 const timeA = new Date(a.timestamp || a.created_on).getTime();
                 const timeB = new Date(b.timestamp || b.created_on).getTime();
                 return timeA - timeB;
             });
             
-            // Clear displayed IDs and container
             state.displayedIds.clear();
             container.innerHTML = '';
             
-            // Add all messages to DOM
             for (const msg of sortedMessages) {
                 await addMessageToDOM(msg);
             }
             
-            // Scroll to bottom if we're near the bottom
             const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
             if (isNearBottom) {
                 setTimeout(() => {
@@ -3348,7 +3225,6 @@
             updateStatus('Testing connection...', true);
             
             try {
-                // Test 1: Check if we can access the table
                 const response = await fetch(
                     `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true&size=1`,
                     {
@@ -3363,7 +3239,6 @@
                     showToast(`✅ Connected! Table has ${data.count || 0} rows`);
                     updateStatus('Connected', true);
                     
-                    // Reload messages
                     await loadMessages();
                 } else {
                     throw new Error(`HTTP ${response.status}`);
@@ -3405,43 +3280,34 @@
             state.displayedIds.clear();
             state.currentMessageType = 'text';
             
-            // Save password to local storage if provided
             if (password) {
                 saveRoomPassword(room, password);
             }
             
-            // Update room history
             updateRoomHistory(room, !!password);
             
-            // Switch screens
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('chatScreen').classList.add('active');
             document.getElementById('currentRoom').textContent = room;
             document.getElementById('roomTitle').textContent = `#${room}`;
             
-            // Hide room history if open
             document.getElementById('roomHistory').style.display = 'none';
             
-            // Reset message type selector
             document.querySelectorAll('.type-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             document.querySelector('.type-btn[data-type="text"]').classList.add('active');
             
-            // Update password indicator
             updatePasswordIndicator();
             
-            // Test connection first
             updateStatus('Connecting...', true);
             await testConnection();
             
-            // Start auto-refresh (every 3 seconds)
             if (state.autoRefresh) {
                 clearInterval(state.autoRefresh);
             }
             state.autoRefresh = setInterval(loadMessages, 3000);
             
-            // Focus message input
             setTimeout(() => {
                 document.getElementById('messageInput').focus();
             }, 500);
@@ -3452,13 +3318,11 @@
         }
 
         function logout() {
-            // Clear auto-refresh
             if (state.autoRefresh) {
                 clearInterval(state.autoRefresh);
                 state.autoRefresh = null;
             }
             
-            // Reset state
             state.messages = [];
             state.displayedIds.clear();
             state.currentMessageType = 'text';
@@ -3466,19 +3330,15 @@
             state.roomPassword = '';
             state.roomHash = '';
             
-            // Switch back to login
             document.getElementById('chatScreen').classList.remove('active');
             document.getElementById('loginScreen').classList.remove('hidden');
             
-            // Reset inputs
             document.getElementById('messageInput').value = '';
             document.getElementById('roomPassword').value = '';
             document.getElementById('confirmPassword').value = '';
             
-            // Hide password indicator
             document.getElementById('passwordIndicator').style.display = 'none';
             
-            // Focus on username field
             setTimeout(() => {
                 document.getElementById('username').focus();
             }, 100);
@@ -3494,19 +3354,15 @@
 
         // ================= INITIALIZATION =================
         document.addEventListener('DOMContentLoaded', function() {
-            // Setup fullscreen event listeners
             document.addEventListener('fullscreenchange', handleFullscreenChange);
             document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
             document.addEventListener('mozfullscreenchange', handleFullscreenChange);
             document.addEventListener('MSFullscreenChange', handleFullscreenChange);
             
-            // Setup mobile keyboard handling
             setupMobileKeyboardHandling();
             
-            // Setup keyboard shortcuts
             setupKeyboardShortcuts();
             
-            // Setup message input validation
             const messageInput = document.getElementById('messageInput');
             const sendBtn = document.getElementById('sendBtn');
             
@@ -3515,22 +3371,17 @@
                 sendBtn.disabled = !hasText;
                 sendBtn.setAttribute('aria-disabled', !hasText);
                 
-                // Auto-resize
                 this.style.height = 'auto';
                 this.style.height = Math.min(this.scrollHeight, 120) + 'px';
             });
             
-            // Load room history
             loadRoomHistory();
             
-            // Focus username on load
             document.getElementById('username').focus();
             
-            // Test connection on load
             document.getElementById('testStatus').textContent = 'Click "Join Room" to begin';
             
-            console.log('Secure chat app initialized with room password protection');
-            console.log('Features: End-to-end encryption, room history, password management');
+            console.log('Secure chat app initialized');
         });
     </script>
 </body>
