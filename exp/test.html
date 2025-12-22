@@ -281,14 +281,80 @@
             background: var(--secondary);
         }
         
-        .delete-room-btn {
-            background: var(--error);
-            color: white;
-        }
-        
         .fullscreen-toggle-btn {
             background: var(--info);
             color: white;
+        }
+        
+        .settings-toggle-btn {
+            background: var(--secondary);
+            color: var(--text-primary);
+        }
+        
+        /* Settings Dropdown */
+        .settings-dropdown {
+            position: absolute;
+            top: 60px;
+            right: 16px;
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            min-width: 200px;
+            z-index: 1000;
+            display: none;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        
+        .settings-dropdown.show {
+            display: block;
+        }
+        
+        .settings-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: transparent;
+            border: none;
+            width: 100%;
+            text-align: left;
+            color: var(--text-primary);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+        
+        .settings-item:hover,
+        .settings-item:active {
+            background: var(--secondary);
+        }
+        
+        .settings-item i {
+            width: 20px;
+            font-size: 16px;
+        }
+        
+        .settings-item.delete {
+            color: var(--error);
+        }
+        
+        .settings-item.cleanup {
+            color: var(--warning);
+        }
+        
+        .settings-item.delete-all {
+            color: var(--error);
+        }
+        
+        .settings-item.debug {
+            color: var(--warning);
         }
         
         /* Message Type Selector - FIXED BELOW HEADER */
@@ -616,116 +682,6 @@
             flex: 1;
         }
         
-        /* Settings Panel */
-        .settings-panel {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            background: var(--white);
-            border-radius: 12px;
-            padding: 16px;
-            max-width: 300px;
-            width: 300px;
-            display: none;
-            z-index: 1000;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-            border: 1px solid var(--border);
-            transition: background-color 0.3s ease, border-color 0.3s ease;
-        }
-        
-        .dark-mode .settings-panel {
-            background: var(--secondary);
-        }
-        
-        .settings-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .settings-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-        
-        .settings-close-btn {
-            background: none;
-            border: none;
-            color: var(--text-primary);
-            font-size: 16px;
-            cursor: pointer;
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 6px;
-            transition: all 0.2s;
-        }
-        
-        .settings-close-btn:hover {
-            background: var(--secondary);
-        }
-        
-        .settings-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .settings-btn {
-            padding: 12px 16px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            width: 100%;
-            text-align: left;
-        }
-        
-        .settings-btn:active {
-            transform: scale(0.98);
-        }
-        
-        .settings-btn.debug {
-            background: var(--warning);
-            color: white;
-        }
-        
-        .settings-btn.cleanup {
-            background: var(--warning);
-            color: white;
-        }
-        
-        .settings-btn.delete-room {
-            background: var(--error);
-            color: white;
-        }
-        
-        .settings-btn.delete-all {
-            background: var(--error);
-            color: white;
-        }
-        
-        .settings-btn.test-connection {
-            background: var(--info);
-            color: white;
-        }
-        
-        .settings-btn.export {
-            background: var(--success);
-            color: white;
-        }
-        
         /* Delete Buttons */
         .delete-btn {
             margin-top: 10px;
@@ -976,7 +932,7 @@
                 --input-height: 56px;
             }
             
-            .debug-panel, .settings-panel {
+            .debug-panel {
                 top: 60px;
                 right: 10px;
                 left: 10px;
@@ -1057,6 +1013,12 @@
                 padding: 12px;
                 font-size: 15px;
             }
+            
+            .settings-dropdown {
+                top: 56px;
+                right: 12px;
+                min-width: 180px;
+            }
         }
         
         /* Small phones */
@@ -1096,6 +1058,17 @@
                 padding: 4px 8px;
                 font-size: 10px;
             }
+            
+            .settings-dropdown {
+                top: 52px;
+                right: 10px;
+                min-width: 160px;
+            }
+            
+            .settings-item {
+                padding: 12px 14px;
+                font-size: 13px;
+            }
         }
         
         /* iPhone notch support */
@@ -1127,7 +1100,7 @@
             .delete-btn,
             .cleanup-btn,
             .test-btn,
-            .settings-btn {
+            .settings-item {
                 min-height: 44px;
                 min-width: 44px;
             }
@@ -1175,7 +1148,7 @@
             </div>
             <div class="debug-row">
                 <div class="debug-label">Connection:</div>
-                <div class="debug-value" id="debugConnection">Checking...</div>
+                <div class="debug-value" id="debugConnection">Checking...</span></div>
             </div>
             <div class="debug-row">
                 <div class="debug-label">Message Type:</div>
@@ -1185,43 +1158,46 @@
                 <div class="debug-label">Theme:</div>
                 <div class="debug-value" id="debugTheme">Light</div>
             </div>
+            
+            <button class="cleanup-btn" onclick="showCleanupConfirmation()" id="cleanupBtn" aria-label="Cleanup old messages in current room">
+                <i class="fas fa-broom"></i>
+                <span id="cleanupBtnText">Cleanup This Room</span>
+            </button>
+            
+            <button class="delete-btn" onclick="showDeleteRoomConfirmation()" id="deleteRoomBtn" aria-label="Delete all messages in current room">
+                <i class="fas fa-trash"></i>
+                <span id="deleteRoomBtnText">DELETE ROOM MESSAGES</span>
+            </button>
+            
+            <button class="delete-btn" onclick="showDeleteAllConfirmation()" id="deleteAllBtn" aria-label="Delete all messages from database">
+                <i class="fas fa-database"></i>
+                <span id="deleteAllBtnText">DELETE ALL DATA</span>
+            </button>
         </div>
     </div>
     
-    <!-- Settings Panel -->
-    <div class="settings-panel" id="settingsPanel" role="dialog" aria-labelledby="settingsPanelTitle" aria-modal="true" hidden>
-        <div class="settings-header">
-            <div class="settings-title">Settings</div>
-            <button class="settings-close-btn" onclick="toggleSettings()" aria-label="Close settings panel">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="settings-buttons">
-            <button class="settings-btn debug" onclick="toggleDebug(); toggleSettings();">
-                <i class="fas fa-bug"></i>
-                Debug Panel
-            </button>
-            <button class="settings-btn delete-room" onclick="showDeleteRoomConfirmation(); toggleSettings();">
-                <i class="fas fa-trash"></i>
-                Delete Room Messages
-            </button>
-            <button class="settings-btn cleanup" onclick="showCleanupConfirmation(); toggleSettings();">
-                <i class="fas fa-broom"></i>
-                Cleanup This Room
-            </button>
-            <button class="settings-btn delete-all" onclick="showDeleteAllConfirmation(); toggleSettings();">
-                <i class="fas fa-database"></i>
-                Delete All Data
-            </button>
-            <button class="settings-btn test-connection" onclick="testConnection(); toggleSettings();">
-                <i class="fas fa-wifi"></i>
-                Test Connection
-            </button>
-            <button class="settings-btn export" onclick="exportMessages(); toggleSettings();">
-                <i class="fas fa-download"></i>
-                Export Messages
-            </button>
-        </div>
+    <!-- Settings Dropdown -->
+    <div class="settings-dropdown" id="settingsDropdown" role="menu" aria-hidden="true">
+        <button class="settings-item" onclick="toggleTheme()" role="menuitem">
+            <i class="fas fa-moon"></i>
+            <span id="themeToggleText">Toggle Theme</span>
+        </button>
+        <button class="settings-item cleanup" onclick="showCleanupConfirmation()" role="menuitem">
+            <i class="fas fa-broom"></i>
+            <span>Cleanup Room</span>
+        </button>
+        <button class="settings-item debug" onclick="toggleDebug()" role="menuitem">
+            <i class="fas fa-bug"></i>
+            <span>Debug Panel</span>
+        </button>
+        <button class="settings-item" onclick="testConnection()" role="menuitem">
+            <i class="fas fa-wifi"></i>
+            <span>Test Connection</span>
+        </button>
+        <button class="settings-item delete-all" onclick="showDeleteAllConfirmation()" role="menuitem">
+            <i class="fas fa-database"></i>
+            <span>Delete All Data</span>
+        </button>
     </div>
     
     <!-- Confirmation Dialog -->
@@ -1303,10 +1279,7 @@
                     <button class="header-btn fullscreen-toggle-btn" onclick="toggleFullscreen()" id="fullscreenToggleBtn" aria-label="Toggle fullscreen">
                         <i class="fas fa-expand"></i>
                     </button>
-                    <button class="header-btn theme-toggle-btn" onclick="toggleTheme()" id="themeToggleBtn" aria-label="Toggle dark/light mode">
-                        <i class="fas fa-moon"></i>
-                    </button>
-                    <button class="header-btn" onclick="toggleSettings()" id="settingsBtn" aria-label="Open settings">
+                    <button class="header-btn settings-toggle-btn" onclick="toggleSettingsDropdown()" id="settingsToggleBtn" aria-label="Open settings menu">
                         <i class="fas fa-cog"></i>
                     </button>
                 </div>
@@ -1365,16 +1338,42 @@
             TABLE_ID: "778927"
         };
 
+        // ================= SECURITY UTILITIES =================
+        function encryptText(text) {
+            try {
+                // Convert text to base64 for simple encryption
+                return btoa(unescape(encodeURIComponent(text)));
+            } catch (e) {
+                console.error("Encryption error:", e);
+                return btoa(text);
+            }
+        }
+
+        function decryptText(encryptedText) {
+            try {
+                // Decrypt base64 text
+                return decodeURIComponent(escape(atob(encryptedText)));
+            } catch (e) {
+                console.error("Decryption error:", e);
+                try {
+                    return atob(encryptedText);
+                } catch (e2) {
+                    return "[Cannot decrypt]";
+                }
+            }
+        }
+
         // ================= STATE =================
         let state = {
             username: '',
             room: 'general',
+            encryptedUsername: '',
+            encryptedRoom: '',
             messages: [],
             displayedIds: new Set(),
             isConnected: false,
             autoRefresh: null,
             debugMode: false,
-            settingsMode: false,
             isDeleting: false,
             isCleaning: false,
             maxMessagesPerRoom: 20,
@@ -1383,26 +1382,72 @@
             isFullscreen: false,
             isMobile: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent),
             isDarkMode: localStorage.getItem('darkMode') === 'true' || 
-                        (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
+                        (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches),
+            settingsOpen: false
         };
+
+        // ================= SETTINGS DROPDOWN =================
+        function toggleSettingsDropdown() {
+            state.settingsOpen = !state.settingsOpen;
+            const dropdown = document.getElementById('settingsDropdown');
+            const settingsBtn = document.getElementById('settingsToggleBtn');
+            
+            if (state.settingsOpen) {
+                dropdown.classList.add('show');
+                dropdown.removeAttribute('aria-hidden');
+                settingsBtn.style.backgroundColor = 'var(--primary)';
+                settingsBtn.style.color = 'white';
+            } else {
+                dropdown.classList.remove('show');
+                dropdown.setAttribute('aria-hidden', 'true');
+                settingsBtn.style.backgroundColor = 'var(--secondary)';
+                settingsBtn.style.color = 'var(--text-primary)';
+            }
+        }
+
+        function closeSettingsDropdown() {
+            if (state.settingsOpen) {
+                state.settingsOpen = false;
+                const dropdown = document.getElementById('settingsDropdown');
+                const settingsBtn = document.getElementById('settingsToggleBtn');
+                
+                dropdown.classList.remove('show');
+                dropdown.setAttribute('aria-hidden', 'true');
+                settingsBtn.style.backgroundColor = 'var(--secondary)';
+                settingsBtn.style.color = 'var(--text-primary)';
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('settingsDropdown');
+            const settingsBtn = document.getElementById('settingsToggleBtn');
+            
+            if (state.settingsOpen && 
+                !dropdown.contains(event.target) && 
+                !settingsBtn.contains(event.target)) {
+                closeSettingsDropdown();
+            }
+        });
 
         // ================= THEME MANAGEMENT =================
         function toggleTheme() {
             state.isDarkMode = !state.isDarkMode;
             updateTheme();
             saveThemePreference();
+            closeSettingsDropdown();
             showToast(state.isDarkMode ? 'Dark mode enabled' : 'Light mode enabled', 'info');
         }
 
         function updateTheme() {
-            const themeBtn = document.getElementById('themeToggleBtn');
+            const themeBtn = document.getElementById('themeToggleText');
             if (state.isDarkMode) {
                 document.body.classList.add('dark-mode');
-                themeBtn.innerHTML = '<i class="fas fa-sun"></i>';
+                if (themeBtn) themeBtn.textContent = 'Light Mode';
                 document.getElementById('debugTheme').textContent = 'Dark';
             } else {
                 document.body.classList.remove('dark-mode');
-                themeBtn.innerHTML = '<i class="fas fa-moon"></i>';
+                if (themeBtn) themeBtn.textContent = 'Dark Mode';
                 document.getElementById('debugTheme').textContent = 'Light';
             }
         }
@@ -1425,6 +1470,8 @@
                 debugPanel.style.display = 'none';
                 debugPanel.setAttribute('hidden', 'true');
             }
+            
+            closeSettingsDropdown();
         }
 
         function updateDebugInfo() {
@@ -1437,47 +1484,21 @@
             document.getElementById('debugMessageType').textContent = state.currentMessageType.charAt(0).toUpperCase() + state.currentMessageType.slice(1);
             
             const roomMessageCount = state.messages.filter(m => 
-                m.room_id && m.room_id.toLowerCase() === state.room.toLowerCase()
+                m.encryptedRoom && decryptText(m.encryptedRoom) === state.room
             ).length;
             document.getElementById('debugRoomCount').textContent = `${roomMessageCount}/${state.maxMessagesPerRoom}`;
-            
-            // Update cleanup status
-            document.getElementById('debugCleanupStatus').textContent = `${state.maxMessagesPerRoom} per room`;
-        }
-
-        // ================= SETTINGS PANEL =================
-        function toggleSettings() {
-            state.settingsMode = !state.settingsMode;
-            const settingsPanel = document.getElementById('settingsPanel');
-            const settingsBtn = document.getElementById('settingsBtn');
-            
-            if (state.settingsMode) {
-                settingsPanel.style.display = 'block';
-                settingsPanel.removeAttribute('hidden');
-                settingsBtn.style.backgroundColor = 'var(--primary)';
-            } else {
-                settingsPanel.style.display = 'none';
-                settingsPanel.setAttribute('hidden', 'true');
-                settingsBtn.style.backgroundColor = 'var(--secondary)';
-            }
         }
 
         // ================= FULLSCREEN =================
         function toggleFullscreen() {
-            const fullscreenBtn = document.getElementById('fullscreenToggleBtn');
-            
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
                     console.log('Fullscreen error:', err);
                     showToast('Failed to enter fullscreen', 'error');
                 });
-                fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
-                fullscreenBtn.style.backgroundColor = 'var(--success)';
                 showToast('Fullscreen enabled', 'success');
             } else {
                 document.exitFullscreen();
-                fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
-                fullscreenBtn.style.backgroundColor = 'var(--info)';
                 showToast('Fullscreen disabled', 'info');
             }
         }
@@ -1499,17 +1520,33 @@
             }
         }
 
-        // ================= DELETE FUNCTIONS =================
+        // ================= DELETE FUNCTIONS WITH SPINNERS =================
         async function deleteAllData() {
             if (state.isDeleting || state.isCleaning) return;
             
             state.isDeleting = true;
             updateButtonStates();
+            closeSettingsDropdown();
+            
+            // Show loading state in button
+            const deleteAllBtn = document.getElementById('deleteAllBtn');
+            if (deleteAllBtn) {
+                deleteAllBtn.innerHTML = '<div class="spinner"></div> Deleting...';
+                deleteAllBtn.disabled = true;
+            }
+            
+            // Update confirmation button if still open
+            const confirmBtn = document.getElementById('confirmActionBtn');
+            if (confirmBtn) {
+                confirmBtn.innerHTML = '<div class="spinner"></div> Deleting...';
+                confirmBtn.disabled = true;
+            }
             
             showToast('Deleting all data...', 'info');
             updateStatus('Deleting all data...', true);
             
             try {
+                // Get all messages from the table
                 const response = await fetch(
                     `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true`,
                     {
@@ -1531,6 +1568,7 @@
                     return;
                 }
                 
+                // Delete messages one by one
                 let deletedCount = 0;
                 const totalMessages = allMessages.length;
                 
@@ -1548,6 +1586,7 @@
                         
                         if (deleteResponse.ok) {
                             deletedCount++;
+                            // Update status during deletion
                             updateStatus(`Deleting... ${deletedCount}/${totalMessages}`, true);
                         }
                     } catch (error) {
@@ -1555,6 +1594,7 @@
                     }
                 }
                 
+                // Clear local messages
                 state.messages = [];
                 state.displayedIds.clear();
                 displayAllMessages();
@@ -1569,6 +1609,18 @@
             } finally {
                 state.isDeleting = false;
                 updateButtonStates();
+                
+                // Restore button text after a short delay
+                setTimeout(() => {
+                    if (deleteAllBtn) {
+                        deleteAllBtn.innerHTML = '<i class="fas fa-database"></i> DELETE ALL DATA';
+                        deleteAllBtn.disabled = false;
+                    }
+                    if (confirmBtn) {
+                        confirmBtn.innerHTML = '<i class="fas fa-trash"></i> Delete All';
+                        confirmBtn.disabled = false;
+                    }
+                }, 500);
             }
         }
 
@@ -1578,10 +1630,26 @@
             state.isDeleting = true;
             updateButtonStates();
             
+            // Show loading state in buttons
+            const deleteRoomBtn = document.getElementById('deleteRoomBtn');
+            
+            if (deleteRoomBtn) {
+                deleteRoomBtn.innerHTML = '<div class="spinner"></div> Deleting...';
+                deleteRoomBtn.disabled = true;
+            }
+            
+            // Update confirmation button if still open
+            const confirmBtn = document.getElementById('confirmActionBtn');
+            if (confirmBtn) {
+                confirmBtn.innerHTML = '<div class="spinner"></div> Deleting...';
+                confirmBtn.disabled = true;
+            }
+            
             showToast(`Deleting messages in room "${state.room}"...`, 'info');
             updateStatus(`Deleting room messages...`, true);
             
             try {
+                // Get all messages from the table
                 const response = await fetch(
                     `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true`,
                     {
@@ -1598,9 +1666,14 @@
                 const data = await response.json();
                 const allMessages = data.results || [];
                 
+                // Filter messages for current room (decrypt room_id to check)
                 const roomMessages = allMessages.filter(msg => {
-                    const msgRoom = String(msg.room_id || '').toLowerCase();
-                    return msgRoom === state.room.toLowerCase();
+                    try {
+                        const msgRoom = msg.room_id ? decryptText(msg.room_id) : '';
+                        return msgRoom === state.room;
+                    } catch (e) {
+                        return false;
+                    }
                 });
                 
                 if (roomMessages.length === 0) {
@@ -1608,6 +1681,7 @@
                     return;
                 }
                 
+                // Delete messages one by one
                 let deletedCount = 0;
                 const totalMessages = roomMessages.length;
                 
@@ -1625,6 +1699,7 @@
                         
                         if (deleteResponse.ok) {
                             deletedCount++;
+                            // Update status during deletion
                             updateStatus(`Deleting... ${deletedCount}/${totalMessages}`, true);
                         }
                     } catch (error) {
@@ -1632,9 +1707,14 @@
                     }
                 }
                 
-                state.messages = state.messages.filter(m => 
-                    !m.room_id || m.room_id.toLowerCase() !== state.room.toLowerCase()
-                );
+                // Clear local messages for this room
+                state.messages = state.messages.filter(m => {
+                    try {
+                        return m.encryptedRoom && decryptText(m.encryptedRoom) !== state.room;
+                    } catch (e) {
+                        return true;
+                    }
+                });
                 
                 displayAllMessages();
                 
@@ -1648,20 +1728,48 @@
             } finally {
                 state.isDeleting = false;
                 updateButtonStates();
+                
+                // Restore button text after a short delay
+                setTimeout(() => {
+                    if (deleteRoomBtn) {
+                        deleteRoomBtn.innerHTML = '<i class="fas fa-trash"></i> DELETE ROOM MESSAGES';
+                        deleteRoomBtn.disabled = false;
+                    }
+                    if (confirmBtn) {
+                        confirmBtn.innerHTML = '<i class="fas fa-trash"></i> Delete Room';
+                        confirmBtn.disabled = false;
+                    }
+                }, 500);
             }
         }
 
-        // ================= CLEANUP FUNCTIONS =================
+        // ================= CLEANUP FUNCTIONS WITH SPINNERS =================
         async function cleanupCurrentRoom() {
             if (state.isDeleting || state.isCleaning) return;
             
             state.isCleaning = true;
             updateButtonStates();
+            closeSettingsDropdown();
+            
+            // Show loading state in button
+            const cleanupBtn = document.getElementById('cleanupBtn');
+            if (cleanupBtn) {
+                cleanupBtn.innerHTML = '<div class="spinner"></div> Cleaning...';
+                cleanupBtn.disabled = true;
+            }
+            
+            // Update confirmation button if still open
+            const confirmBtn = document.getElementById('confirmActionBtn');
+            if (confirmBtn) {
+                confirmBtn.innerHTML = '<div class="spinner"></div> Cleaning...';
+                confirmBtn.disabled = true;
+            }
             
             showToast(`Cleaning up room "${state.room}"...`, 'info');
             updateStatus(`Cleaning up room...`, true);
             
             try {
+                // Get all messages from the table
                 const response = await fetch(
                     `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true`,
                     {
@@ -1678,17 +1786,24 @@
                 const data = await response.json();
                 const allMessages = data.results || [];
                 
+                // Filter messages for current room (decrypt room_id to check)
                 const roomMessages = allMessages.filter(msg => {
-                    const msgRoom = String(msg.room_id || '').toLowerCase();
-                    return msgRoom === state.room.toLowerCase();
+                    try {
+                        const msgRoom = msg.room_id ? decryptText(msg.room_id) : '';
+                        return msgRoom === state.room;
+                    } catch (e) {
+                        return false;
+                    }
                 });
                 
+                // Sort by timestamp (oldest first)
                 const sortedRoomMessages = [...roomMessages].sort((a, b) => {
-                    const timeA = new Date(a.timestamp || a.created_on || 0).getTime();
-                    const timeB = new Date(b.timestamp || b.created_on || 0).getTime();
+                    const timeA = new Date(a.created_on || a.timestamp || 0).getTime();
+                    const timeB = new Date(b.created_on || b.timestamp || 0).getTime();
                     return timeA - timeB;
                 });
                 
+                // Keep only the 20 most recent messages
                 const messagesToKeep = sortedRoomMessages.slice(-20);
                 const messagesToDelete = sortedRoomMessages.slice(0, -20);
                 
@@ -1697,6 +1812,7 @@
                     return;
                 }
                 
+                // Delete old messages
                 let deletedCount = 0;
                 const totalToDelete = messagesToDelete.length;
                 
@@ -1714,6 +1830,7 @@
                         
                         if (deleteResponse.ok) {
                             deletedCount++;
+                            // Update status during cleanup
                             updateStatus(`Cleaning... ${deletedCount}/${totalToDelete}`, true);
                         }
                     } catch (error) {
@@ -1721,10 +1838,12 @@
                     }
                 }
                 
+                // Update local messages
                 state.messages = state.messages.filter(m => 
                     !messagesToDelete.some(toDelete => toDelete.id === m.id)
                 );
                 
+                // Reload messages to refresh display
                 await loadMessages();
                 
                 showToast(`✅ Cleanup complete! Deleted ${deletedCount} old messages`, 'success');
@@ -1737,6 +1856,18 @@
             } finally {
                 state.isCleaning = false;
                 updateButtonStates();
+                
+                // Restore button text after a short delay
+                setTimeout(() => {
+                    if (cleanupBtn) {
+                        cleanupBtn.innerHTML = '<i class="fas fa-broom"></i> Cleanup This Room';
+                        cleanupBtn.disabled = false;
+                    }
+                    if (confirmBtn) {
+                        confirmBtn.innerHTML = '<i class="fas fa-broom"></i> Cleanup Now';
+                        confirmBtn.disabled = false;
+                    }
+                }, 500);
             }
         }
 
@@ -1757,16 +1888,20 @@
                 const allMessages = data.results || [];
                 
                 const roomMessages = allMessages.filter(msg => {
-                    const msgRoom = String(msg.room_id || '').toLowerCase();
-                    return msgRoom === state.room.toLowerCase();
+                    try {
+                        const msgRoom = msg.room_id ? decryptText(msg.room_id) : '';
+                        return msgRoom === state.room;
+                    } catch (e) {
+                        return false;
+                    }
                 });
                 
                 if (roomMessages.length > state.maxMessagesPerRoom) {
                     const excess = roomMessages.length - state.maxMessagesPerRoom;
                     
                     const sortedRoomMessages = [...roomMessages].sort((a, b) => {
-                        const timeA = new Date(a.timestamp || a.created_on || 0).getTime();
-                        const timeB = new Date(b.timestamp || b.created_on || 0).getTime();
+                        const timeA = new Date(a.created_on || a.timestamp || 0).getTime();
+                        const timeB = new Date(b.created_on || b.timestamp || 0).getTime();
                         return timeA - timeB;
                     });
                     
@@ -1796,18 +1931,22 @@
 
         // ================= BUTTON STATE MANAGEMENT =================
         function updateButtonStates() {
+            const deleteAllBtn = document.getElementById('deleteAllBtn');
+            const deleteRoomBtn = document.getElementById('deleteRoomBtn');
+            const cleanupBtn = document.getElementById('cleanupBtn');
+            
             const isBusy = state.isDeleting || state.isCleaning;
-            const deleteAllBtn = document.querySelector('.settings-btn.delete-all');
-            const deleteRoomBtn = document.querySelector('.settings-btn.delete-room');
-            const cleanupBtn = document.querySelector('.settings-btn.cleanup');
             
-            if (deleteAllBtn) deleteAllBtn.disabled = isBusy;
-            if (deleteRoomBtn) deleteRoomBtn.disabled = isBusy;
-            if (cleanupBtn) cleanupBtn.disabled = isBusy;
+            if (deleteAllBtn) {
+                deleteAllBtn.disabled = isBusy;
+            }
             
-            if (isBusy) {
-                const text = state.isDeleting ? 'Deleting...' : 'Cleaning...';
-                document.getElementById('statusText').innerHTML = `<i class="fas fa-spinner fa-spin" style="color: var(--warning); font-size: 8px;"></i> ${text}`;
+            if (deleteRoomBtn) {
+                deleteRoomBtn.disabled = isBusy;
+            }
+            
+            if (cleanupBtn) {
+                cleanupBtn.disabled = isBusy;
             }
             
             updateDebugInfo();
@@ -1835,6 +1974,8 @@
             const dialog = document.getElementById('confirmationDialog');
             dialog.classList.add('show');
             dialog.removeAttribute('hidden');
+            
+            closeSettingsDropdown();
         }
 
         function showDeleteRoomConfirmation() {
@@ -1898,17 +2039,19 @@
             hideConfirmation();
         }
 
-        // ================= MESSAGING FUNCTIONS =================
+        // ================= SIMPLIFIED MESSAGING =================
         function sendMessage() {
             const input = document.getElementById('messageInput');
             const messageText = input.value.trim();
             
             if (!messageText) return;
             
+            // Clear input immediately
             input.value = '';
             input.style.height = 'auto';
             document.getElementById('sendBtn').disabled = true;
             
+            // Create and show temp message
             const tempId = 'temp-' + Date.now();
             const tempMessage = {
                 id: tempId,
@@ -1922,27 +2065,19 @@
             addMessageToDOM(tempMessage);
             updateStatus('Sending...', true);
             
+            // Send to server
             sendToServer(messageText, tempId);
         }
 
         async function sendToServer(messageText, tempId) {
             try {
-                const now = new Date().toISOString();
-                
-                // Prepare data for Baserow - ensure field names match your table
                 const data = {
-                    "room_id": state.room,
-                    "username": state.username,
-                    "message_type": state.currentMessageType,
-                    "timestamp": now,
-                    // Include encrypted fields if your table has them
-                    "encrypted_data": btoa(unescape(encodeURIComponent(messageText))),
-                    "encryption_key": `chat-key-${Date.now()}`,
-                    // Also include plain message field for compatibility
-                    "message": messageText
+                    room_id: state.encryptedRoom, // Use encrypted room ID
+                    username: state.encryptedUsername, // Use encrypted username
+                    encrypted_data: encryptText(messageText),
+                    encryption_key: encryptText('chat-' + Date.now()),
+                    message_type: state.currentMessageType
                 };
-                
-                console.log('Sending to Baserow:', data);
                 
                 const response = await fetch(
                     `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true`,
@@ -1956,140 +2091,108 @@
                     }
                 );
                 
-                console.log('Response status:', response.status);
-                
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Error response:', errorText);
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                    throw new Error(`HTTP ${response.status}`);
                 }
                 
                 const result = await response.json();
-                console.log('Success response:', result);
                 
-                // Update the temporary message with real ID
+                // Update temp message with real ID
                 const tempElement = document.querySelector(`[data-id="${tempId}"]`);
                 if (tempElement) {
                     tempElement.dataset.id = result.id;
-                    const timeElement = tempElement.querySelector('.message-time');
-                    if (timeElement) {
-                        const date = new Date(now);
-                        timeElement.textContent = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                    }
                 }
                 
-                // Add real message to state
+                // Add to state
                 const realMessage = {
                     id: result.id,
-                    username: state.username,
-                    room_id: state.room,
+                    encryptedUsername: state.encryptedUsername,
+                    encryptedRoom: state.encryptedRoom,
+                    encrypted_data: data.encrypted_data,
                     message_type: state.currentMessageType,
-                    timestamp: now,
-                    message: messageText,
-                    encrypted_data: data.encrypted_data
+                    timestamp: result.created_on || new Date().toISOString(),
+                    created_on: result.created_on || new Date().toISOString()
                 };
                 
-                // Remove temp message from state if present and add real one
-                state.messages = state.messages.filter(m => m.id !== tempId);
                 state.messages.push(realMessage);
-                
                 updateStatus('Sent ✓', true);
-                showToast('Message sent successfully', 'success');
                 
-                // Auto cleanup if needed
+                // Auto-cleanup
                 setTimeout(() => {
                     autoCleanupRoomIfNeeded();
                 }, 500);
                 
-                // Refocus input
+                // Focus back on input
                 setTimeout(() => {
                     document.getElementById('messageInput').focus();
                 }, 50);
                 
             } catch (error) {
                 console.error('Failed to send message:', error);
-                
-                // Mark the temporary message as failed
                 const tempElement = document.querySelector(`[data-id="${tempId}"]`);
                 if (tempElement) {
-                    const timeElement = tempElement.querySelector('.message-time');
-                    if (timeElement) {
-                        timeElement.textContent = 'Failed';
-                        timeElement.style.color = 'var(--error)';
-                    }
+                    tempElement.querySelector('.message-time').textContent = 'Failed';
                 }
-                
                 updateStatus('Failed to send', false);
-                
-                // Show user-friendly error message
-                let errorMsg = 'Failed to send message';
-                if (error.message.includes('400')) {
-                    errorMsg = 'Server rejected the message. Check field names in Baserow table.';
-                } else if (error.message.includes('401')) {
-                    errorMsg = 'Authentication failed. Check your API token.';
-                } else if (error.message.includes('403')) {
-                    errorMsg = 'Permission denied. Check your API permissions.';
-                } else if (error.message.includes('404')) {
-                    errorMsg = 'Table not found. Check your table ID.';
-                } else {
-                    errorMsg = error.message;
-                }
-                
-                showToast(`❌ ${errorMsg}`, 'error');
-                
-                // Remove the temporary message after showing error
-                setTimeout(() => {
-                    const failedMessage = document.querySelector(`[data-id="${tempId}"]`);
-                    if (failedMessage) {
-                        failedMessage.remove();
-                    }
-                    displayAllMessages();
-                }, 3000);
+                showToast('Failed to send: ' + error.message, 'error');
             }
         }
 
-        // ================= MESSAGE DISPLAY =================
+        // ================= SIMPLE MESSAGE DISPLAY =================
         function addMessageToDOM(message) {
             const container = document.getElementById('messagesContainer');
             
-            const isSent = message.username === state.username;
+            // Determine if message is sent by current user
+            let isSent = false;
+            let displayUsername = 'User';
+            
+            if (message.isTemp) {
+                // Temporary message (just sent)
+                isSent = message.username === state.username;
+                displayUsername = message.username || 'User';
+            } else if (message.encryptedUsername) {
+                // Real message from server - decrypt username
+                try {
+                    const decryptedUsername = decryptText(message.encryptedUsername);
+                    isSent = decryptedUsername === state.username;
+                    displayUsername = decryptedUsername;
+                } catch (e) {
+                    displayUsername = '[Encrypted]';
+                }
+            }
+            
             const messageType = message.message_type || 'text';
             const typeBadge = messageType === 'text' ? 'Text' : 'System';
             const typeClass = messageType === 'text' ? 'message-type-text' : 'message-type-system';
             
-            // Get message content
+            // Get content
             let content = '';
             if (message.message) {
                 content = escapeHtml(message.message);
             } else if (message.encrypted_data) {
                 try {
-                    content = escapeHtml(atob(message.encrypted_data));
+                    const decrypted = decryptText(message.encrypted_data);
+                    content = escapeHtml(decrypted);
                 } catch (e) {
-                    content = '[Encoded message]';
+                    content = '[Cannot decrypt]';
                 }
             }
             
-            // Style system messages
+            // Format system messages
             if (messageType === 'system') {
                 content = `<div style="font-style: italic; opacity: 0.8;"><i class="fas fa-cog"></i> ${content}</div>`;
             }
             
-            // Get timestamp
+            // Time
             let timeStr = 'Just now';
             if (message.timestamp) {
-                try {
-                    const date = new Date(message.timestamp);
-                    timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                } catch (e) {
-                    timeStr = 'Just now';
+                const messageDate = new Date(message.timestamp);
+                if (!isNaN(messageDate.getTime())) {
+                    timeStr = messageDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 }
             }
             
-            // Add sending indicator for temp messages
-            if (message.isTemp) {
-                timeStr = 'Sending...';
-            }
-            
+            // Create message element
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
             messageDiv.dataset.id = message.id || 'temp-' + Date.now();
@@ -2097,7 +2200,7 @@
             messageDiv.innerHTML = `
                 ${!isSent ? `
                     <div class="message-sender">
-                        ${escapeHtml(message.username || 'User')}
+                        ${escapeHtml(displayUsername)}
                         <span class="message-type-badge ${typeClass}">${typeBadge}</span>
                     </div>
                 ` : ''}
@@ -2112,7 +2215,7 @@
             
             container.appendChild(messageDiv);
             
-            // Remove empty state if present
+            // Remove empty state if it exists
             const emptyState = container.querySelector('.empty-state');
             if (emptyState) {
                 emptyState.remove();
@@ -2124,11 +2227,9 @@
             }, 10);
         }
 
-        // ================= LOAD MESSAGES =================
+        // ================= LOAD MESSAGES SIMPLIFIED =================
         async function loadMessages() {
             try {
-                updateStatus('Loading messages...', true);
-                
                 const response = await fetch(
                     `https://api.baserow.io/api/database/rows/table/${BASEROW_CONFIG.TABLE_ID}/?user_field_names=true`,
                     {
@@ -2138,44 +2239,40 @@
                     }
                 );
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
+                if (!response.ok) return;
                 
                 const data = await response.json();
                 const allMessages = data.results || [];
                 
-                // Filter messages for current room
+                // Filter for current room (decrypt room_id to check)
                 const roomMessages = allMessages.filter(msg => {
-                    const msgRoom = String(msg.room_id || '').toLowerCase();
-                    return msgRoom === state.room.toLowerCase();
+                    try {
+                        if (!msg.room_id) return false;
+                        const decryptedRoom = decryptText(msg.room_id);
+                        return decryptedRoom === state.room;
+                    } catch (e) {
+                        return false;
+                    }
                 });
                 
-                // Update state with messages from Baserow
+                // Update state
                 state.messages = roomMessages.map(msg => ({
                     id: msg.id,
-                    username: msg.username,
-                    room_id: msg.room_id,
-                    message_type: msg.message_type || 'text',
-                    timestamp: msg.timestamp || msg.created_on,
-                    message: msg.message, // Direct message field
+                    encryptedUsername: msg.username,
+                    encryptedRoom: msg.room_id,
                     encrypted_data: msg.encrypted_data,
-                    created_on: msg.created_on
+                    message_type: msg.message_type || 'text',
+                    created_on: msg.created_on,
+                    timestamp: msg.created_on
                 }));
                 
-                // Display all messages
+                // Display messages
                 displayAllMessages();
-                
-                // Update status
-                state.isConnected = true;
                 updateStatus(`${roomMessages.length} messages in room`, true);
-                showToast(`Loaded ${roomMessages.length} messages`, 'success');
                 
             } catch (error) {
                 console.error('Failed to load messages:', error);
-                state.isConnected = false;
-                updateStatus('Failed to load messages', false);
-                showToast('Failed to load messages', 'error');
+                updateStatus('Connection lost', false);
             }
         }
 
@@ -2188,21 +2285,17 @@
                 return;
             }
             
-            // Sort messages by timestamp
+            // Sort by time
             const sortedMessages = [...state.messages].sort((a, b) => {
-                const timeA = new Date(a.timestamp || a.created_on || 0).getTime();
-                const timeB = new Date(b.timestamp || b.created_on || 0).getTime();
+                const timeA = new Date(a.timestamp || a.created_on).getTime();
+                const timeB = new Date(b.timestamp || b.created_on).getTime();
                 return timeA - timeB;
             });
             
-            // Display each message
+            // Add all messages
             sortedMessages.forEach(msg => {
-                // Skip temp messages that failed
-                if (!msg.id || msg.id.toString().startsWith('temp-')) return;
                 addMessageToDOM(msg);
             });
-            
-            updateDebugInfo();
         }
 
         function showEmptyState() {
@@ -2216,44 +2309,8 @@
             `;
         }
 
-        // ================= EXPORT MESSAGES =================
-        function exportMessages() {
-            if (state.messages.length === 0) {
-                showToast('No messages to export', 'info');
-                return;
-            }
-            
-            const exportData = {
-                room: state.room,
-                exportedAt: new Date().toISOString(),
-                totalMessages: state.messages.length,
-                messages: state.messages.map(msg => ({
-                    id: msg.id,
-                    username: msg.username,
-                    message_type: msg.message_type,
-                    timestamp: msg.timestamp,
-                    content: msg.message || (msg.encrypted_data ? atob(msg.encrypted_data) : '')
-                }))
-            };
-            
-            const dataStr = JSON.stringify(exportData, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            
-            const url = URL.createObjectURL(dataBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `chat-export-${state.room}-${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            
-            showToast(`Exported ${state.messages.length} messages`, 'success');
-        }
-
         // ================= UTILITY FUNCTIONS =================
         function escapeHtml(text) {
-            if (!text) return '';
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
@@ -2290,11 +2347,11 @@
         }
 
         function updateStatus(text, isConnected = true) {
-            state.isConnected = isConnected;
             document.getElementById('statusText').innerHTML = 
                 `<i class="fas fa-circle" style="color: ${isConnected ? 'var(--success)' : 'var(--error)'}; font-size: 8px;"></i> ${text}`;
             document.getElementById('connectionText').textContent = isConnected ? 'Connected' : 'Disconnected';
             document.getElementById('statusDot').className = `status-dot ${isConnected ? '' : 'offline'}`;
+            state.isConnected = isConnected;
             updateDebugInfo();
         }
 
@@ -2310,11 +2367,10 @@
             const messageInput = document.getElementById('messageInput');
             messageInput.placeholder = type === 'text' ? 'Type a message...' : 'System message...';
             
+            // Focus input
             setTimeout(() => {
                 messageInput.focus();
             }, 50);
-            
-            updateDebugInfo();
         }
 
         // ================= APP FLOW =================
@@ -2336,32 +2392,31 @@
             
             state.username = username;
             state.room = room.toLowerCase();
+            state.encryptedUsername = encryptText(username);
+            state.encryptedRoom = encryptText(room.toLowerCase());
             state.messages = [];
             
+            // Switch screens
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('chatScreen').classList.add('active');
             document.getElementById('currentRoom').textContent = room;
             document.getElementById('roomTitle').textContent = `#${room}`;
             
+            // Focus input
             setTimeout(() => {
                 document.getElementById('messageInput').focus();
             }, 100);
             
-            // Test connection first
-            await testConnection();
+            // Load messages
+            await loadMessages();
             
-            if (state.isConnected) {
-                await loadMessages();
-                
-                if (state.autoRefresh) {
-                    clearInterval(state.autoRefresh);
-                }
-                state.autoRefresh = setInterval(loadMessages, 3000);
-                
-                showToast(`Welcome ${username}! Joined room ${room}`, 'success');
-            } else {
-                showToast('Cannot connect to server. Please check your connection.', 'error');
+            // Start auto-refresh
+            if (state.autoRefresh) {
+                clearInterval(state.autoRefresh);
             }
+            state.autoRefresh = setInterval(loadMessages, 3000);
+            
+            showToast(`Welcome ${username}!`, 'success');
         }
 
         function logout() {
@@ -2371,19 +2426,16 @@
             }
             
             state.messages = [];
-            state.debugMode = false;
-            state.settingsMode = false;
+            closeSettingsDropdown();
             
-            document.getElementById('debugPanel').style.display = 'none';
-            document.getElementById('debugPanel').setAttribute('hidden', 'true');
-            document.getElementById('settingsPanel').style.display = 'none';
-            document.getElementById('settingsPanel').setAttribute('hidden', 'true');
-            
+            // Switch back to login
             document.getElementById('chatScreen').classList.remove('active');
             document.getElementById('loginScreen').classList.remove('hidden');
             
+            // Reset input
             document.getElementById('messageInput').value = '';
             
+            // Focus on username
             setTimeout(() => {
                 document.getElementById('username').focus();
             }, 100);
@@ -2393,7 +2445,7 @@
 
         // ================= CONNECTION TEST =================
         async function testConnection() {
-            updateStatus('Testing connection...', true);
+            updateStatus('Testing...', true);
             
             const testBtn = document.getElementById('testConnectionBtn');
             const originalHTML = testBtn.innerHTML;
@@ -2412,43 +2464,44 @@
                 
                 if (response.ok) {
                     const data = await response.json();
-                    state.isConnected = true;
                     showToast(`✅ Connected! Table has ${data.count || 0} rows`, 'success');
                     updateStatus('Connected', true);
+                    await loadMessages();
                 } else {
                     throw new Error(`HTTP ${response.status}`);
                 }
             } catch (error) {
-                console.error('Connection test failed:', error);
-                state.isConnected = false;
-                showToast('❌ Connection failed: ' + error.message, 'error');
+                showToast('❌ Connection failed', 'error');
                 updateStatus('Disconnected', false);
             } finally {
                 setTimeout(() => {
                     testBtn.innerHTML = originalHTML;
                     testBtn.disabled = false;
                 }, 1000);
-                updateDebugInfo();
             }
+            
+            closeSettingsDropdown();
         }
 
         // ================= INITIALIZATION =================
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize theme
             updateTheme();
             
+            // Setup message input
             const messageInput = document.getElementById('messageInput');
             const sendBtn = document.getElementById('sendBtn');
             
-            // Auto-resize textarea
             messageInput.addEventListener('input', function() {
                 const hasText = this.value.trim().length > 0;
                 sendBtn.disabled = !hasText;
                 
+                // Auto-resize
                 this.style.height = 'auto';
                 this.style.height = Math.min(this.scrollHeight, 120) + 'px';
             });
             
-            // Send on Enter (but allow Shift+Enter for new line)
+            // Enter to send
             messageInput.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -2460,7 +2513,7 @@
             
             // Keyboard shortcuts
             document.addEventListener('keydown', function(e) {
-                // Enter to focus input (if not already focused)
+                // Focus input with Enter when no text selected
                 if (e.key === 'Enter' && 
                     !document.activeElement.matches('textarea, input') &&
                     document.getElementById('chatScreen').classList.contains('active')) {
@@ -2485,42 +2538,21 @@
                     toggleFullscreen();
                 }
                 
-                // Ctrl+T for theme toggle
+                // Ctrl+T for theme
                 if (e.ctrlKey && e.key === 't' && document.getElementById('chatScreen').classList.contains('active')) {
                     e.preventDefault();
                     toggleTheme();
                 }
                 
-                // Ctrl+, for settings
-                if (e.ctrlKey && e.key === ',' && document.getElementById('chatScreen').classList.contains('active')) {
+                // Ctrl+S for settings
+                if (e.ctrlKey && e.key === 's' && document.getElementById('chatScreen').classList.contains('active')) {
                     e.preventDefault();
-                    toggleSettings();
+                    toggleSettingsDropdown();
                 }
             });
             
-            // Close panels when clicking outside
-            document.addEventListener('click', function(e) {
-                const debugPanel = document.getElementById('debugPanel');
-                const settingsPanel = document.getElementById('settingsPanel');
-                const debugBtn = document.querySelector('.settings-btn.debug');
-                const settingsBtn = document.getElementById('settingsBtn');
-                
-                if (state.debugMode && debugPanel && !debugPanel.contains(e.target) && 
-                    debugBtn && !debugBtn.contains(e.target)) {
-                    toggleDebug();
-                }
-                
-                if (state.settingsMode && settingsPanel && !settingsPanel.contains(e.target) && 
-                    settingsBtn && !settingsBtn.contains(e.target)) {
-                    toggleSettings();
-                }
-            });
-            
-            // Focus on username field on load
+            // Focus username on load
             document.getElementById('username').focus();
-            
-            // Update connection status
-            updateStatus('Ready to connect', false);
         });
     </script>
 </body>
