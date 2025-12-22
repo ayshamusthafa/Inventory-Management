@@ -24,6 +24,8 @@
             --password-bg: #f8f9fa;
             --password-border: #4caf50;
             --password-text: #2e7d32;
+            --encrypted-bg: #f0f7ff;
+            --encrypted-border: #0084ff;
         }
         
         * {
@@ -419,6 +421,15 @@
             border-bottom-left-radius: 4px;
         }
         
+        .message.encrypted .message-content {
+            background: var(--encrypted-bg);
+            border: 1px solid var(--encrypted-border);
+        }
+        
+        .message.sent.encrypted .message-content {
+            background: var(--sent-bg);
+        }
+        
         .message-sender {
             font-size: 13px;
             color: var(--text-secondary);
@@ -470,7 +481,7 @@
         }
         
         .message-encrypted-indicator {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--password-text);
             margin-top: 8px;
             padding-top: 8px;
@@ -478,6 +489,7 @@
             display: flex;
             align-items: center;
             gap: 4px;
+            opacity: 0.8;
         }
         
         /* Input Area - ALWAYS VISIBLE */
@@ -596,6 +608,11 @@
         
         .type-btn:hover:not(.active) {
             background: rgba(255,255,255,0.5);
+        }
+        
+        .type-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         
         /* Status Bar */
@@ -1289,6 +1306,25 @@
         .history-clear-btn:hover {
             background: var(--secondary);
         }
+        
+        /* Decryption status */
+        .decryption-status {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            margin-left: 4px;
+        }
+        
+        .decryption-status.success {
+            background: rgba(76, 175, 80, 0.2);
+            color: #2e7d32;
+        }
+        
+        .decryption-status.failed {
+            background: rgba(244, 67, 54, 0.2);
+            color: #d32f2f;
+        }
     </style>
 </head>
 <body>
@@ -1573,9 +1609,11 @@
 
             async deriveKey(password, salt) {
                 const encoder = new TextEncoder();
+                const passwordBuffer = encoder.encode(password);
+                
                 const keyMaterial = await window.crypto.subtle.importKey(
                     'raw',
-                    encoder.encode(password),
+                    passwordBuffer,
                     { name: 'PBKDF2' },
                     false,
                     ['deriveKey']
@@ -1619,22 +1657,25 @@
                     result.set(iv, salt.length);
                     result.set(encryptedArray, salt.length + iv.length);
 
-                    return btoa(String.fromCharCode.apply(null, result));
+                    return 'ENCRYPTED:' + btoa(String.fromCharCode.apply(null, result));
                 } catch (error) {
                     console.error('Encryption failed:', error);
                     throw error;
                 }
             }
 
-            async decrypt(encryptedBase64, password) {
-                if (!password) return encryptedBase64;
+            async decrypt(encryptedText, password) {
+                if (!password || !encryptedText.startsWith('ENCRYPTED:')) {
+                    return encryptedText;
+                }
                 
                 try {
-                    const encryptedData = Uint8Array.from(atob(encryptedBase64), c => c.charCodeAt(0));
+                    const encryptedData = encryptedText.substring(10); // Remove "ENCRYPTED:" prefix
+                    const encryptedBytes = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
                     
-                    const salt = encryptedData.slice(0, 16);
-                    const iv = encryptedData.slice(16, 28);
-                    const encryptedContent = encryptedData.slice(28);
+                    const salt = encryptedBytes.slice(0, 16);
+                    const iv = encryptedBytes.slice(16, 28);
+                    const encryptedContent = encryptedBytes.slice(28);
                     
                     const key = await this.deriveKey(password, salt);
                     
@@ -1650,7 +1691,7 @@
                     return new TextDecoder().decode(decryptedContent);
                 } catch (error) {
                     console.error('Decryption failed:', error);
-                    throw new Error('Failed to decrypt message. Incorrect password?');
+                    throw new Error('Failed to decrypt message. Incorrect password or corrupted data.');
                 }
             }
 
@@ -1736,7 +1777,7 @@
                 
                 // Store password securely using localStorage
                 localStorage.setItem(roomKey, JSON.stringify({
-                    password: btoa(password), // Simple base64 encoding (not truly secure but works for demo)
+                    password: btoa(password),
                     hash: roomHash,
                     timestamp: Date.now()
                 }));
@@ -1943,7 +1984,7 @@
             try {
                 if (type === 'encrypted' && state.roomPassword) {
                     const encrypted = await state.encryptionService.encrypt(content, state.roomPassword);
-                    return `🔐 ENCRYPTED:${encrypted}`;
+                    return encrypted;
                 }
                 return content;
             } catch (error) {
@@ -1954,12 +1995,9 @@
 
         async function decryptMessageContent(content, type) {
             try {
-                if (type === 'encrypted' && state.roomPassword) {
-                    if (content.startsWith('🔐 ENCRYPTED:')) {
-                        const encrypted = content.substring(13);
-                        const decrypted = await state.encryptionService.decrypt(encrypted, state.roomPassword);
-                        return decrypted;
-                    }
+                if (type === 'encrypted' && state.roomPassword && content.startsWith('ENCRYPTED:')) {
+                    const decrypted = await state.encryptionService.decrypt(content, state.roomPassword);
+                    return decrypted;
                 }
                 return content;
             } catch (error) {
@@ -2241,16 +2279,25 @@
                     `;
                 case 'encrypted':
                     try {
-                        const decrypted = await decryptMessageContent(content, type);
-                        return `
-                            ${escapeHtml(decrypted)}
-                            <div class="message-encrypted-indicator">
-                                🔐 End-to-end encrypted
-                            </div>
-                        `;
+                        if (content.startsWith('ENCRYPTED:')) {
+                            const decrypted = await decryptMessageContent(content, type);
+                            return `
+                                ${escapeHtml(decrypted)}
+                                <div class="message-encrypted-indicator">
+                                    🔐 End-to-end encrypted
+                                </div>
+                            `;
+                        } else {
+                            return `
+                                ${escapeHtml(content)}
+                                <div class="message-encrypted-indicator">
+                                    🔐 End-to-end encrypted
+                                </div>
+                            `;
+                        }
                     } catch (error) {
                         return `
-                            🔒 [Encrypted message]
+                            🔒 [Encrypted message - decryption failed]
                             <div class="message-encrypted-indicator">
                                 ❌ Decryption failed
                             </div>
@@ -2972,13 +3019,15 @@
             const messageDiv = document.createElement('div');
             
             const isSent = message.username === state.username;
-            messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+            const messageType = message.message_type || 'text';
+            const isEncrypted = messageType === 'encrypted';
+            
+            messageDiv.className = `message ${isSent ? 'sent' : 'received'} ${isEncrypted ? 'encrypted' : ''}`;
             messageDiv.dataset.id = message.id;
             messageDiv.tabIndex = 0; // Make messages focusable
             messageDiv.setAttribute('role', 'article');
             
-            // Get message type
-            const messageType = message.message_type || 'text';
+            // Get message type badge
             const typeBadge = getMessageTypeBadge(messageType);
             const typeClass = getMessageTypeClass(messageType);
             
@@ -2989,27 +3038,24 @@
                 timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             }
             
-            // Decode message
+            // Decode message from Baserow
             let content = '';
             try {
                 if (message.encrypted_data) {
-                    const decoded = atob(message.encrypted_data);
-                    content = decodeURIComponent(escape(decoded));
+                    // First decode from base64
+                    const base64Decoded = atob(message.encrypted_data);
+                    content = decodeURIComponent(escape(base64Decoded));
+                    
+                    // If it's encrypted type, decrypt it
+                    if (messageType === 'encrypted' && state.roomPassword) {
+                        content = await decryptMessageContent(content, messageType);
+                    }
                 } else {
                     content = '[No content]';
                 }
             } catch (e) {
+                console.warn('Failed to process message:', e);
                 content = message.encrypted_data || '[Cannot decode]';
-                console.warn('Failed to decode message:', e);
-            }
-            
-            // Decrypt if needed
-            if (messageType === 'encrypted') {
-                try {
-                    content = await decryptMessageContent(content, messageType);
-                } catch (error) {
-                    content = '🔒 [Encrypted message - wrong password?]';
-                }
             }
             
             // Build message HTML
@@ -3018,12 +3064,22 @@
                     <div class="message-sender">
                         ${escapeHtml(message.username || 'User')}
                         <span class="message-type-badge ${typeClass}">${typeBadge}</span>
+                        ${isEncrypted && content && !content.includes('[Encrypted message') ? 
+                            `<span class="decryption-status success">🔓</span>` : 
+                            isEncrypted && content.includes('[Encrypted message') ?
+                            `<span class="decryption-status failed">🔒</span>` : ''
+                        }
                     </div>
                 ` : ''}
                 <div class="message-content">
                     ${isSent ? `
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
                             <span class="message-type-badge ${typeClass}" style="margin: 0;">${typeBadge}</span>
+                            ${isEncrypted && content && !content.includes('[Encrypted message') ? 
+                                `<span class="decryption-status success">🔓</span>` : 
+                                isEncrypted && content.includes('[Encrypted message') ?
+                                `<span class="decryption-status failed">🔒</span>` : ''
+                            }
                         </div>
                     ` : ''}
                     ${await formatMessageContent(content, messageType)}
@@ -3058,13 +3114,13 @@
             input.style.height = 'auto';
             document.getElementById('sendBtn').disabled = true;
             
-            // Encrypt content if needed
+            // Prepare content based on message type
             let finalContent = messageText;
             let messageType = state.currentMessageType;
             
             try {
-                if (messageType === 'encrypted') {
-                    finalContent = await encryptMessageContent(messageText, messageType);
+                if (messageType === 'encrypted' && state.roomPassword) {
+                    finalContent = await state.encryptionService.encrypt(messageText, state.roomPassword);
                 }
             } catch (error) {
                 showToast('Failed to encrypt message: ' + error.message, 3000);
