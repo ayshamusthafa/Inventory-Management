@@ -296,6 +296,77 @@
             color: white;
         }
         
+        .settings-toggle-btn {
+            background: var(--secondary);
+            color: var(--text-primary);
+        }
+        
+        /* Settings Dropdown */
+        .settings-dropdown {
+            position: absolute;
+            top: 60px;
+            right: 16px;
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            min-width: 200px;
+            z-index: 1000;
+            display: none;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        
+        .settings-dropdown.show {
+            display: block;
+        }
+        
+        .settings-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: transparent;
+            border: none;
+            width: 100%;
+            text-align: left;
+            color: var(--text-primary);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+        
+        .settings-item:hover,
+        .settings-item:active {
+            background: var(--secondary);
+        }
+        
+        .settings-item i {
+            width: 20px;
+            font-size: 16px;
+        }
+        
+        .settings-item.delete {
+            color: var(--error);
+        }
+        
+        .settings-item.cleanup {
+            color: var(--warning);
+        }
+        
+        .settings-item.delete-all {
+            color: var(--error);
+        }
+        
+        .settings-item.debug {
+            color: var(--warning);
+        }
+        
         /* Message Type Selector - FIXED BELOW HEADER */
         .message-type-selector {
             display: flex;
@@ -952,6 +1023,12 @@
                 padding: 12px;
                 font-size: 15px;
             }
+            
+            .settings-dropdown {
+                top: 56px;
+                right: 12px;
+                min-width: 180px;
+            }
         }
         
         /* Small phones */
@@ -991,6 +1068,17 @@
                 padding: 4px 8px;
                 font-size: 10px;
             }
+            
+            .settings-dropdown {
+                top: 52px;
+                right: 10px;
+                min-width: 160px;
+            }
+            
+            .settings-item {
+                padding: 12px 14px;
+                font-size: 13px;
+            }
         }
         
         /* iPhone notch support */
@@ -1021,7 +1109,8 @@
             .confirm-btn,
             .delete-btn,
             .cleanup-btn,
-            .test-btn {
+            .test-btn,
+            .settings-item {
                 min-height: 44px;
                 min-width: 44px;
             }
@@ -1095,6 +1184,30 @@
                 <span id="deleteAllBtnText">DELETE ALL DATA</span>
             </button>
         </div>
+    </div>
+    
+    <!-- Settings Dropdown -->
+    <div class="settings-dropdown" id="settingsDropdown" role="menu" aria-hidden="true">
+        <button class="settings-item" onclick="toggleTheme()" role="menuitem">
+            <i class="fas fa-moon"></i>
+            <span id="themeToggleText">Toggle Theme</span>
+        </button>
+        <button class="settings-item cleanup" onclick="showCleanupConfirmation()" role="menuitem">
+            <i class="fas fa-broom"></i>
+            <span>Cleanup Room</span>
+        </button>
+        <button class="settings-item debug" onclick="toggleDebug()" role="menuitem">
+            <i class="fas fa-bug"></i>
+            <span>Debug Panel</span>
+        </button>
+        <button class="settings-item" onclick="testConnection()" role="menuitem">
+            <i class="fas fa-wifi"></i>
+            <span>Test Connection</span>
+        </button>
+        <button class="settings-item delete-all" onclick="showDeleteAllConfirmation()" role="menuitem">
+            <i class="fas fa-database"></i>
+            <span>Delete All Data</span>
+        </button>
     </div>
     
     <!-- Confirmation Dialog -->
@@ -1173,17 +1286,14 @@
                     </div>
                 </div>
                 <div class="header-right">
-                    <button class="header-btn debug-toggle-btn" onclick="toggleDebug()" id="debugToggleBtn" aria-label="Toggle debug panel">
-                        <i class="fas fa-bug"></i>
+                    <button class="header-btn delete-room-btn" onclick="showDeleteRoomConfirmation()" id="deleteRoomBtnHeader" aria-label="Delete all messages in current room">
+                        <i class="fas fa-trash"></i>
                     </button>
                     <button class="header-btn fullscreen-toggle-btn" onclick="toggleFullscreen()" id="fullscreenToggleBtn" aria-label="Toggle fullscreen">
                         <i class="fas fa-expand"></i>
                     </button>
-                    <button class="header-btn theme-toggle-btn" onclick="toggleTheme()" id="themeToggleBtn" aria-label="Toggle dark/light mode">
-                        <i class="fas fa-moon"></i>
-                    </button>
-                    <button class="header-btn delete-room-btn" onclick="showDeleteRoomConfirmation()" id="deleteRoomBtnHeader" aria-label="Delete all messages in current room">
-                        <i class="fas fa-trash"></i>
+                    <button class="header-btn settings-toggle-btn" onclick="toggleSettingsDropdown()" id="settingsToggleBtn" aria-label="Open settings menu">
+                        <i class="fas fa-cog"></i>
                     </button>
                 </div>
             </div>
@@ -1258,26 +1368,72 @@
             isFullscreen: false,
             isMobile: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent),
             isDarkMode: localStorage.getItem('darkMode') === 'true' || 
-                        (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
+                        (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches),
+            settingsOpen: false
         };
+
+        // ================= SETTINGS DROPDOWN =================
+        function toggleSettingsDropdown() {
+            state.settingsOpen = !state.settingsOpen;
+            const dropdown = document.getElementById('settingsDropdown');
+            const settingsBtn = document.getElementById('settingsToggleBtn');
+            
+            if (state.settingsOpen) {
+                dropdown.classList.add('show');
+                dropdown.removeAttribute('aria-hidden');
+                settingsBtn.style.backgroundColor = 'var(--primary)';
+                settingsBtn.style.color = 'white';
+            } else {
+                dropdown.classList.remove('show');
+                dropdown.setAttribute('aria-hidden', 'true');
+                settingsBtn.style.backgroundColor = 'var(--secondary)';
+                settingsBtn.style.color = 'var(--text-primary)';
+            }
+        }
+
+        function closeSettingsDropdown() {
+            if (state.settingsOpen) {
+                state.settingsOpen = false;
+                const dropdown = document.getElementById('settingsDropdown');
+                const settingsBtn = document.getElementById('settingsToggleBtn');
+                
+                dropdown.classList.remove('show');
+                dropdown.setAttribute('aria-hidden', 'true');
+                settingsBtn.style.backgroundColor = 'var(--secondary)';
+                settingsBtn.style.color = 'var(--text-primary)';
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('settingsDropdown');
+            const settingsBtn = document.getElementById('settingsToggleBtn');
+            
+            if (state.settingsOpen && 
+                !dropdown.contains(event.target) && 
+                !settingsBtn.contains(event.target)) {
+                closeSettingsDropdown();
+            }
+        });
 
         // ================= THEME MANAGEMENT =================
         function toggleTheme() {
             state.isDarkMode = !state.isDarkMode;
             updateTheme();
             saveThemePreference();
+            closeSettingsDropdown();
             showToast(state.isDarkMode ? 'Dark mode enabled' : 'Light mode enabled', 'info');
         }
 
         function updateTheme() {
-            const themeBtn = document.getElementById('themeToggleBtn');
+            const themeBtn = document.getElementById('themeToggleText');
             if (state.isDarkMode) {
                 document.body.classList.add('dark-mode');
-                themeBtn.innerHTML = '<i class="fas fa-sun"></i>';
+                if (themeBtn) themeBtn.textContent = 'Light Mode';
                 document.getElementById('debugTheme').textContent = 'Dark';
             } else {
                 document.body.classList.remove('dark-mode');
-                themeBtn.innerHTML = '<i class="fas fa-moon"></i>';
+                if (themeBtn) themeBtn.textContent = 'Dark Mode';
                 document.getElementById('debugTheme').textContent = 'Light';
             }
         }
@@ -1290,19 +1446,18 @@
         function toggleDebug() {
             state.debugMode = !state.debugMode;
             const debugPanel = document.getElementById('debugPanel');
-            const debugBtn = document.getElementById('debugToggleBtn');
             
             if (state.debugMode) {
                 debugPanel.style.display = 'block';
                 debugPanel.removeAttribute('hidden');
-                debugBtn.style.backgroundColor = 'var(--warning)';
                 updateDebugInfo();
                 showToast('Debug panel opened', 'info');
             } else {
                 debugPanel.style.display = 'none';
                 debugPanel.setAttribute('hidden', 'true');
-                debugBtn.style.backgroundColor = 'var(--secondary)';
             }
+            
+            closeSettingsDropdown();
         }
 
         function updateDebugInfo() {
@@ -1322,20 +1477,14 @@
 
         // ================= FULLSCREEN =================
         function toggleFullscreen() {
-            const fullscreenBtn = document.getElementById('fullscreenToggleBtn');
-            
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
                     console.log('Fullscreen error:', err);
                     showToast('Failed to enter fullscreen', 'error');
                 });
-                fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
-                fullscreenBtn.style.backgroundColor = 'var(--success)';
                 showToast('Fullscreen enabled', 'success');
             } else {
                 document.exitFullscreen();
-                fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
-                fullscreenBtn.style.backgroundColor = 'var(--info)';
                 showToast('Fullscreen disabled', 'info');
             }
         }
@@ -1363,14 +1512,14 @@
             
             state.isDeleting = true;
             updateButtonStates();
+            closeSettingsDropdown();
             
             // Show loading state in button
             const deleteAllBtn = document.getElementById('deleteAllBtn');
-            const deleteAllBtnText = document.getElementById('deleteAllBtnText');
-            const deleteAllBtnIcon = deleteAllBtn.querySelector('i');
-            deleteAllBtnText.textContent = 'Deleting...';
-            deleteAllBtn.innerHTML = '<div class="spinner"></div> Deleting...';
-            deleteAllBtn.disabled = true;
+            if (deleteAllBtn) {
+                deleteAllBtn.innerHTML = '<div class="spinner"></div> Deleting...';
+                deleteAllBtn.disabled = true;
+            }
             
             // Update confirmation button if still open
             const confirmBtn = document.getElementById('confirmActionBtn');
@@ -1449,8 +1598,10 @@
                 
                 // Restore button text after a short delay
                 setTimeout(() => {
-                    deleteAllBtn.innerHTML = '<i class="fas fa-database"></i> DELETE ALL DATA';
-                    deleteAllBtn.disabled = false;
+                    if (deleteAllBtn) {
+                        deleteAllBtn.innerHTML = '<i class="fas fa-database"></i> DELETE ALL DATA';
+                        deleteAllBtn.disabled = false;
+                    }
                     if (confirmBtn) {
                         confirmBtn.innerHTML = '<i class="fas fa-trash"></i> Delete All';
                         confirmBtn.disabled = false;
@@ -1467,16 +1618,17 @@
             
             // Show loading state in buttons
             const deleteRoomBtn = document.getElementById('deleteRoomBtn');
-            const deleteRoomBtnText = document.getElementById('deleteRoomBtnText');
-            const deleteRoomBtnIcon = deleteRoomBtn.querySelector('i');
-            deleteRoomBtnText.textContent = 'Deleting...';
-            deleteRoomBtn.innerHTML = '<div class="spinner"></div> Deleting...';
-            deleteRoomBtn.disabled = true;
+            const deleteRoomBtnHeader = document.getElementById('deleteRoomBtnHeader');
             
-            const deleteRoomHeaderBtn = document.getElementById('deleteRoomBtnHeader');
-            const deleteRoomHeaderBtnIcon = deleteRoomHeaderBtn.querySelector('i');
-            deleteRoomHeaderBtn.innerHTML = '<div class="spinner"></div>';
-            deleteRoomHeaderBtn.disabled = true;
+            if (deleteRoomBtn) {
+                deleteRoomBtn.innerHTML = '<div class="spinner"></div> Deleting...';
+                deleteRoomBtn.disabled = true;
+            }
+            
+            if (deleteRoomBtnHeader) {
+                deleteRoomBtnHeader.innerHTML = '<div class="spinner"></div>';
+                deleteRoomBtnHeader.disabled = true;
+            }
             
             // Update confirmation button if still open
             const confirmBtn = document.getElementById('confirmActionBtn');
@@ -1563,10 +1715,14 @@
                 
                 // Restore button text after a short delay
                 setTimeout(() => {
-                    deleteRoomBtn.innerHTML = '<i class="fas fa-trash"></i> DELETE ROOM MESSAGES';
-                    deleteRoomBtn.disabled = false;
-                    deleteRoomHeaderBtn.innerHTML = '<i class="fas fa-trash"></i>';
-                    deleteRoomHeaderBtn.disabled = false;
+                    if (deleteRoomBtn) {
+                        deleteRoomBtn.innerHTML = '<i class="fas fa-trash"></i> DELETE ROOM MESSAGES';
+                        deleteRoomBtn.disabled = false;
+                    }
+                    if (deleteRoomBtnHeader) {
+                        deleteRoomBtnHeader.innerHTML = '<i class="fas fa-trash"></i>';
+                        deleteRoomBtnHeader.disabled = false;
+                    }
                     if (confirmBtn) {
                         confirmBtn.innerHTML = '<i class="fas fa-trash"></i> Delete Room';
                         confirmBtn.disabled = false;
@@ -1581,14 +1737,14 @@
             
             state.isCleaning = true;
             updateButtonStates();
+            closeSettingsDropdown();
             
             // Show loading state in button
             const cleanupBtn = document.getElementById('cleanupBtn');
-            const cleanupBtnText = document.getElementById('cleanupBtnText');
-            const cleanupBtnIcon = cleanupBtn.querySelector('i');
-            cleanupBtnText.textContent = 'Cleaning...';
-            cleanupBtn.innerHTML = '<div class="spinner"></div> Cleaning...';
-            cleanupBtn.disabled = true;
+            if (cleanupBtn) {
+                cleanupBtn.innerHTML = '<div class="spinner"></div> Cleaning...';
+                cleanupBtn.disabled = true;
+            }
             
             // Update confirmation button if still open
             const confirmBtn = document.getElementById('confirmActionBtn');
@@ -1687,8 +1843,10 @@
                 
                 // Restore button text after a short delay
                 setTimeout(() => {
-                    cleanupBtn.innerHTML = '<i class="fas fa-broom"></i> Cleanup This Room';
-                    cleanupBtn.disabled = false;
+                    if (cleanupBtn) {
+                        cleanupBtn.innerHTML = '<i class="fas fa-broom"></i> Cleanup This Room';
+                        cleanupBtn.disabled = false;
+                    }
                     if (confirmBtn) {
                         confirmBtn.innerHTML = '<i class="fas fa-broom"></i> Cleanup Now';
                         confirmBtn.disabled = false;
@@ -1756,7 +1914,7 @@
             const deleteAllBtn = document.getElementById('deleteAllBtn');
             const deleteRoomBtn = document.getElementById('deleteRoomBtn');
             const cleanupBtn = document.getElementById('cleanupBtn');
-            const deleteRoomHeaderBtn = document.getElementById('deleteRoomBtnHeader');
+            const deleteRoomBtnHeader = document.getElementById('deleteRoomBtnHeader');
             
             const isBusy = state.isDeleting || state.isCleaning;
             
@@ -1772,8 +1930,8 @@
                 cleanupBtn.disabled = isBusy;
             }
             
-            if (deleteRoomHeaderBtn) {
-                deleteRoomHeaderBtn.disabled = isBusy;
+            if (deleteRoomBtnHeader) {
+                deleteRoomBtnHeader.disabled = isBusy;
             }
             
             updateDebugInfo();
@@ -1801,6 +1959,8 @@
             const dialog = document.getElementById('confirmationDialog');
             dialog.classList.add('show');
             dialog.removeAttribute('hidden');
+            
+            closeSettingsDropdown();
         }
 
         function showDeleteRoomConfirmation() {
@@ -1935,8 +2095,8 @@
                     room_id: state.room,
                     encrypted_data: data.encrypted_data,
                     message_type: state.currentMessageType,
-                    timestamp: new Date().toISOString(),
-                    created_on: new Date().toISOString()
+                    timestamp: result.created_on || new Date().toISOString(),
+                    created_on: result.created_on || new Date().toISOString()
                 };
                 
                 state.messages.push(realMessage);
@@ -1990,10 +2150,14 @@
                 content = `<div style="font-style: italic; opacity: 0.8;"><i class="fas fa-cog"></i> ${content}</div>`;
             }
             
-            // Time
-            const timeStr = message.timestamp ? 
-                new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 
-                'Just now';
+            // Time - FIXED: Use timestamp field from Baserow
+            let timeStr = 'Just now';
+            if (message.timestamp) {
+                const messageDate = new Date(message.timestamp);
+                if (!isNaN(messageDate.getTime())) {
+                    timeStr = messageDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                }
+            }
             
             // Create message element
             const messageDiv = document.createElement('div');
@@ -2061,7 +2225,7 @@
                     encrypted_data: msg.encrypted_data,
                     message_type: msg.message_type || 'text',
                     created_on: msg.created_on,
-                    timestamp: msg.created_on
+                    timestamp: msg.created_on // FIXED: Use the created_on field from Baserow
                 }));
                 
                 // Display messages
@@ -2085,8 +2249,9 @@
             
             // Sort by time
             const sortedMessages = [...state.messages].sort((a, b) => {
-                return new Date(a.timestamp || a.created_on).getTime() - 
-                       new Date(b.timestamp || b.created_on).getTime();
+                const timeA = new Date(a.timestamp || a.created_on).getTime();
+                const timeB = new Date(b.timestamp || b.created_on).getTime();
+                return timeA - timeB;
             });
             
             // Add all messages
@@ -2149,6 +2314,7 @@
             document.getElementById('connectionText').textContent = isConnected ? 'Connected' : 'Disconnected';
             document.getElementById('statusDot').className = `status-dot ${isConnected ? '' : 'offline'}`;
             state.isConnected = isConnected;
+            updateDebugInfo();
         }
 
         // ================= MESSAGE TYPE =================
@@ -2220,6 +2386,7 @@
             }
             
             state.messages = [];
+            closeSettingsDropdown();
             
             // Switch back to login
             document.getElementById('chatScreen').classList.remove('active');
@@ -2272,6 +2439,8 @@
                     testBtn.disabled = false;
                 }, 1000);
             }
+            
+            closeSettingsDropdown();
         }
 
         // ================= INITIALIZATION =================
@@ -2333,6 +2502,12 @@
                 if (e.ctrlKey && e.key === 't' && document.getElementById('chatScreen').classList.contains('active')) {
                     e.preventDefault();
                     toggleTheme();
+                }
+                
+                // Ctrl+S for settings
+                if (e.ctrlKey && e.key === 's' && document.getElementById('chatScreen').classList.contains('active')) {
+                    e.preventDefault();
+                    toggleSettingsDropdown();
                 }
             });
             
