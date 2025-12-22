@@ -281,16 +281,6 @@
             background: var(--secondary);
         }
         
-        .delete-room-btn {
-            background: var(--error);
-            color: white;
-        }
-        
-        .debug-toggle-btn {
-            background: var(--warning);
-            color: white;
-        }
-        
         .fullscreen-toggle-btn {
             background: var(--info);
             color: white;
@@ -711,6 +701,11 @@
             color: white;
         }
         
+        .settings-btn.delete-room {
+            background: var(--error);
+            color: white;
+        }
+        
         .settings-btn.delete-all {
             background: var(--error);
             color: white;
@@ -724,67 +719,6 @@
         .settings-btn.export {
             background: var(--success);
             color: white;
-        }
-        
-        /* Delete Buttons */
-        .delete-btn {
-            margin-top: 10px;
-            padding: 10px 12px;
-            background: var(--error);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .delete-btn:active {
-            background: #c62828;
-            transform: scale(0.98);
-        }
-        
-        .delete-btn:disabled {
-            background: #ffb3b3;
-            cursor: not-allowed;
-            transform: none;
-            opacity: 0.7;
-        }
-        
-        .cleanup-btn {
-            margin-top: 8px;
-            padding: 10px 12px;
-            background: var(--warning);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .cleanup-btn:active {
-            background: #d35400;
-            transform: scale(0.98);
-        }
-        
-        .cleanup-btn:disabled {
-            background: #ffcc80;
-            cursor: not-allowed;
-            transform: none;
-            opacity: 0.7;
         }
         
         /* Spinner Animation */
@@ -1124,10 +1058,8 @@
             .send-btn,
             .type-btn,
             .confirm-btn,
-            .delete-btn,
-            .cleanup-btn,
-            .test-btn,
-            .settings-btn {
+            .settings-btn,
+            .test-btn {
                 min-height: 44px;
                 min-width: 44px;
             }
@@ -1204,6 +1136,10 @@
             <button class="settings-btn cleanup" onclick="showCleanupConfirmation(); toggleSettings();">
                 <i class="fas fa-broom"></i>
                 Cleanup This Room
+            </button>
+            <button class="settings-btn delete-room" onclick="showDeleteRoomConfirmation(); toggleSettings();">
+                <i class="fas fa-trash"></i>
+                Delete Room Messages
             </button>
             <button class="settings-btn delete-all" onclick="showDeleteAllConfirmation(); toggleSettings();">
                 <i class="fas fa-database"></i>
@@ -1301,9 +1237,6 @@
                     </button>
                     <button class="header-btn theme-toggle-btn" onclick="toggleTheme()" id="themeToggleBtn" aria-label="Toggle dark/light mode">
                         <i class="fas fa-moon"></i>
-                    </button>
-                    <button class="header-btn delete-room-btn" onclick="showDeleteRoomConfirmation()" id="deleteRoomBtnHeader" aria-label="Delete all messages in current room">
-                        <i class="fas fa-trash"></i>
                     </button>
                     <button class="header-btn" onclick="toggleSettings()" id="settingsBtn" aria-label="Open settings">
                         <i class="fas fa-cog"></i>
@@ -1414,18 +1347,15 @@
         function toggleDebug() {
             state.debugMode = !state.debugMode;
             const debugPanel = document.getElementById('debugPanel');
-            const debugBtn = document.querySelector('.settings-btn.debug');
             
             if (state.debugMode) {
                 debugPanel.style.display = 'block';
                 debugPanel.removeAttribute('hidden');
-                if (debugBtn) debugBtn.style.backgroundColor = 'var(--warning)';
                 updateDebugInfo();
                 showToast('Debug panel opened', 'info');
             } else {
                 debugPanel.style.display = 'none';
                 debugPanel.setAttribute('hidden', 'true');
-                if (debugBtn) debugBtn.style.backgroundColor = 'var(--warning)';
             }
         }
 
@@ -1454,10 +1384,12 @@
                 settingsPanel.style.display = 'block';
                 settingsPanel.removeAttribute('hidden');
                 settingsBtn.style.backgroundColor = 'var(--primary)';
+                settingsBtn.style.color = 'white';
             } else {
                 settingsPanel.style.display = 'none';
                 settingsPanel.setAttribute('hidden', 'true');
                 settingsBtn.style.backgroundColor = 'var(--secondary)';
+                settingsBtn.style.color = 'var(--text-primary)';
             }
         }
 
@@ -1577,10 +1509,6 @@
             state.isDeleting = true;
             updateButtonStates();
             
-            const deleteRoomHeaderBtn = document.getElementById('deleteRoomBtnHeader');
-            deleteRoomHeaderBtn.innerHTML = '<div class="spinner"></div>';
-            deleteRoomHeaderBtn.disabled = true;
-            
             showToast(`Deleting messages in room "${state.room}"...`, 'info');
             updateStatus(`Deleting room messages...`, true);
             
@@ -1651,11 +1579,6 @@
             } finally {
                 state.isDeleting = false;
                 updateButtonStates();
-                
-                setTimeout(() => {
-                    deleteRoomHeaderBtn.innerHTML = '<i class="fas fa-trash"></i>';
-                    deleteRoomHeaderBtn.disabled = false;
-                }, 500);
             }
         }
 
@@ -1804,13 +1727,7 @@
 
         // ================= BUTTON STATE MANAGEMENT =================
         function updateButtonStates() {
-            const deleteRoomHeaderBtn = document.getElementById('deleteRoomBtnHeader');
             const isBusy = state.isDeleting || state.isCleaning;
-            
-            if (deleteRoomHeaderBtn) {
-                deleteRoomHeaderBtn.disabled = isBusy;
-            }
-            
             updateDebugInfo();
         }
 
@@ -1934,7 +1851,7 @@
                     encrypted_data: btoa(unescape(encodeURIComponent(messageText))),
                     encryption_key: btoa('chat-' + Date.now()),
                     message_type: state.currentMessageType,
-                    timestamp: new Date().toISOString() // Include timestamp when sending
+                    timestamp: new Date().toISOString()
                 };
                 
                 const response = await fetch(
@@ -1966,7 +1883,7 @@
                     room_id: state.room,
                     encrypted_data: data.encrypted_data,
                     message_type: state.currentMessageType,
-                    timestamp: data.timestamp, // Use the timestamp we sent
+                    timestamp: data.timestamp,
                     created_on: new Date().toISOString()
                 };
                 
@@ -2017,14 +1934,12 @@
                 content = `<div style="font-style: italic; opacity: 0.8;"><i class="fas fa-cog"></i> ${content}</div>`;
             }
             
-            // Get timestamp - FIXED: Use timestamp field from Baserow
             let timeStr = 'Just now';
             if (message.timestamp) {
                 try {
                     const date = new Date(message.timestamp);
                     timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 } catch (e) {
-                    // If timestamp is invalid, try created_on
                     if (message.created_on) {
                         try {
                             const date = new Date(message.created_on);
@@ -2097,14 +2012,13 @@
                     return msgRoom === state.room.toLowerCase();
                 });
                 
-                // FIXED: Use timestamp field from Baserow
                 state.messages = roomMessages.map(msg => ({
                     id: msg.id,
                     username: msg.username,
                     room_id: msg.room_id,
                     encrypted_data: msg.encrypted_data,
                     message_type: msg.message_type || 'text',
-                    timestamp: msg.timestamp || msg.created_on, // Use timestamp if available
+                    timestamp: msg.timestamp || msg.created_on,
                     created_on: msg.created_on
                 }));
                 
@@ -2412,11 +2326,9 @@
             document.addEventListener('click', function(e) {
                 const debugPanel = document.getElementById('debugPanel');
                 const settingsPanel = document.getElementById('settingsPanel');
-                const debugBtn = document.querySelector('.settings-btn.debug');
                 const settingsBtn = document.getElementById('settingsBtn');
                 
-                if (state.debugMode && debugPanel && !debugPanel.contains(e.target) && 
-                    debugBtn && !debugBtn.contains(e.target)) {
+                if (state.debugMode && debugPanel && !debugPanel.contains(e.target)) {
                     toggleDebug();
                 }
                 
